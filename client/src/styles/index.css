@@ -1,7 +1,36 @@
+@import "tailwindcss";
+
 :root {
-  color-scheme: light dark;
+  --bg: #f2efeb;
+  --ink: #1a1a1a;
+  --accent: #5c62d6;
+  --ink-faint: rgba(26, 26, 26, 0.08);
+  --card-bg: #ffffff;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #f2efeb;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
 }
+
+::selection {
+  background: #5c62d6;
+  color: #ffffff;
+}
+
+.font-serif {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-sans {
+  font-family: 'Inter', sans-serif;
+}
+

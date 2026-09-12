@@ -50,6 +50,16 @@ npm install
 npm run dev              # starts Vite on http://localhost:5173
 ```
 
+## GitHub Pages Deployment
+
+The frontend can be automatically built and hosted on GitHub Pages:
+
+1. In your GitHub repository, go to **Settings** > **Pages**.
+2. Under **Build and deployment** > **Source**, select **GitHub Actions**.
+3. Push to `main` (or trigger the **Deploy to GitHub Pages** action under the **Actions** tab).
+4. The workflow in `.github/workflows/deploy-pages.yml` will automatically build the client and deploy it to `https://<username>.github.io/<repo-name>/`.
+
+
 ### Database
 
 The PostGIS schema lives at [`server/src/db/schema.sql`](./server/src/db/schema.sql).

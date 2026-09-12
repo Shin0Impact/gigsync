@@ -8,7 +8,7 @@ import { env } from '../config/env';
 export function initSocketServer(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, {
     cors: {
-      origin: env.clientOrigin,
+      origin: true,
       credentials: true,
     },
   });
