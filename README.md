@@ -87,3 +87,8 @@ See Section 8 of the design doc. Rough shape:
 2. **Week 2** — Profile + R2 upload endpoints, Event CRUD/applications
 3. **Week 3** — Socket.IO messaging, PostGIS proximity + emergency search
 4. **Week 4** — Testing, CI/CD, deploy, demo prep
+
+
+
+
+this edit made by Kareem
