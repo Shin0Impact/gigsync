@@ -75,7 +75,7 @@ psql "$DATABASE_URL" -f server/src/db/schema.sql
 | --- | --- |
 | Auth, DB schema, Events & Applications, Reviews/Moderation | Dev 1 |
 | Artist profiles, Cloudflare R2 media, PostGIS search | Dev 2 |
-| Socket.IO, Redux store, chat UI, layout | Dev 3 |
+| Socket.IO, Redux store, chat UI, layout | Jinad |
 
 (Fill in names once the team is finalized.)
 
