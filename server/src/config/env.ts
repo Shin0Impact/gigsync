@@ -11,11 +11,11 @@ function required(name: string, fallback?: string): string {
 }
 
 export const env = {
-  port: Number(process.env.PORT ?? 3000),
+  port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
+  clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
 
-  databaseUrl: process.env.DATABASE_URL || 'postgres://user:password@localhost:5432/gigsync',
+  databaseUrl: required('DATABASE_URL', 'postgres://user:password@localhost:5432/gigsync'),
 
   jwt: {
     accessSecret: required('JWT_ACCESS_SECRET', 'dev_access_secret'),

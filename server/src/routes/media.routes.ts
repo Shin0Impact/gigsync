@@ -1,24 +1,19 @@
 import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// POST /api/media/upload-url
-// Returns a mock pre-signed upload URL or direct media URL so image/audio uploads work
-// smoothly without needing Cloudflare R2 credentials configured.
-router.post('/upload-url', (req, res) => {
-  const { fileName, fileType } = req.body;
-  const key = `uploads/${Date.now()}-${fileName || 'asset'}`;
-
-  res.json({
-    uploadUrl: `/api/media/mock-upload/${encodeURIComponent(key)}`,
-    publicUrl: `https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=600&fit=crop`,
-    key,
-    fileType: fileType || 'image/jpeg',
-  });
+// POST /api/media/upload-url - request a pre-signed R2 PUT URL.
+router.post('/upload-url', requireAuth, async (_req, res) => {
+  res.status(501).json({ error: 'Not implemented: POST /api/media/upload-url' });
 });
 
-router.put('/mock-upload/:key', (_req, res) => {
-  res.status(200).send();
+router.post('/showcases', requireAuth, async (_req, res) => {
+  res.status(501).json({ error: 'Not implemented: POST /api/showcases' });
+});
+
+router.delete('/showcases/:id', requireAuth, async (_req, res) => {
+  res.status(501).json({ error: 'Not implemented: DELETE /api/showcases/:id' });
 });
 
 export default router;

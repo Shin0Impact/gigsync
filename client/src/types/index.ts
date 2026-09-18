@@ -9,30 +9,10 @@ export interface IUser {
   isVerified: boolean;
 }
 
-export interface IPortfolioItem {
-  id: string;
-  type: 'audio' | 'image' | 'video';
-  title: string;
-  url: string;
-  thumbnailUrl?: string;
-  description?: string;
-}
-
-export interface IReview {
-  id: string;
-  authorName: string;
-  eventName: string;
-  rating: number;
-  comment: string;
-  date: string;
-}
-
 export interface IArtistProfile {
   id: string;
   userId: string;
   name: string;
-  locationName?: string;
-  tagline?: string;
   bio?: string;
   hourlyRate?: number;
   isEmergencyAvailable: boolean;
@@ -40,8 +20,6 @@ export interface IArtistProfile {
   reviewCount: number;
   categories: string[];
   distanceKm?: number;
-  portfolio?: IPortfolioItem[];
-  reviews?: IReview[];
 }
 
 export interface IEvent {
@@ -53,20 +31,6 @@ export interface IEvent {
   eventDate: string;
   status: 'open' | 'filled' | 'completed' | 'cancelled';
   categoriesNeeded: string[];
-  budget?: number;
-}
-
-export interface IApplication {
-  id: string;
-  eventId: string;
-  artistId: string;
-  artistName: string;
-  artistAvatar?: string;
-  category: string;
-  rateProposed: number;
-  pitch: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: string;
 }
 
 export interface IConversation {
@@ -74,13 +38,6 @@ export interface IConversation {
   eventId?: string | null;
   participantIds: string[];
   updatedAt: string;
-  partner?: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-    role: string;
-  };
-  lastMessage?: string;
 }
 
 export interface IMessage {
