@@ -33,9 +33,29 @@ const artistsSlice = createSlice({
     setSelectedCategory(state, action: PayloadAction<string | null>) {
       state.selectedCategory = action.payload;
     },
+    // Driven by the 'emergency_status_changed' Socket.IO event - updates any
+    // matching artist card in place so organizer views change live without
+    // a refetch.
+    emergencyStatusChanged(
+      state,
+      action: PayloadAction<{ artistId: string; isEmergencyAvailable: boolean }>
+    ) {
+      const { artistId, isEmergencyAvailable } = action.payload;
+      for (const list of [state.searchResults, state.emergencyArtists]) {
+        const artist = list.find((a) => a.id === artistId);
+        if (artist) {
+          artist.isEmergencyAvailable = isEmergencyAvailable;
+        }
+      }
+    },
   },
 });
 
-export const { setLoading, setSearchResults, setEmergencyArtists, setSelectedCategory } =
-  artistsSlice.actions;
+export const {
+  setLoading,
+  setSearchResults,
+  setEmergencyArtists,
+  setSelectedCategory,
+  emergencyStatusChanged,
+} = artistsSlice.actions;
 export default artistsSlice.reducer;

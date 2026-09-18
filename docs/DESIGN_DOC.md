@@ -47,7 +47,7 @@ Booking performers and creative talent locally is fragmented and inefficient. Ev
 
 - **Frontend**: React + TypeScript + Redux Toolkit
 - **Backend**: Node.js + Express + TypeScript (`bcrypt`, `jsonwebtoken`, `@aws-sdk/client-s3` for R2)
-- **Database**: PostgreSQL with PostGIS extension (managed via `pg` driver or Prisma ORM)
+- **Database**: PostgreSQL with PostGIS extension, hosted on **Supabase** (managed via the `pg` driver). Supabase is used only as managed Postgres+PostGIS here — we are intentionally *not* using Supabase Auth, Storage, or Realtime, so that auth stays a hand-rolled bcrypt + JWT implementation (a graded requirement) and storage/real-time stay on Cloudflare R2 / Socket.IO as originally planned.
 - **Object Storage**: Cloudflare R2 (S3-compatible, zero-egress byte storage for avatars, portfolio assets, and gig media)
 - **Real-time Engine**: Socket.IO
 - **Version Control & CI/CD**: GitHub (source code management, pull request code reviews, issue tracking, and automated CI/CD pipeline tests) — see note below.
@@ -141,7 +141,7 @@ slices under `client/src/store/slices/` for the live version of this shape.
 
 ### Socket.IO Integration Mechanics
 
-1. **Authentication Handshake**: Socket connection authenticates using the HTTP-only JWT cookie passed in the connection header.
+1. **Authentication Handshake**: Socket connection authenticates using the HTTP-only JWT cookie passed in the connection header. *(Status: implemented as a placeholder — the handshake currently trusts a plain `userId` in `socket.handshake.auth` until `/api/auth` exists; see `server/src/sockets/index.ts`.)*
 2. **Room Joining**: Users automatically join rooms corresponding to their `conversation_id` records (`socket.join(conversationId)`).
 3. **Event Drivers**:
     - `send_message` / `receive_message`: Delivers instant messages and updates state via Redux.
