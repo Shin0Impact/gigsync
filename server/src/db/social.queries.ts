@@ -9,6 +9,8 @@
 
 import { query } from '../config/db';
 import {
+  ArtistType,
+  Role,
   IProfile,
   IUserRole,
   IFollowing,
@@ -37,7 +39,7 @@ function mapProfile(row: ProfileRow): IProfile {
     userName: row.user_name,
     avatarUrl: row.avatar_url,
     followersNumber: row.followers_number,
-    artistsType: row.artists_type,
+    artistsType: row.artists_type as ArtistType,
     createdAt: row.created_at,
   };
 }
@@ -59,7 +61,7 @@ export async function getRolesForUser(userId: string): Promise<IUserRole[]> {
   const result = await query<RoleRow>('select * from roles where user_id = $1', [userId]);
   return result.rows.map((row) => ({
     userId: row.user_id,
-    role: row.role,
+    role: row.role as Role,
     createdAt: row.created_at,
   }));
 }

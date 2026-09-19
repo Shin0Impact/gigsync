@@ -4,16 +4,18 @@
 // portfolio/feed model (works, likes, comments, follows) and is separate
 // from the marketplace domain types in server/src/types/index.ts.
 //
-// Scaffolding only as of 2026-09-19: enum values for ArtistType and Role
-// are best-effort placeholders (TODO below) until confirmed against the
-// live `pg_enum` values, and none of this is wired into server/src/routes
-// yet - Kareem owns finalizing the shape before it's mounted.
+// Scaffolding only as of 2026-09-19: not wired into server/src/routes yet
+// - Kareem owns finalizing the shape before it's mounted.
 
-// TODO: confirm against:
+import { UserRole } from './index';
+
+// Confirmed 2026-09-19 via:
 //   select t.typname, e.enumlabel from pg_type t
 //   join pg_enum e on t.oid = e.enumtypid;
-export type ArtistType = string; // placeholder - enum values not yet confirmed
-export type Role = string; // placeholder - enum values not yet confirmed
+// `roles.role` uses the same value set as UserRole in ./index.ts, so it's
+// reused here rather than redefined.
+export type ArtistType = 'painter' | 'photographer' | 'designer' | 'musician';
+export type Role = UserRole;
 
 // profiles table
 export interface IProfile {
