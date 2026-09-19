@@ -71,13 +71,11 @@ psql "$DATABASE_URL" -f server/src/db/schema.sql
 
 ## Team
 
-| Area | Owner |
-| --- | --- |
-| Auth, DB schema, Events & Applications, Reviews/Moderation | Dev 1 |
-| Artist profiles, Cloudflare R2 media, PostGIS search | kareem |
-| Socket.IO, Redux store, chat UI, layout | Jinad |
-
-(Fill in names once the team is finalized.)
+| Name | Role | Owns |
+| --- | --- | --- |
+| Kareem Shuhadh | Backend | Auth (bcrypt + JWT), DB schema + Supabase/PostGIS, Event CRUD + applications, artist search, emergency search, R2 media uploads, reviews/moderation |
+| Jinad Abd Alkader | Frontend | Routes + page shells, Login/Register, artist search + emergency-search UI, event board, artist profile page, chat UI, design system, WCAG 2.1 AA pass |
+| Maher (Shin0Impact) | Scrum + Fullstack | Repo/CI, board + standups, Socket.IO server + client, deployment (Render/Railway + Cloudflare Pages + R2), Redux store, keeping this design doc current, demo prep |
 
 ## Milestones
 

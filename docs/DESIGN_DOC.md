@@ -151,9 +151,9 @@ slices under `client/src/store/slices/` for the live version of this shape.
 
 ### Team Division
 
-- **Developer 1 (Full-Stack - Auth, Database & Core Events)**: Node.js/Express JWT auth framework, PostgreSQL schema migrations with PostGIS spatial indexing, Event CRUD, application workflows, review system, and moderation logic.
-- **Developer 2 (Full-Stack - Profiles, Cloudflare R2 Media & Search)**: Multi-category artist profiles, Cloudflare R2 pre-signed upload integration, file deletion pipelines, PostGIS geospatial radius search APIs, and emergency availability filters.
-- **Developer 3 (Full-Stack - Socket.IO & Frontend State)**: Socket.IO WebSocket server/client implementation, chat UI, live emergency broadcast alerts, Redux Toolkit store slices, and global responsive layout styling.
+- **Kareem Shuhadh (Backend)**: Node.js/Express JWT auth framework, PostgreSQL schema + Supabase/PostGIS setup, Event CRUD, application workflows, artist search and emergency-availability search APIs, Cloudflare R2 pre-signed upload integration, review system, and moderation logic.
+- **Jinad Abd Alkader (Frontend)**: React page shells and routing, Login/Register UI, artist search and emergency-search views, event board, multi-category artist profile pages, chat UI, design system, and the WCAG 2.1 AA accessibility pass.
+- **Maher / Shin0Impact (Scrum + Fullstack)**: Repo scaffold, CI, and branch protection; turning this doc's milestones into board items and running standups; Socket.IO WebSocket server/client implementation and live emergency broadcast alerts; Redux Toolkit store setup; deployment (Render/Railway backend, Cloudflare Pages frontend, Cloudflare R2 media); and keeping this design doc current as decisions change.
 
 ### Milestone Schedule
 
