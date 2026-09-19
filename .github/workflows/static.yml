@@ -2,7 +2,7 @@ name: Deploy static content to Pages
 
 on:
   push:
-    branches: ["main", "Maher", "Jinad"]
+    branches: ["main", "archive/github-pages"]
   workflow_dispatch:
 
 permissions:
