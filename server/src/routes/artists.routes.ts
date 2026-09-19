@@ -16,6 +16,9 @@ router.get('/emergency-available', async (_req, res) => {
 });
 
 // PATCH /api/artists/me/emergency-status
+// TODO: after updating the DB row, call broadcastEmergencyStatusChange(io, {...})
+// from '../sockets' so organizer-side views update live. The socket gateway
+// side of this is already implemented.
 router.patch('/me/emergency-status', requireAuth, requireRole('artist'), async (_req, res) => {
   res.status(501).json({ error: 'Not implemented: PATCH /api/artists/me/emergency-status' });
 });
