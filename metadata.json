@@ -1,6 +1,0 @@
-{
-  "name": "GigSync",
-  "description": "Talent booking and marketplace connecting creative performers, visual artists, event organizers, and fans.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
