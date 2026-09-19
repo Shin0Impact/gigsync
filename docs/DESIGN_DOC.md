@@ -99,6 +99,19 @@ Booking performers and creative talent locally is fragmented and inefficient. Ev
 See [`server/src/db/schema.sql`](../server/src/db/schema.sql) for the live,
 runnable version of this schema.
 
+**Decision: no shared mock-data file.** Early on, a `server/src/db/mockStore.ts`
+was drafted to fake data for endpoints before Supabase was ready. We dropped
+that approach — every mismatch between the mock literals and the shared
+TypeScript types turned into a build failure, because two people were
+hand-maintaining the same shape in two places with nothing enforcing they
+stayed in sync. Now that Supabase is live:
+- Kareem seeds a handful of real rows directly in Supabase (SQL Editor or a
+  small seed script) and endpoints query Postgres for real, so the type
+  contract is enforced by actual query results instead of by hand.
+- If a screen's backend endpoint isn't ready yet, whoever's building that
+  screen hardcodes 2-3 example objects locally in that component (not a
+  shared file) and deletes them once the real endpoint exists.
+
 ## 6. API Design & Storage Integration
 
 ### Custom Node.js Auth Routes (`/api/auth`)

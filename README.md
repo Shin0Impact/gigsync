@@ -79,6 +79,11 @@ quietly doing that job for us.
 The schema (`server/src/db/schema.sql`) is unchanged either way — it's
 portable to any Postgres+PostGIS instance if you ever move off Supabase.
 
+**Seed data:** there's no mock-data file in this repo (see the note in
+`docs/DESIGN_DOC.md` section 5 for why). Insert a handful of real rows via
+the Supabase SQL Editor once the schema's in place, so endpoints have
+something real to query while the app is still early.
+
 ## Realtime chat (proof of concept)
 
 The Socket.IO gateway (`server/src/sockets/index.ts`) and client wiring
