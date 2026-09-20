@@ -39,3 +39,5 @@ coverage/
 # composite project (can't set noEmit) - harmless, just don't commit them
 client/vite.config.js
 client/vite.config.d.ts
+
+bun.lock
