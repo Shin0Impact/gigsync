@@ -62,9 +62,9 @@ quietly doing that job for us.
 1. Create a project at [supabase.com](https://supabase.com).
 2. In the SQL Editor, enable PostGIS (also the first line of `schema.sql`,
    but Supabase projects sometimes need it run once via the dashboard too):
-   ```sql
-   create extension if not exists postgis;
-   ```
+    ```sql
+    create extension if not exists postgis;
+    ```
 3. Grab the connection string: **Project Settings → Database → Connection
    string → URI**. Use the **Session pooler** (port `5432`) or direct
    connection, not the Transaction pooler (`6543`) — this server holds a
@@ -72,9 +72,9 @@ quietly doing that job for us.
 4. Put that string in `server/.env` as `DATABASE_URL`.
 5. Run the schema — either paste `server/src/db/schema.sql` into the
    Supabase SQL Editor, or from your machine:
-   ```bash
-   psql "$DATABASE_URL" -f server/src/db/schema.sql
-   ```
+    ```bash
+    psql "$DATABASE_URL" -f server/src/db/schema.sql
+    ```
 
 The schema (`server/src/db/schema.sql`) is unchanged either way — it's
 portable to any Postgres+PostGIS instance if you ever move off Supabase.
@@ -139,8 +139,9 @@ instead of either platform's native Node buildpack.
 ### Frontend (Cloudflare Pages)
 
 Simplest path - no GitHub secrets needed: in the
-[Cloudflare Pages dashboard](https://dash.cloudflare.com), **Create a project
-> Connect to Git**, pick this repo, and set:
+[Cloudflare Pages dashboard](https://dash.cloudflare.com), \*\*Create a project
+
+> Connect to Git\*\*, pick this repo, and set:
 
 - Framework preset: `Vite`
 - Root directory: `client`
@@ -185,10 +186,10 @@ check. Use one approach or the other, not both, to avoid double deploys.
 
 ## Team
 
-| Name | Role | Owns |
-| --- | --- | --- |
-| Kareem Shuhadh | Backend | Auth (bcrypt + JWT), DB schema + Supabase/PostGIS, Event CRUD + applications, artist search, emergency search, R2 media uploads, reviews/moderation |
-| Jinad Abd Alkader | Frontend | Routes + page shells, Login/Register, artist search + emergency-search UI, event board, artist profile page, chat UI, design system, WCAG 2.1 AA pass |
+| Name                | Role              | Owns                                                                                                                                                               |
+| ------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Kareem Shuhadh      | Backend           | Auth (bcrypt + JWT), DB schema + Supabase/PostGIS, Event CRUD + applications, artist search, emergency search, R2 media uploads, reviews/moderation                |
+| Jinad Abd Alkader   | Frontend          | Routes + page shells, Login/Register, artist search + emergency-search UI, event board, artist profile page, chat UI, design system, WCAG 2.1 AA pass              |
 | Maher (Shin0Impact) | Scrum + Fullstack | Repo/CI, board + standups, Socket.IO server + client, deployment (Render/Railway + Cloudflare Pages + R2), Redux store, keeping this design doc current, demo prep |
 
 ## Milestones
