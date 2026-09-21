@@ -1,5 +1,5 @@
 import React from 'react';
-import { IUser, UserRole } from '../types';
+import { IUser, UserRole } from '../shared/types';
 
 interface NavbarProps {
   currentTab: 'artists' | 'gigs' | 'applications' | 'messages' | 'profile';

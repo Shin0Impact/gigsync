@@ -6,7 +6,7 @@ import {
   Volume2,
   Image
 } from 'lucide-react';
-import { IArtistProfile, IUser } from '../types';
+import { IArtistProfile, IUser } from '../shared/types';
 
 interface ProfileViewProps {
   currentUser: IUser;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { IArtistProfile } from '../types';
+import { IArtistProfile } from '../shared/types';
 
 interface ArtistDirectoryProps {
   artists: IArtistProfile[];

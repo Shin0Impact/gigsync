@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, X, Clock, MessageSquare, Briefcase } from 'lucide-react';
-import { IApplication, IUser } from '../types';
+import { IApplication, IUser } from '../shared/types';
 
 interface ApplicationsViewProps {
   applications: IApplication[];

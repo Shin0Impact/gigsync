@@ -8,7 +8,7 @@ import {
   Calendar,
   CheckCircle2
 } from 'lucide-react';
-import { IArtistProfile } from '../types';
+import { IArtistProfile } from '../shared/types';
 
 interface ArtistModalProps {
   artist: IArtistProfile | null;

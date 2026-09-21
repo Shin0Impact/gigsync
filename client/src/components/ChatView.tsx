@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Send, MessageSquare, CheckCheck, Phone, Video } from 'lucide-react';
-import { IConversation, IMessage, IUser } from '../types';
+import { IConversation, IMessage, IUser } from '../shared/types';
 
 interface ChatViewProps {
   conversations: IConversation[];

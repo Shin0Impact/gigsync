@@ -4,7 +4,7 @@ import {
   CheckCircle2,
   X
 } from 'lucide-react';
-import { IEvent, IUser } from '../types';
+import { IEvent, IUser } from '../shared/types';
 
 interface GigBoardProps {
   events: IEvent[];
