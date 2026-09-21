@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
 
 
-import { pool } from '../db/pool';
+import { pool } from '../config/db';
 import {
   create_user,
   find_user_by_email,
