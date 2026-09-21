@@ -112,6 +112,49 @@ stayed in sync. Now that Supabase is live:
   screen hardcodes 2-3 example objects locally in that component (not a
   shared file) and deletes them once the real endpoint exists.
 
+### 5a. Schema drift: live Supabase vs. `schema.sql` (as of 2026-09-19)
+
+The tables actually running in the team's Supabase project right now do
+**not** match `server/src/db/schema.sql` above. Kareem has been building
+toward a portfolio/feed-style model instead of (or alongside) the original
+marketplace model — this section documents what's actually live so the rest
+of the team isn't working from a stale picture. Treat this as in-flux and
+owned by Kareem; update it as the schema settles rather than treating it as
+final.
+
+**Tables currently in Supabase (`public` schema):**
+
+| Table | Columns (name: type) |
+| --- | --- |
+| `profiles` | `id` (bigint), `created_at` (timestamptz), `user_name` (text), `user_id` (uuid), `avatar_url` (text), `followers_number` (bigint), `artists_type` (enum) |
+| `roles` | `user_id` (uuid), `role` (enum), `created_at` (timestamptz) |
+| `followings` | `id` (bigint), `created_at` (timestamptz), `user_id` (uuid), `followed_id` (uuid) |
+| `works` | `id` (bigint), `created_at` (timestamptz), `description` (text), `user_id` (uuid), `updated_at` (timestamptz) |
+| `work_updates` | `id` (bigint), `created_at`, `updated_at` (timestamptz), `work_id` (bigint), `version_number` (bigint), `description` (text) |
+| `update_media` | `id` (bigint), `created_at` (timestamptz), `update_id` (bigint), `media_type` (text), `r2_key` (text), `mime_type` (text), `file_size` (bigint), `sort_order` (bigint) |
+| `work_likes` | `id` (bigint), `created_at` (timestamptz), `work_id` (bigint), `user_id` (uuid) |
+| `work_comments` | `id` (bigint), `created_at` (timestamptz), `work_id` (bigint), `user_id` (uuid), `content` (text), `updated_at` (timestamptz) |
+| `event` | `id` (bigint), `created_at` (timestamptz), `start_at` (timestamp), `end_at` (timestamp), `post_id` (bigint) |
+
+Notes:
+- `artists_type` (on `profiles`) and `role` (on `roles`) are Postgres enum
+  types — see `server/src/types/social.ts` for the resolved value lists
+  once confirmed.
+- The singular **`event`** table here is a *different* concept from the
+  plural **`events`** table in the original marketplace schema above (gig
+  listings with a location + application flow). `event` looks tied to
+  `work_updates` via `post_id` instead — likely something like a scheduled
+  post/drop rather than a bookable gig. Don't conflate the two in code;
+  `IEvent` (marketplace) and whatever type represents this `event` row need
+  to stay clearly distinct (see `server/src/types/social.ts`).
+- All primary keys here are `bigint` (auto-increment), not the `UUID`
+  convention the rest of the schema uses — worth reconciling once the model
+  settles, since the client/server types currently assume UUID strings for
+  IDs everywhere else.
+- No PostGIS/geospatial columns exist in this set, so proximity-based
+  search (artist search, emergency search) still has nothing to query
+  against yet.
+
 ## 6. API Design & Storage Integration
 
 ### Custom Node.js Auth Routes (`/api/auth`)
