@@ -1,9 +1,12 @@
 import { randomUUID } from 'crypto';
 import { Server as HttpServer } from 'http';
+import { parse as parseCookie } from 'cookie';
+import jwt from 'jsonwebtoken';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from '../config/env';
 import { query } from '../config/db';
 import {
+  AuthTokenPayload,
   EmergencyStatusChangedPayload,
   SocketReceiveMessagePayload,
   SocketSendMessagePayload,
@@ -13,13 +16,12 @@ import {
 // doc section 7: handshake auth, per-conversation rooms, and the
 // send_message / receive_message / emergency_status_changed events.
 //
-// TEMPORARY AUTH: Kareem's /api/auth (bcrypt + JWT) isn't live yet, so the
-// handshake currently trusts a plain `userId` string passed in
-// `socket.handshake.auth.userId` instead of verifying a real JWT cookie.
-// Everything downstream keys off `socket.data.userId`, so once JWT auth
-// exists, only the io.use() block below needs to change - swap it for
-// jwt.verify() against the access_token cookie, same as
-// middleware/auth.middleware.ts does for REST routes.
+// Auth: verifies the same access_token JWT that requireAuth checks for REST
+// routes (see middleware/auth.middleware.ts) - same secret, same payload
+// shape, same expired/invalid handling. The handshake happens outside
+// Express's request/response cycle, so cookie-parser's req.cookies isn't
+// available here; the raw Cookie header off the handshake is parsed by hand
+// instead. Everything downstream keys off socket.data.userId.
 export function initSocketServer(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, {
     cors: {
@@ -29,13 +31,21 @@ export function initSocketServer(httpServer: HttpServer) {
   });
 
   io.use((socket, next) => {
-    const userId = socket.handshake.auth?.userId;
-    if (!userId || typeof userId !== 'string') {
-      next(new Error('Missing userId in socket handshake auth (placeholder until JWT is wired up)'));
+    const rawCookies = socket.handshake.headers.cookie;
+    const token = rawCookies ? parseCookie(rawCookies).access_token : undefined;
+
+    if (!token) {
+      next(new Error('Not authenticated'));
       return;
     }
-    socket.data.userId = userId;
-    next();
+
+    try {
+      const payload = jwt.verify(token, env.jwt.accessSecret) as AuthTokenPayload;
+      socket.data.userId = payload.userId;
+      next();
+    } catch {
+      next(new Error('Invalid or expired token'));
+    }
   });
 
   io.on('connection', (socket) => {

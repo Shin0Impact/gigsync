@@ -1,23 +1,23 @@
 import { io, Socket } from 'socket.io-client';
 
-// Singleton socket instance for the whole app. Call connectSocket(userId)
-// once (e.g. right after login, or on app load for now) and
+// Singleton socket instance for the whole app. Call connectSocket() once
+// (e.g. right after login, or on app load for now) and
 // attachSocketListeners(dispatch) right after to wire events into Redux.
 //
-// TEMPORARY AUTH: real JWT auth isn't live yet, so we pass a plain userId in
-// the handshake `auth` payload instead of relying on the HTTP-only cookie.
-// Once /api/auth exists, drop the `auth: { userId }` line below - the
-// server will read the cookie instead (see server/src/sockets/index.ts).
+// Auth: withCredentials sends the HTTP-only access_token cookie set by
+// /api/auth/login along with the handshake; the server verifies that JWT
+// and derives socket.data.userId from it (see server/src/sockets/index.ts).
+// No user-supplied identifier is passed here - the client can't be trusted
+// to say who it is, only the verified cookie can.
 let socket: Socket | null = null;
 
-export function connectSocket(userId: string): Socket {
+export function connectSocket(): Socket {
   if (socket?.connected) {
     return socket;
   }
 
   socket = io(import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:4000', {
     withCredentials: true,
-    auth: { userId },
   });
 
   return socket;
