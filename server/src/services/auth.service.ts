@@ -171,3 +171,52 @@ export async function login_user(input: LoginInput) {
     refresh_token,
   };
 }
+
+export async function refresh_tokens(refresh_token: string) {
+  let payload: AuthTokenPayload;
+
+  try {
+    payload = jwt.verify(
+      refresh_token,
+      env.jwt.refreshSecret,
+    ) as AuthTokenPayload;
+  } catch {
+    throw new Error('Invalid or expired refresh token');
+  }
+
+  const role_record = await find_role_by_user_id(payload.userId);
+
+  if (!role_record) {
+    throw new Error('User role not found');
+  }
+
+  const new_payload: AuthTokenPayload = {
+    userId: payload.userId,
+    role: role_record.role,
+  };
+
+  const access_token_options: SignOptions = {
+    expiresIn: env.jwt.accessExpiresIn as SignOptions['expiresIn'],
+  };
+
+  const refresh_token_options: SignOptions = {
+    expiresIn: env.jwt.refreshExpiresIn as SignOptions['expiresIn'],
+  };
+
+  const new_access_token = jwt.sign(
+    new_payload,
+    env.jwt.accessSecret,
+    access_token_options,
+  );
+
+  const new_refresh_token = jwt.sign(
+    new_payload,
+    env.jwt.refreshSecret,
+    refresh_token_options,
+  );
+
+  return {
+    access_token: new_access_token,
+    refresh_token: new_refresh_token,
+  };
+}

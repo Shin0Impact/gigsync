@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import {
   login_user,
+  refresh_tokens,
   register_user,
 } from '../services/auth.service';
 
@@ -129,6 +130,62 @@ export async function login(req: Request, res: Response) {
 
     return res.status(500).json({
       error: 'Login failed',
+    });
+  }
+}
+
+export async function refresh(req: Request, res: Response) {
+  try {
+    const refresh_token = req.cookies?.refresh_token;
+
+    if (!refresh_token) {
+      return res.status(401).json({
+        error: 'Refresh token required',
+      });
+    }
+
+    const result = await refresh_tokens(refresh_token);
+
+    res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: 'Token refreshed successfully',
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === 'Invalid or expired refresh token'
+    ) {
+      return res.status(401).json({
+        error: 'Invalid or expired refresh token',
+      });
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === 'User role not found'
+    ) {
+      return res.status(500).json({
+        error: 'User role not found',
+      });
+    }
+
+    console.error('Token refresh failed:', error);
+
+    return res.status(500).json({
+      error: 'Token refresh failed',
     });
   }
 }
