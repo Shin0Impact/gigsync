@@ -1,9 +1,16 @@
 import { AppRoutes } from "./routes/Routes";
 
-// Placeholder root component. Replace with react-router-dom routes once
-// pages/ has real screens (artist search, event board, chat, profiles...).
 function App() {
 	return <AppRoutes />;
 }
+
+// function App() {
+//   return (
+//     <Routes>
+//       <Route path="/" element={<Home />} />
+//       <Route path="/socket-test" element={<SocketTestPage />} />
+//     </Routes>
+//   );
+// }
 
 export default App;

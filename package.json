@@ -1,0 +1,17 @@
+{
+  "name": "gigsync",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build --prefix client && tsx server/src/index.ts",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "build": "npm run build:client && npm run build:server",
+    "start": "node server/dist/index.js",
+    "lint": "npm run typecheck --prefix client && npm run typecheck --prefix server"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

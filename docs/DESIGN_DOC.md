@@ -47,7 +47,7 @@ Booking performers and creative talent locally is fragmented and inefficient. Ev
 
 - **Frontend**: React + TypeScript + Redux Toolkit
 - **Backend**: Node.js + Express + TypeScript (`bcrypt`, `jsonwebtoken`, `@aws-sdk/client-s3` for R2)
-- **Database**: PostgreSQL with PostGIS extension (managed via `pg` driver or Prisma ORM)
+- **Database**: PostgreSQL with PostGIS extension, hosted on **Supabase** (managed via the `pg` driver). Supabase is used only as managed Postgres+PostGIS here — we are intentionally *not* using Supabase Auth, Storage, or Realtime, so that auth stays a hand-rolled bcrypt + JWT implementation (a graded requirement) and storage/real-time stay on Cloudflare R2 / Socket.IO as originally planned.
 - **Object Storage**: Cloudflare R2 (S3-compatible, zero-egress byte storage for avatars, portfolio assets, and gig media)
 - **Real-time Engine**: Socket.IO
 - **Version Control & CI/CD**: GitHub (source code management, pull request code reviews, issue tracking, and automated CI/CD pipeline tests) — see note below.
@@ -99,6 +99,19 @@ Booking performers and creative talent locally is fragmented and inefficient. Ev
 See [`server/src/db/schema.sql`](../server/src/db/schema.sql) for the live,
 runnable version of this schema.
 
+**Decision: no shared mock-data file.** Early on, a `server/src/db/mockStore.ts`
+was drafted to fake data for endpoints before Supabase was ready. We dropped
+that approach — every mismatch between the mock literals and the shared
+TypeScript types turned into a build failure, because two people were
+hand-maintaining the same shape in two places with nothing enforcing they
+stayed in sync. Now that Supabase is live:
+- Kareem seeds a handful of real rows directly in Supabase (SQL Editor or a
+  small seed script) and endpoints query Postgres for real, so the type
+  contract is enforced by actual query results instead of by hand.
+- If a screen's backend endpoint isn't ready yet, whoever's building that
+  screen hardcodes 2-3 example objects locally in that component (not a
+  shared file) and deletes them once the real endpoint exists.
+
 ## 6. API Design & Storage Integration
 
 ### Custom Node.js Auth Routes (`/api/auth`)
@@ -141,7 +154,7 @@ slices under `client/src/store/slices/` for the live version of this shape.
 
 ### Socket.IO Integration Mechanics
 
-1. **Authentication Handshake**: Socket connection authenticates using the HTTP-only JWT cookie passed in the connection header.
+1. **Authentication Handshake**: Socket connection authenticates using the HTTP-only JWT cookie passed in the connection header. *(Status: implemented as a placeholder — the handshake currently trusts a plain `userId` in `socket.handshake.auth` until `/api/auth` exists; see `server/src/sockets/index.ts`.)*
 2. **Room Joining**: Users automatically join rooms corresponding to their `conversation_id` records (`socket.join(conversationId)`).
 3. **Event Drivers**:
     - `send_message` / `receive_message`: Delivers instant messages and updates state via Redux.
@@ -151,9 +164,9 @@ slices under `client/src/store/slices/` for the live version of this shape.
 
 ### Team Division
 
-- **Developer 1 (Full-Stack - Auth, Database & Core Events)**: Node.js/Express JWT auth framework, PostgreSQL schema migrations with PostGIS spatial indexing, Event CRUD, application workflows, review system, and moderation logic.
-- **Developer 2 (Full-Stack - Profiles, Cloudflare R2 Media & Search)**: Multi-category artist profiles, Cloudflare R2 pre-signed upload integration, file deletion pipelines, PostGIS geospatial radius search APIs, and emergency availability filters.
-- **Developer 3 (Full-Stack - Socket.IO & Frontend State)**: Socket.IO WebSocket server/client implementation, chat UI, live emergency broadcast alerts, Redux Toolkit store slices, and global responsive layout styling.
+- **Kareem Shuhadh (Backend)**: Node.js/Express JWT auth framework, PostgreSQL schema + Supabase/PostGIS setup, Event CRUD, application workflows, artist search and emergency-availability search APIs, Cloudflare R2 pre-signed upload integration, review system, and moderation logic.
+- **Jinad Abd Alkader (Frontend)**: React page shells and routing, Login/Register UI, artist search and emergency-search views, event board, multi-category artist profile pages, chat UI, design system, and the WCAG 2.1 AA accessibility pass.
+- **Maher / Shin0Impact (Scrum + Fullstack)**: Repo scaffold, CI, and branch protection; turning this doc's milestones into board items and running standups; Socket.IO WebSocket server/client implementation and live emergency broadcast alerts; Redux Toolkit store setup; deployment (Render/Railway backend, Cloudflare Pages frontend, Cloudflare R2 media); and keeping this design doc current as decisions change.
 
 ### Milestone Schedule
 
