@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { RequireAuth } from "../features/auth/components/RequireAuth";
 import { RootRedirect } from "../features/auth/components/RootRedirect";
 import { AuthPage } from "../pages/AuthPage";
