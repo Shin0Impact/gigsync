@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
-    "test:auth": "tsx tests/auth.api.test.ts"
+    "test:auth": "tsx tests/auth.api.test.ts",
+    "test:events": "tsx tests/events.api.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.629.0",
