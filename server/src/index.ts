@@ -3,6 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import { createServer } from 'http';
 import { env } from './config/env';
+import { pool } from './db/pool';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import apiRoutes from './routes';
 import { initSocketServer } from './sockets';
@@ -25,7 +26,18 @@ app.use(errorHandler);
 const httpServer = createServer(app);
 initSocketServer(httpServer);
 
-httpServer.listen(env.port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`GigSync API listening on http://localhost:${env.port}`);
-});
+async function startServer() {
+  try {
+    await pool.query('SELECT 1');
+    console.log('Database connected successfully');
+
+    httpServer.listen(env.port, () => {
+      console.log(`GigSync API listening on http://localhost:${env.port}`);
+    });
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
