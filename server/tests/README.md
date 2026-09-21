@@ -12,6 +12,7 @@ dependency), using Node's built-in `fetch`.
    ```
    npm run test:auth
    npm run test:events
+   npm run test:event-media
    ```
 
 Each one prints a pass/fail line per check and exits with a non-zero code
@@ -49,11 +50,29 @@ extension and those same columns/table before this will pass - see the
 event-CRUD handoff for the exact `ALTER TABLE`/`CREATE TABLE` statements
 (same ones already run against the real Supabase project).
 
-Nothing else under `/api` is tested yet because nothing else is
-implemented - `/api/artists`, `/api/media`, and `/api/conversations` all
-still return `501 Not implemented` stubs. Add more `*.test.ts` files here
-(and a matching `npm run test:*` script) as those land.
+`event_media.api.test.ts` runs 20 checks against `POST /api/media/upload-url`
+and `/api/events/:id/media`: upload-url auth + validation (missing fields,
+unsupported content type) and that it returns a real pre-signed R2 PUT URL
+plus a sanitized `objectKey` under the requested folder; add/list/delete on
+event media with ownership checks (only the owning organizer can add or
+delete, an artist can't touch either write endpoint, listing is public);
+validation (missing fields, invalid `mediaType`); and `sort_order` ordering
+on list. Generating a pre-signed URL is a local HMAC computation - the AWS
+SDK never makes a network call to do it - so this passes even with
+placeholder `R2_*` credentials in `.env`. It does **not** prove an actual
+`PUT` to that URL succeeds against a real R2 bucket - that still needs
+manual verification once real R2 credentials are in place. Needs a new
+`event_media` table (`id` uuid pk, `event_id` bigint references `event(id)`,
+`media_type` varchar, `object_key` text, `alt_text` text, `sort_order` int,
+`created_at`) - same handoff as the events-CRUD SQL.
 
-Every check in both files was run against the real controller/service code
+Nothing else under `/api` is tested yet because nothing else is
+implemented - `/api/artists` and `/api/conversations` still return
+`501 Not implemented` stubs, and `/api/media/showcases` (artist portfolio
+uploads, a separate feature from event media) does too. Add more
+`*.test.ts` files here (and a matching `npm run test:*` script) as those
+land.
+
+Every check in all three files was run against the real controller/service code
 (a throwaway local Postgres, not the real Supabase database) before being
 committed, so the expected status codes are verified, not guessed.
