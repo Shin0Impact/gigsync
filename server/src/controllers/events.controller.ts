@@ -19,7 +19,7 @@ export function parse_event_id(raw: string): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-const NOT_FOUND_MESSAGES = ['Event not found', 'Application not found'];
+const NOT_FOUND_MESSAGES = ['Event not found', 'Application not found', 'Media not found'];
 const FORBIDDEN_MESSAGES = ['You do not own this event', 'You cannot apply to your own event'];
 const CONFLICT_MESSAGES = [
   'You have already applied to this event',
