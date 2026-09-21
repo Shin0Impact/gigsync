@@ -1,22 +1,27 @@
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import {
+  apply,
+  create_event,
+  delete_event_by_id,
+  get_event_by_id,
+  list_applications,
+  list_events,
+  update_application,
+  update_event_by_id,
+} from '../controllers/events.controller';
 
 const router = Router();
 
-router.post('/', requireAuth, requireRole('organizer'), async (_req, res) => {
-  res.status(501).json({ error: 'Not implemented: POST /api/events' });
-});
+// Card #23 - Event CRUD + application endpoints.
+router.post('/', requireAuth, requireRole('organizer'), create_event);
+router.get('/', list_events);
+router.get('/:id', get_event_by_id);
+router.patch('/:id', requireAuth, requireRole('organizer'), update_event_by_id);
+router.delete('/:id', requireAuth, requireRole('organizer'), delete_event_by_id);
 
-router.get('/', async (_req, res) => {
-  res.status(501).json({ error: 'Not implemented: GET /api/events' });
-});
-
-router.post('/:id/apply', requireAuth, requireRole('artist'), async (_req, res) => {
-  res.status(501).json({ error: 'Not implemented: POST /api/events/:id/apply' });
-});
-
-router.patch('/:id/applications/:appId', requireAuth, requireRole('organizer'), async (_req, res) => {
-  res.status(501).json({ error: 'Not implemented: PATCH /api/events/:id/applications/:appId' });
-});
+router.post('/:id/apply', requireAuth, requireRole('artist'), apply);
+router.get('/:id/applications', requireAuth, requireRole('organizer'), list_applications);
+router.patch('/:id/applications/:appId', requireAuth, requireRole('organizer'), update_application);
 
 export default router;
