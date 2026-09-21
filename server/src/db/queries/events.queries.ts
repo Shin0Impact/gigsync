@@ -96,7 +96,6 @@ export async function create_event(
         location,
         is_recurring,
         recurring_rule,
-        status,
         categories_needed
       )
       VALUES (
