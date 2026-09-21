@@ -3,7 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import { createServer } from 'http';
 import { env } from './config/env';
-import { pool } from './db/pool';
+import { pool } from './config/db';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import apiRoutes from './routes';
 import { initSocketServer } from './sockets';

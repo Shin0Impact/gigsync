@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg';
-import { pool } from '../pool';
+import { pool } from '../../config/db';
 
 export interface DbUser {
   id: string;
