@@ -1,15 +1,27 @@
 import bcrypt from 'bcrypt';
+import jwt, { SignOptions } from 'jsonwebtoken';
+
+
 import { pool } from '../db/pool';
 import {
   create_user,
   find_user_by_email,
+  find_user_by_identifier,
 } from '../db/queries/users.queries';
 import {
   create_profile,
   find_profile_by_user_name,
 } from '../db/queries/profiles.queries';
-import { create_role } from '../db/queries/roles.queries';
-import { UserRole } from '../types';
+import {
+  create_role,
+  find_role_by_user_id,
+} from '../db/queries/roles.queries';
+
+import { env } from '../config/env';
+import {
+  AuthTokenPayload,
+  UserRole,
+} from '../types';
 
 export type ArtistCategory =
   | 'painter'
@@ -23,6 +35,11 @@ export interface RegisterInput {
   role: UserRole;
   user_name: string;
   artists_type?: ArtistCategory | null;
+}
+
+export interface LoginInput {
+  identifier: string;
+  password: string;
 }
 
 export async function register_user(input: RegisterInput) {
@@ -93,4 +110,64 @@ export async function register_user(input: RegisterInput) {
   } finally {
     client.release();
   }
+}
+
+export async function login_user(input: LoginInput) {
+  const {
+    identifier,
+    password,
+  } = input;
+
+  const user = await find_user_by_identifier(identifier);
+
+  if (!user) {
+    throw new Error('Invalid credentials');
+  }
+
+  const password_matches = await bcrypt.compare(
+    password,
+    user.password_hash,
+  );
+
+  if (!password_matches) {
+    throw new Error('Invalid credentials');
+  }
+
+  const role_record = await find_role_by_user_id(user.id);
+
+  if (!role_record) {
+    throw new Error('User role not found');
+  }
+
+  const payload: AuthTokenPayload = {
+    userId: user.id,
+    role: role_record.role,
+  };
+
+  const access_token_options: SignOptions = {
+    expiresIn: env.jwt.accessExpiresIn as SignOptions['expiresIn'],
+  };
+
+  const refresh_token_options: SignOptions = {
+    expiresIn: env.jwt.refreshExpiresIn as SignOptions['expiresIn'],
+  };
+
+  const access_token = jwt.sign(
+    payload,
+    env.jwt.accessSecret,
+    access_token_options,
+  );
+
+  const refresh_token = jwt.sign(
+    payload,
+    env.jwt.refreshSecret,
+    refresh_token_options,
+  );
+
+  return {
+    user,
+    role: role_record,
+    access_token,
+    refresh_token,
+  };
 }

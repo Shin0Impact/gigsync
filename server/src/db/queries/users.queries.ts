@@ -9,6 +9,10 @@ export interface DbUser {
   updated_at: Date;
 }
 
+export interface DbUserWithUsername extends DbUser {
+  user_name: string;
+}
+
 export async function find_user_by_email(
   email: string,
 ): Promise<DbUser | null> {
@@ -25,6 +29,31 @@ export async function find_user_by_email(
       LIMIT 1
     `,
     [email],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function find_user_by_identifier(
+  identifier: string,
+): Promise<DbUserWithUsername | null> {
+  const result = await pool.query<DbUserWithUsername>(
+    `
+      SELECT
+        u.id,
+        u.email,
+        u.password_hash,
+        u.created_at,
+        u.updated_at,
+        p.user_name
+      FROM users u
+      INNER JOIN profiles p
+        ON p.user_id = u.id
+      WHERE u.email = $1
+         OR p.user_name = $1
+      LIMIT 1
+    `,
+    [identifier],
   );
 
   return result.rows[0] ?? null;

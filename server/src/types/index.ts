@@ -1,5 +1,11 @@
 export type UserRole = 'artist' | 'organizer' | 'fan' | 'admin' | 'moderator';
 
+export type ArtistCategory =
+  | 'painter'
+  | 'photographer'
+  | 'designer'
+  | 'musician';
+
 export interface AuthTokenPayload {
   userId: string;
   role: UserRole;
@@ -23,7 +29,127 @@ export interface GeoPoint {
   lng: number;
 }
 
+// -----------------------------------------------------------------------------
+// Current database types
+// -----------------------------------------------------------------------------
+//
+// These interfaces reflect the current PostgreSQL tables used by the backend.
+// The property names intentionally use snake_case to match the database schema.
+//
+// Current authentication-related tables:
+//
+// users
+// roles
+// profiles
+//
+// The application currently keeps authentication data in `users`, role data
+// in `roles`, and public/profile information in `profiles`.
+
 // users table
+export interface IUserRecord {
+  id: string;
+  email: string;
+  password_hash: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// roles table
+export interface IRole {
+  user_id: string;
+  role: UserRole;
+  created_at: string;
+}
+
+// profiles table
+export interface IProfile {
+  id: number;
+  created_at: string;
+  user_name: string;
+  user_id: string;
+  avatar_url: string | null;
+  followers_number: number;
+  artists_type: ArtistCategory | null;
+}
+
+// works table
+export interface IWork {
+  id: number;
+  created_at: string;
+  description: string;
+  user_id: string;
+  updated_at: string;
+}
+
+// work_updates table
+export interface IWorkUpdate {
+  id: number;
+  created_at: string;
+  updated_at: string;
+  work_id: number;
+  version_number: number;
+  description: string;
+}
+
+// update_media table
+export interface IUpdateMedia {
+  id: number;
+  created_at: string;
+  update_id: number;
+  media_type: string;
+  r2_key: string;
+  mime_type: string;
+  file_size: number;
+  sort_order: number;
+}
+
+// work_likes table
+export interface IWorkLike {
+  id: number;
+  created_at: string;
+  work_id: number;
+  user_id: string;
+}
+
+// work_comments table
+export interface IWorkComment {
+  id: number;
+  created_at: string;
+  work_id: number;
+  user_id: string;
+  content: string;
+  updated_at: string;
+}
+
+// followings table
+export interface IFollowing {
+  id: number;
+  created_at: string;
+  user_id: string;
+  followed_id: string;
+}
+
+// event table
+export interface IEventRecord {
+  id: number;
+  created_at: string;
+  start_at: string;
+  end_at: string;
+  post_id: number;
+}
+
+// -----------------------------------------------------------------------------
+// Legacy / planned user shape
+// -----------------------------------------------------------------------------
+//
+// Kept as a reference because some existing client/server work may still
+// depend on this shape. These fields do NOT represent the current `users`
+// PostgreSQL table.
+//
+// If these fields are introduced into the database later, this interface can
+// be revisited and moved into the appropriate domain/profile types.
+
+/*
 export interface IUser {
   id: string;
   email: string;
@@ -37,6 +163,7 @@ export interface IUser {
   createdAt: string;
   updatedAt: string;
 }
+*/
 
 // artist_profiles table (one-to-one with users where role = 'artist')
 export interface IArtistProfile {
@@ -96,6 +223,32 @@ export interface IMessage {
   content: string;
   isRead: boolean;
   createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Registration
+// -----------------------------------------------------------------------------
+//
+// Input accepted by POST /api/auth/register.
+//
+// user_name is required for every user.
+// artists_type is required only when role = 'artist'.
+// artists_type must be null/omitted for non-artists.
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  role: UserRole;
+  user_name: string;
+  artists_type?: ArtistCategory | null;
+}
+
+// Result returned internally by the registration service.
+
+export interface RegisterResult {
+  user: IUserRecord;
+  role: IRole;
+  profile: IProfile;
 }
 
 // --- Socket.IO event payloads (design doc section 7) ---
