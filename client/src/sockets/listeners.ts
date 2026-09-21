@@ -1,7 +1,7 @@
-import type { AppDispatch } from '../store';
-import { emergencyStatusChanged } from '../store/slices/artistsSlice';
-import { messageReceived } from '../store/slices/chatSlice';
-import type { IMessage } from '../types';
+import type { AppDispatch } from '../app/store';
+import { emergencyStatusChanged } from '../features/artists/presenceSlice';
+import { messageReceived } from '../features/chat/chatSlice';
+import type { IMessage } from '../shared/types';
 import { getSocket } from './client';
 
 interface EmergencyStatusChangedPayload {

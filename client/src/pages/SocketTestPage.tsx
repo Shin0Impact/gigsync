@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../store';
+import type { AppDispatch, RootState } from '../app/store';
 import { attachSocketListeners } from '../sockets/listeners';
 import { connectSocket, joinConversation, sendMessage } from '../sockets/client';
 
@@ -64,7 +64,7 @@ function SocketTestPage() {
       <hr style={{ margin: '1.5rem 0' }} />
 
       <ul style={{ listStyle: 'none', padding: 0, minHeight: '4rem' }}>
-        {messages.map((m) => (
+        {messages.map((m: (typeof messages)[number]) => (
           <li key={m.id}>
             <strong>{m.senderId}:</strong> {m.content}
           </li>
