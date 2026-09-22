@@ -7,6 +7,7 @@ import { pool } from './config/db';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import apiRoutes from './routes';
 import { initSocketServer } from './sockets';
+import { start_recurring_events_job } from './jobs/recurring-events.job';
 
 const app = express();
 
@@ -30,6 +31,8 @@ async function startServer() {
   try {
     await pool.query('SELECT 1');
     console.log('Database connected successfully');
+
+    start_recurring_events_job();
 
     httpServer.listen(env.port, () => {
       console.log(`GigSync API listening on http://localhost:${env.port}`);
