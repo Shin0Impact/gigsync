@@ -15,6 +15,7 @@
     "test:event-media": "tsx tests/event_media.api.test.ts",
     "test:showcase": "tsx tests/showcase.api.test.ts",
     "test:works": "tsx tests/works.api.test.ts",
+    "test:artists": "tsx tests/artists.api.test.ts",
     "test:verification": "tsx tests/verification.api.test.ts"
   },
   "dependencies": {

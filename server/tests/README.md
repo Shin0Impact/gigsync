@@ -121,6 +121,56 @@ ALTER TABLE showcase_items
   );
 ```
 
+`artists.api.test.ts` runs 21 checks against
+`PATCH /api/artists/me/emergency-status`, `GET /api/artists/:userId/emergency-status`,
+and `GET /api/artists/emergency-available` (card #25 - "Emergency
+Availability Search" from the design doc). This is the other half of a
+feature that was already partly built: the Socket.IO `emergency_status_changed`
+broadcast (`sockets/index.ts`) existed before this REST layer did. Covers:
+toggling requires auth + the artist role; turning availability ON requires
+lat/lng, turning it OFF doesn't (the existing location is left alone); a
+past `emergencyUntil` is rejected; out-of-range lat/lng/radius_km are
+rejected, including a missing/non-numeric query param (which becomes
+`NaN`, not a clean type mismatch - validation uses `Number.isFinite`, not
+`typeof`, specifically to catch this); searching finds an available artist
+inside the radius and excludes one ~130km away (NYC vs. Philadelphia is
+the fixture - close enough to be realistic for an "emergency, same-day"
+feature, far enough to cross a 50km test radius); a 150km radius (still
+under the service's 200km cap) finds both; turning availability back off
+removes that artist from search results immediately, AND stops exposing
+their last-known coordinates via the public status-read endpoint (only
+`isEmergencyAvailable`/`emergencyUntil` remain visible - their location
+isn't left publicly queryable forever just because they were emergency
+available once); and the public status endpoint reports the *effective*
+current state (accounting for an expired `emergencyUntil`, not just the
+raw stored boolean) for any single artist.
+
+Does NOT assert on the Socket.IO broadcast itself - there's no
+`socket.io-client` dev dependency in this repo to drive that from a plain
+`fetch`-based test file. Verify that part manually: connect a socket
+client, PATCH the status, confirm `emergency_status_changed` arrives.
+
+Needs three new columns on the live `profiles` table (not run yet):
+
+```sql
+ALTER TABLE profiles
+  ADD COLUMN location geography(Point, 4326),
+  ADD COLUMN is_emergency_available boolean NOT NULL DEFAULT false,
+  ADD COLUMN emergency_until timestamptz;
+
+CREATE INDEX idx_profiles_location ON profiles USING GIST (location);
+CREATE INDEX idx_profiles_emergency_available
+  ON profiles (is_emergency_available)
+  WHERE is_emergency_available = true;
+```
+
+Note: there's no background job flipping `is_emergency_available` back to
+false once `emergency_until` passes - the search query
+(`find_emergency_available_near` in `db/queries/profiles.queries.ts`)
+just filters out any row whose `emergency_until` is in the past, live, on
+every search. An artist can also always turn it off early via the same
+PATCH. `GET /api/artists/search` (card #24, general category/radius
+artist search) is a separate, still-`501` stub - not part of this file.
 `verification.api.test.ts` runs 23 checks against
 `/api/verification/social-links`, `/api/verification/id-upload-url`,
 `/api/verification/requests`, `/api/verification/status/:userId`, and the
@@ -208,6 +258,11 @@ implemented - `/api/artists` and `/api/conversations` still return
 `501 Not implemented` stubs. Add more `*.test.ts` files here (and a
 matching `npm run test:*` script) as those land.
 
-Every check in all three files was run against the real controller/service code
-(a throwaway local Postgres, not the real Supabase database) before being
-committed, so the expected status codes are verified, not guessed.
+Every check across all these files was run against the real controller/
+service code before being committed, so the expected status codes are
+verified, not guessed - the earlier files (auth/events/event_media/
+showcase/works) against a throwaway local Postgres; artists.api.test.ts
+(21/21) was run and confirmed passing against the real Supabase database,
+since that's what's actually running locally by this point in the
+project. (verification.api.test.ts is covered on its own branch,
+feature/verification-id-documents / PR #89 - not part of this one.)

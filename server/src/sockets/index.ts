@@ -22,6 +22,20 @@ import {
 // Express's request/response cycle, so cookie-parser's req.cookies isn't
 // available here; the raw Cookie header off the handshake is parsed by hand
 // instead. Everything downstream keys off socket.data.userId.
+// Stashed so REST controllers (e.g. artists.controller.ts) can broadcast
+// through the same io instance without threading it through every layer.
+// Always set by request time - initSocketServer runs synchronously right
+// after app setup in index.ts, before httpServer.listen starts accepting
+// connections.
+let ioInstance: SocketIOServer | null = null;
+
+export function getIO(): SocketIOServer {
+  if (!ioInstance) {
+    throw new Error('Socket.IO server has not been initialized yet');
+  }
+  return ioInstance;
+}
+
 export function initSocketServer(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, {
     cors: {
@@ -80,6 +94,8 @@ export function initSocketServer(httpServer: HttpServer) {
     });
   });
 
+  ioInstance = io;
+
   return io;
 }
 
@@ -130,9 +146,10 @@ async function persistMessage(
   }
 }
 
-// Called from the REST layer (PATCH /api/artists/me/emergency-status, once
-// Kareem builds it) to broadcast the change to every connected client so
-// organizer-side emergency search views update live without a refresh.
+// Called from the REST layer (PATCH /api/artists/me/emergency-status, in
+// artists.controller.ts / artists.service.ts) to broadcast the change to
+// every connected client so organizer-side emergency search views update
+// live without a refresh.
 export function broadcastEmergencyStatusChange(
   io: SocketIOServer,
   payload: EmergencyStatusChangedPayload
