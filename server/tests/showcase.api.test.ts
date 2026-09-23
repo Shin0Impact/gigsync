@@ -100,7 +100,13 @@ async function makeWorkFor(who: string, stamp: number): Promise<number> {
   r = await request(who, 'POST', `/works/${work.id}/updates`, { description: `progress ${stamp}` });
   const update = (r.body as { update: { id: number } }).update;
 
-  r = await request(who, 'POST', '/media/upload-url', { fileName: 'piece.png', contentType: 'image/png', folder: 'works' });
+  // fileSizeBytes is required on upload-url requests (security fix - see
+  // media.service.ts); this helper doesn't do a real R2 round-trip like
+  // event_media.api.test.ts/works.api.test.ts do, so any placeholder
+  // value under the size cap is fine here.
+  r = await request(who, 'POST', '/media/upload-url', {
+    fileName: 'piece.png', contentType: 'image/png', fileSizeBytes: 1024, folder: 'works',
+  });
   const objectKey = (r.body as { objectKey: string }).objectKey;
 
   await request(who, 'POST', `/works/updates/${update.id}/media`, { mediaType: 'image', objectKey });

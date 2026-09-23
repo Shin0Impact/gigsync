@@ -119,6 +119,18 @@ async function main() {
   });
   check('05 Register artist without artists_type', r.status, 400, r.body);
 
+  // Security fix: no length/strength floor on the password at all before
+  // this - a 1-character password passed as long as the field wasn't
+  // empty.
+  r = await request('POST', '/auth/register', {
+    email: `shortpw_${stamp}@example.com`,
+    password: 'short1',
+    role: 'artist',
+    user_name: `shortpw_${stamp}`,
+    artists_type: 'musician',
+  });
+  check('05b Register with too-short password is rejected', r.status, 400, r.body);
+
   r = await request('POST', '/auth/register', {
     email,
     password,
@@ -127,6 +139,33 @@ async function main() {
     artists_type: 'painter',
   });
   check('06 Register duplicate email', r.status, 409, r.body);
+
+  // Security fix: registration must not let a caller self-assign a
+  // privileged role. moderator/admin can view other users' verification
+  // ID documents and approve/reject requests - those accounts must be
+  // created out-of-band, never picked from the public signup form.
+  const modEmail = `wouldbemod_${stamp}@example.com`;
+  r = await request('POST', '/auth/register', {
+    email: modEmail,
+    password,
+    role: 'moderator',
+    user_name: `wouldbemod_${stamp}`,
+  });
+  check('06b Register as moderator is rejected', r.status, 400, r.body);
+
+  r = await request('POST', '/auth/register', {
+    email: `wouldbeadmin_${stamp}@example.com`,
+    password,
+    role: 'admin',
+    user_name: `wouldbeadmin_${stamp}`,
+  });
+  check('06c Register as admin is rejected', r.status, 400, r.body);
+
+  // Confirm the rejected moderator attempt didn't actually create an
+  // account (the check must happen before any DB write, not just fail
+  // the response while still leaving a row behind).
+  r = await request('POST', '/auth/login', { identifier: modEmail, password });
+  check('06d No account was created by the rejected moderator attempt', r.status, 401, r.body);
 
   r = await request('POST', '/auth/login', { identifier: email });
   check('07 Login missing fields', r.status, 400, r.body);

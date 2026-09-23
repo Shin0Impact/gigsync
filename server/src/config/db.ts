@@ -1,5 +1,6 @@
 import { Pool, QueryResultRow, types } from 'pg';
 import { env } from './env';
+import { SUPABASE_ROOT_CA } from './supabaseRootCa';
 
 // `pg` returns bigint (OID 20 - int8) columns as strings by default, since
 // a bigint can exceed Number.MAX_SAFE_INTEGER and silently lose precision
@@ -13,14 +14,17 @@ types.setTypeParser(20, (value: string) => parseInt(value, 10));
 
 // Shared PostgreSQL/PostGIS connection pool, pointed at Supabase's hosted
 // Postgres (Project Settings -> Database -> Connection string, "URI" mode).
-// Supabase requires TLS; the `pg` driver won't verify Supabase's cert chain
-// by default, so we accept it without strict verification (fine for a
-// managed provider - don't do this against an arbitrary untrusted host).
+// `ca: SUPABASE_ROOT_CA` above is what makes this actually verify the
+// connection now (rejectUnauthorized defaults to true whenever `ca` is
+// set) - a previous version disabled verification entirely
+// (rejectUnauthorized: false), which encrypted the connection but never
+// checked WHO was on the other end, so a MITM presenting any certificate
+// at all would have gone undetected.
 // Import `query` from here rather than instantiating new pools/clients
 // elsewhere.
 export const pool = new Pool({
   connectionString: env.databaseUrl,
-  ssl: env.databaseUrl.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
+  ssl: env.databaseUrl.includes('supabase.co') ? { ca: SUPABASE_ROOT_CA } : undefined,
 });
 
 pool.on('error', (err) => {

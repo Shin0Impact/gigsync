@@ -26,6 +26,16 @@ const ALLOWED_CONTENT_TYPES = [
 
 const UPLOAD_URL_EXPIRY_SECONDS = 5 * 60;
 
+// Nothing capped the size of what could be PUT to a presigned URL before
+// this - a caller could request a URL for a "photo" and then upload a
+// multi-gigabyte file straight into the R2 bucket, since presigning is
+// just a local HMAC computation that never looks at how many bytes
+// eventually get sent. 50MB comfortably covers portfolio photos and short
+// video clips (the allowed content types below); tighten or split by
+// content type later if the product needs something stricter for images
+// specifically.
+const MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024;
+
 function sanitize_file_name(fileName: string): string {
   // Strip anything that isn't safe in an S3/R2 object key path segment.
   return fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100);
@@ -34,14 +44,23 @@ function sanitize_file_name(fileName: string): string {
 export interface RequestUploadUrlInput {
   fileName: string;
   contentType: string;
+  fileSizeBytes: number;
   folder?: string;
 }
 
 export async function request_upload_url(input: RequestUploadUrlInput) {
-  const { fileName, contentType, folder = 'uploads' } = input;
+  const { fileName, contentType, fileSizeBytes, folder = 'uploads' } = input;
 
-  if (!fileName || !contentType) {
-    throw new Error('fileName and contentType are required');
+  if (!fileName || !contentType || !fileSizeBytes) {
+    throw new Error('fileName, contentType, and fileSizeBytes are required');
+  }
+
+  if (!Number.isFinite(fileSizeBytes) || fileSizeBytes <= 0) {
+    throw new Error('fileSizeBytes must be a positive number');
+  }
+
+  if (fileSizeBytes > MAX_UPLOAD_SIZE_BYTES) {
+    throw new Error(`fileSizeBytes exceeds the ${MAX_UPLOAD_SIZE_BYTES} byte limit`);
   }
 
   if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
@@ -51,10 +70,20 @@ export async function request_upload_url(input: RequestUploadUrlInput) {
   const safe_folder = folder.replace(/[^a-zA-Z0-9/_-]/g, '');
   const object_key = `${safe_folder}/${randomUUID()}-${sanitize_file_name(fileName)}`;
 
+  // Signing ContentLength (in addition to ContentType) locks the actual PUT
+  // to exactly this many bytes - R2 rejects the request outright if the
+  // real upload's Content-Length header doesn't match what was signed here,
+  // which is what actually enforces the cap above: the client can't get a
+  // URL for a declared-small file and then stream something bigger into
+  // it. This doesn't verify the CONTENT matches contentType (that would
+  // need inspecting the real bytes, e.g. magic-number sniffing after
+  // upload, or a virus/content scan step) - it only proves the size and
+  // declared type match what was signed.
   const command = new PutObjectCommand({
     Bucket: env.r2.bucketName,
     Key: object_key,
     ContentType: contentType,
+    ContentLength: fileSizeBytes,
   });
 
   const upload_url = await getSignedUrl(r2Client, command, {

@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from '../config/env';
 import { query } from '../config/db';
+import { isConversationParticipant } from '../db/queries/conversations.queries';
 import {
   AuthTokenPayload,
   EmergencyStatusChangedPayload,
@@ -66,8 +67,29 @@ export function initSocketServer(httpServer: HttpServer) {
     // eslint-disable-next-line no-console
     console.log(`[socket] connected: ${socket.id} (user ${socket.data.userId})`);
 
-    socket.on('join_conversation', (conversationId: string) => {
+    socket.on('join_conversation', async (conversationId: string) => {
+      // Anyone with a valid access_token could otherwise join ANY
+      // conversation room by guessing/enumerating a UUID and read every
+      // message broadcast into it (io.to(conversationId).emit(...) doesn't
+      // check membership on the sending side - the room itself is the only
+      // gate). REST-side conversations isn't built yet (see
+      // conversations.routes.ts, still 501 stubs), so conversation_participants
+      // rows can currently only exist if something inserted them directly,
+      // but the socket gateway is live right now and has to be safe on its
+      // own regardless of what REST ships later.
+      if (!conversationId) {
+        socket.emit('socket_error', { message: 'conversationId is required' });
+        return;
+      }
+
+      const isParticipant = await isConversationParticipant(conversationId, socket.data.userId as string);
+      if (!isParticipant) {
+        socket.emit('socket_error', { message: 'Not a participant of this conversation' });
+        return;
+      }
+
       socket.join(conversationId);
+      socket.emit('joined_conversation', { conversationId });
     });
 
     socket.on('leave_conversation', (conversationId: string) => {
@@ -79,6 +101,17 @@ export function initSocketServer(httpServer: HttpServer) {
       async (payload: SocketSendMessagePayload, ack?: (message: SocketReceiveMessagePayload) => void) => {
         if (!payload?.conversationId || !payload?.content?.trim()) {
           socket.emit('socket_error', { message: 'conversationId and content are required' });
+          return;
+        }
+
+        // Same membership gate as join_conversation above - without this, a
+        // non-participant who already knows/guesses a conversationId could
+        // send messages into a conversation they were never added to, and
+        // persistMessage's FK-failure fallback (see below) would make it
+        // look like it worked even for a made-up id.
+        const isParticipant = await isConversationParticipant(payload.conversationId, socket.data.userId as string);
+        if (!isParticipant) {
+          socket.emit('socket_error', { message: 'Not a participant of this conversation' });
           return;
         }
 
