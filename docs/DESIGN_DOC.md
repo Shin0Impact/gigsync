@@ -112,15 +112,16 @@ stayed in sync. Now that Supabase is live:
   screen hardcodes 2-3 example objects locally in that component (not a
   shared file) and deletes them once the real endpoint exists.
 
-### 5a. Schema drift: live Supabase vs. `schema.sql` (as of 2026-09-19)
+### 5a. Schema drift: live Supabase vs. `schema.sql` (as of 2026-09-23)
 
-The tables actually running in the team's Supabase project right now do
-**not** match `server/src/db/schema.sql` above. Kareem has been building
-toward a portfolio/feed-style model instead of (or alongside) the original
-marketplace model — this section documents what's actually live so the rest
-of the team isn't working from a stale picture. Treat this as in-flux and
-owned by Kareem; update it as the schema settles rather than treating it as
-final.
+The tables actually running in the team's Supabase project still do **not**
+match `server/src/db/schema.sql` above, but the gap has narrowed a lot since
+this section was last written — the singular `event` table has since been
+extended (additively, via `ALTER TABLE`, not recreated) to cover the
+marketplace/gig-booking model, and two new tables now support it. This
+section documents what's actually live so the rest of the team isn't
+working from a stale picture. Treat this as in-flux and owned by Kareem;
+update it as the schema settles rather than treating it as final.
 
 **Tables currently in Supabase (`public` schema):**
 
@@ -134,26 +135,47 @@ final.
 | `update_media` | `id` (bigint), `created_at` (timestamptz), `update_id` (bigint), `media_type` (text), `r2_key` (text), `mime_type` (text), `file_size` (bigint), `sort_order` (bigint) |
 | `work_likes` | `id` (bigint), `created_at` (timestamptz), `work_id` (bigint), `user_id` (uuid) |
 | `work_comments` | `id` (bigint), `created_at` (timestamptz), `work_id` (bigint), `user_id` (uuid), `content` (text), `updated_at` (timestamptz) |
-| `event` | `id` (bigint), `created_at` (timestamptz), `start_at` (timestamp), `end_at` (timestamp), `post_id` (bigint) |
+| `event` | `id` (bigint), `created_at` (timestamptz), `start_at`/`end_at` (timestamp), `organizer_id` (uuid, FK -> `users`), `title` (text), `descriptions` (text), `venue_name` (text), `location` (`geography(Point, 4326)`), `is_recurring` (boolean), `recurring_rule` (varchar), `status` (enum `event_status`: `open`/`filled`/`completed`/`cancelled`), `categories_needed` (`"ArtistCategory"[]`), `updated_at` (timestamptz) |
+| `event_applications` | `id` (uuid), `event_id` (bigint, FK -> `event`), `artist_id` (uuid, FK -> `users`), `status` (enum `application_status`: `pending`/`accepted`/`rejected`), `cover_note` (text), `applied_at`/`updated_at` (timestamptz) |
+| `event_media` | `id` (uuid), `event_id` (bigint, FK -> `event`), `media_type` (varchar), `object_key` (text), `alt_text` (text), `sort_order` (integer), `created_at` (timestamptz) |
 
 Notes:
 - `artists_type` (on `profiles`) and `role` (on `roles`) are Postgres enum
   types — see `server/src/types/social.ts` for the resolved value lists
   once confirmed.
-- The singular **`event`** table here is a *different* concept from the
-  plural **`events`** table in the original marketplace schema above (gig
-  listings with a location + application flow). `event` looks tied to
-  `work_updates` via `post_id` instead — likely something like a scheduled
-  post/drop rather than a bookable gig. Don't conflate the two in code;
-  `IEvent` (marketplace) and whatever type represents this `event` row need
-  to stay clearly distinct (see `server/src/types/social.ts`).
-- All primary keys here are `bigint` (auto-increment), not the `UUID`
-  convention the rest of the schema uses — worth reconciling once the model
-  settles, since the client/server types currently assume UUID strings for
-  IDs everywhere else.
-- No PostGIS/geospatial columns exist in this set, so proximity-based
-  search (artist search, emergency search) still has nothing to query
-  against yet.
+- `event`'s original `post_id` FK to `work_updates` is gone — it no longer
+  ties to the feed/post model at all. It's now a standalone bookable gig
+  listing with its own title/description/venue/categories, matching the
+  original marketplace concept this doc describes in sections 1-2. Event
+  CRUD + applications (board card #23) and event media (R2-backed uploads)
+  both ship against this table now — see `server/src/db/queries/events.queries.ts`
+  and `server/src/db/queries/event_media.queries.ts`.
+- `categories_needed` reuses the existing `"ArtistCategory"` enum (values:
+  `painter`, `photographer`, `designer`, `musician`) rather than a separate
+  categories table, per the team's addition-only preference.
+- `location` is a real PostGIS `geography(Point, 4326)` column now, so
+  proximity-based search (artist search, emergency search) has something to
+  query against for `event` -- `ST_Y`/`ST_X` on the geometry cast give
+  lat/lng back out. Artist-level location for `#24`/`#25` (artist search,
+  emergency availability) still needs its own geospatial column on
+  `profiles`/`users` -- not addressed yet.
+- All primary keys here are still `bigint` (auto-increment) except the two
+  new join-ish tables (`event_applications`, `event_media`), which use
+  `uuid` -- still a mixed convention worth reconciling eventually, but new
+  tables are deliberately using `uuid` to match the rest of the schema's
+  convention going forward.
+- **Open item (`#81`, assigned to all three, scoped to Kareem for now):** a
+  user being simultaneously an artist *and* an organizer isn't supported by
+  the current schema -- `roles.user_id` is the table's primary key, meaning
+  one role per user by design. Supporting dual roles needs an actual schema
+  change (e.g. a composite `(user_id, role)` key instead), not just an
+  app-logic tweak. Scoped as schema-plus-logic work, not just logic.
+- **Recurring events**: `is_recurring`/`recurring_rule` columns exist on
+  `event` but nothing reads or interprets them yet -- no logic generates
+  future occurrences, and `recurring_rule` has no enforced format. Kareem is
+  taking this end-to-end (`#72` "create recurring database function"); a
+  duplicate card (`#80`) exists under Shin from before the split and should
+  get closed once `#72` lands rather than tracked separately.
 
 ## 6. API Design & Storage Integration
 
@@ -164,29 +186,32 @@ Notes:
 - `POST /api/auth/logout` — Clear auth cookies.
 - `GET /api/auth/me` — Verify JWT payload and return current user profile.
 
-### Cloudflare R2 Media Upload Routes (`/api/media`)
+### Cloudflare R2 Media Upload Routes (`/api/media`) -- **implemented & R2-verified**
 
-- `POST /api/media/upload-url` — Request a pre-signed PUT URL for direct R2 binary uploads (validates mime-type, file limit, and media structure).
-- `POST /api/showcases` — Finalize showcase record post-upload by storing metadata and the R2 object key.
-- `DELETE /api/showcases/:id` — Delete record from database and delete binary object from Cloudflare R2 via S3 SDK.
+- `POST /api/media/upload-url` — Request a pre-signed PUT URL for direct R2 binary uploads (validates content-type against an allow-list, sanitizes the filename, scopes the object key under a `folder`). **Live**: R2 credentials are configured (bucket `gigsync-media`), and `server/tests/event_media.api.test.ts` does a real `PUT` to the presigned URL and reads it back from the public URL to prove the round trip, not just that the signature is well-formed.
+- `POST /api/showcases` — still a `501` stub. Same presign/upload pattern as event media, just needs a `showcases` table + service (board card `#78`).
+- `DELETE /api/showcases/:id` — still a `501` stub; once implemented, needs to delete both the DB row and the R2 object (see note below -- event media had this exact gap and it's now fixed there).
 
 ### Geospatial & Artist Routes (`/api/artists`)
 
-- `GET /api/artists/search?category_id=&lat=&lng=&radius_km=` — PostGIS radius query (see `server/src/routes/artists.routes.ts`).
-- `GET /api/artists/emergency-available?lat=&lng=&radius_km=` — Fetch performers who have active `is_emergency_available = true` flags sorted by proximity.
-- `PATCH /api/artists/me/emergency-status` — Toggle emergency availability with auto-expiration timestamp.
+- `GET /api/artists/search?category_id=&lat=&lng=&radius_km=` — not implemented yet (`501` stub, board card `#24`).
+- `GET /api/artists/emergency-available?lat=&lng=&radius_km=` — not implemented yet (`501` stub, board card `#25`).
+- `PATCH /api/artists/me/emergency-status` — not implemented yet (`501` stub, board card `#25`).
 
-### Event & Application Routes (`/api/events`)
+### Event & Application Routes (`/api/events`) -- **implemented (board card #23)**
 
-- `POST /api/events` — Create gig listing requiring specific art categories (Organizer role).
-- `GET /api/events` — Filter active gigs by proximity, category, and date.
-- `POST /api/events/:id/apply` — Submit artist application with an optional cover note.
-- `PATCH /api/events/:id/applications/:appId` — Accept/reject applicant status.
+- `POST /api/events` — Create gig listing requiring specific art categories (Organizer role only).
+- `GET /api/events/:id`, `PATCH /api/events/:id`, `DELETE /api/events/:id` — read/update/delete, with ownership checks (only the owning organizer can update/delete).
+- `POST /api/events/:id/apply` — Submit artist application with an optional cover note; rejects duplicate applications.
+- `GET /api/events/:id/applications` — Organizer-only list of applicants.
+- `PATCH /api/events/:id/applications/:appId` — Accept/reject applicant status (rejects re-deciding an already-decided application).
+- `POST /api/events/:id/media`, `GET /api/events/:id/media`, `DELETE /api/events/:id/media/:mediaId` — event flyer/photo/video attachments backed by the R2 upload-url flow above (ownership-checked on write, public on read). Deleting a media item deletes both the DB row and the underlying R2 object.
+- Covered end-to-end by `server/tests/events.api.test.ts` (26 checks) and `server/tests/event_media.api.test.ts` (24 checks) -- see `server/tests/README.md`.
 
 ### Real-time Messaging Routes (`/api/conversations`)
 
-- `POST /api/conversations` — Initiate a chat between organizer and artist.
-- `GET /api/conversations/:id/messages` — Fetch message history with pagination.
+- `POST /api/conversations` — not implemented yet (`501` stub, board card `#76`).
+- `GET /api/conversations/:id/messages` — not implemented yet (`501` stub, board card `#76`). Once built, this is what the Socket.IO gateway's in-memory-fallback placeholder (section 7) needs real conversation rows to persist against.
 
 ## 7. Frontend Architecture & Socket.IO Plan
 
@@ -197,7 +222,7 @@ slices under `client/src/store/slices/` for the live version of this shape.
 
 ### Socket.IO Integration Mechanics
 
-1. **Authentication Handshake**: Socket connection authenticates using the HTTP-only JWT cookie passed in the connection header. *(Status: implemented as a placeholder — the handshake currently trusts a plain `userId` in `socket.handshake.auth` until `/api/auth` exists; see `server/src/sockets/index.ts`.)*
+1. **Authentication Handshake**: Socket connection authenticates using the HTTP-only JWT cookie passed in the connection header. *(Status: implemented for real now that `/api/auth` exists -- the handshake verifies the JWT via `jwt.verify()`; the old placeholder that trusted a plain `userId` has been removed. See `server/src/sockets/index.ts`.)* Message persistence still degrades gracefully to an in-memory fallback when the referenced `conversations` row doesn't exist, since `POST /api/conversations` (`#76`) isn't built yet -- check the server console for fallback warnings.
 2. **Room Joining**: Users automatically join rooms corresponding to their `conversation_id` records (`socket.join(conversationId)`).
 3. **Event Drivers**:
     - `send_message` / `receive_message`: Delivers instant messages and updates state via Redux.
