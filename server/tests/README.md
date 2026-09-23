@@ -121,6 +121,142 @@ ALTER TABLE showcase_items
   );
 ```
 
+<<<<<<< Updated upstream
+=======
+`verification.api.test.ts` runs 23 checks against
+`/api/verification/social-links`, `/api/verification/id-upload-url`,
+`/api/verification/requests`, `/api/verification/status/:userId`, and the
+moderator-only `/api/verification/requests/:id/id-document` (card #82).
+Covers: requesting an ID document upload URL requires auth; submitting a
+verification request without an `idDocumentObjectKey` is rejected (400);
+submitting a request before meeting the eligibility bar (no social link,
+or fewer than 3 prior works/events) is rejected with a specific reason,
+not a generic error; meeting the bar (>=1 social link, >=3 works for an
+artist or >=3 events for an organizer, plus an uploaded ID document key)
+lets the request through; a `fan` can't request at all (only
+artist/organizer are eligible roles); submitting twice while already
+pending is a 409, not a duplicate row; the moderator queue
+(`GET /api/verification/requests`), review endpoint
+(`PATCH /api/verification/requests/:id`), and the ID document view URL
+(`GET /api/verification/requests/:id/id-document`) are all role-gated to
+moderator/admin - a non-moderator gets 403 on each; approving flips
+`profiles.is_verified` to true, reflected on the public status endpoint;
+rejecting does not verify the user; and reviewing an already-decided
+request again is a 409.
+
+This does not upload real bytes to R2 - it only exercises presigned-URL
+issuance and the objectKey plumbing through `submit_verification_request`.
+The id-upload-url calls still need `R2_ID_DOCUMENTS_BUCKET_NAME` set to a
+real bucket or they'll fail with a 400 ("ID document uploads are not
+configured").
+
+ID documents are deliberately stored in a SEPARATE, PRIVATE R2 bucket from
+the rest of the app's media - not the existing `gigsync-media` bucket,
+which has a public dev URL enabled (fine for event photos/work media, not
+for government ID scans). The new bucket must NOT have a public dev URL:
+every read goes through a short-lived (5 min) presigned GET URL, issued
+only via the moderator-gated `/id-document` route. You'll need to:
+
+1. Create a new, separate R2 bucket in Cloudflare (do not enable its
+   public dev URL).
+2. Set `R2_ID_DOCUMENTS_BUCKET_NAME` in the server's env to that bucket's
+   name.
+3. Make sure your R2 API token's scope covers the new bucket too - the
+   existing token was scoped only to `gigsync-media`.
+
+Needs three new pieces of schema - `social_links`, `verification_requests`
+(with a required `id_document_key`), and `profiles.is_verified`. Uses a
+Postgres enum for status, matching the existing `event_status` /
+`application_status` convention rather than an unconstrained varchar. Run
+this in Supabase's SQL Editor:
+
+```sql
+CREATE TYPE verification_status AS ENUM ('pending', 'approved', 'rejected');
+
+CREATE TABLE social_links (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  platform varchar NOT NULL,
+  url text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, platform)
+);
+
+CREATE TABLE verification_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status verification_status NOT NULL DEFAULT 'pending',
+  id_document_key text NOT NULL,
+  notes text,
+  reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE profiles ADD COLUMN is_verified boolean NOT NULL DEFAULT false;
+
+CREATE INDEX idx_verification_requests_status ON verification_requests (status);
+CREATE INDEX idx_verification_requests_user_id ON verification_requests (user_id);
+CREATE INDEX idx_social_links_user_id ON social_links (user_id);
+```
+
+Note: `social_links` is a placeholder for real OAuth social-account
+connecting, which isn't built yet - for now it's just a self-reported
+platform + URL, enough to prove "has a social presence" at request time.
+Swap this out once real connecting lands.
+
+`artists.api.test.ts` runs 21 checks against
+`PATCH /api/artists/me/emergency-status`, `GET /api/artists/:userId/emergency-status`,
+and `GET /api/artists/emergency-available` (card #25 - "Emergency
+Availability Search" from the design doc). This is the other half of a
+feature that was already partly built: the Socket.IO `emergency_status_changed`
+broadcast (`sockets/index.ts`) existed before this REST layer did. Covers:
+toggling requires auth + the artist role; turning availability ON requires
+lat/lng, turning it OFF doesn't (the existing location is left alone); a
+past `emergencyUntil` is rejected; out-of-range lat/lng/radius_km are
+rejected, including a missing/non-numeric query param (which becomes
+`NaN`, not a clean type mismatch - validation uses `Number.isFinite`, not
+`typeof`, specifically to catch this); searching finds an available artist
+inside the radius and excludes one ~130km away (NYC vs. Philadelphia is
+the fixture - close enough to be realistic for an "emergency, same-day"
+feature, far enough to cross a 50km test radius); a 150km radius (still
+under the service's 200km cap) finds both; turning availability back off
+removes that artist from search results immediately, AND stops exposing
+their last-known coordinates via the public status-read endpoint (only
+`isEmergencyAvailable`/`emergencyUntil` remain visible - their location
+isn't left publicly queryable forever just because they were emergency
+available once); and the public status endpoint reports the *effective*
+current state (accounting for an expired `emergencyUntil`, not just the
+raw stored boolean) for any single artist.
+
+Does NOT assert on the Socket.IO broadcast itself - there's no
+`socket.io-client` dev dependency in this repo to drive that from a plain
+`fetch`-based test file. Verify that part manually: connect a socket
+client, PATCH the status, confirm `emergency_status_changed` arrives.
+
+Needs three new columns on the live `profiles` table (not run yet):
+
+```sql
+ALTER TABLE profiles
+  ADD COLUMN location geography(Point, 4326),
+  ADD COLUMN is_emergency_available boolean NOT NULL DEFAULT false,
+  ADD COLUMN emergency_until timestamptz;
+
+CREATE INDEX idx_profiles_location ON profiles USING GIST (location);
+CREATE INDEX idx_profiles_emergency_available
+  ON profiles (is_emergency_available)
+  WHERE is_emergency_available = true;
+```
+
+Note: there's no background job flipping `is_emergency_available` back to
+false once `emergency_until` passes - the search query
+(`find_emergency_available_near` in `db/queries/profiles.queries.ts`)
+just filters out any row whose `emergency_until` is in the past, live, on
+every search. An artist can also always turn it off early via the same
+PATCH. `GET /api/artists/search` (card #24, general category/radius
+artist search) is a separate, still-`501` stub - not part of this file.
+
+>>>>>>> Stashed changes
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return
 `501 Not implemented` stubs. Add more `*.test.ts` files here (and a
