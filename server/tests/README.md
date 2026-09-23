@@ -14,6 +14,7 @@ dependency), using Node's built-in `fetch`.
    npm run test:events
    npm run test:event-media
    npm run test:sockets
+   npm run test:rate-limit
    ```
 
 Each one prints a pass/fail line per check and exits with a non-zero code
@@ -229,6 +230,25 @@ CREATE TABLE messages (
 
 CREATE INDEX idx_messages_conversation ON messages (conversation_id, created_at DESC);
 ```
+
+`rateLimit.api.test.ts` runs 6 checks against the rate limiting added to
+`POST /api/auth/register` and `POST /api/auth/login`
+(`src/middleware/rateLimit.middleware.ts`) - a security fix, since neither
+endpoint had any throttling before (nothing stopped a script from
+brute-forcing `/login` or mass-creating accounts via `/register` as fast
+as the network allowed). Each limiter allows 20 requests/minute per IP.
+This file fires a burst of 30 concurrent requests at each endpoint with
+deliberately-invalid payloads (missing fields for register, bad
+credentials for login) so it proves the limiter without creating any real
+accounts or leaving fixture rows to clean up - the earliest requests in
+each burst still get their normal validation response (400/401), and once
+the cap is hit the rest come back 429.
+
+**Heads up if you run the full suite back to back**: this file spends a
+chunk of the 1-minute window for whichever endpoint it just hit, so a
+different file's first request or two can occasionally see a 429 if it
+lands in the same window right after. That's the limiter working as
+intended, not a bug - wait a few seconds and re-run.
 
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return
