@@ -144,9 +144,14 @@ async function main() {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const getRes = await fetch(uploadResult.publicUrl);
-    check('07c Uploaded object is readable back from the public URL', getRes.status, 200, await getRes.text().catch(() => ''));
-
+    // IMPORTANT: a fetch Response body can only be read once. Read it a
+    // single time as bytes here, then reuse those same bytes for both the
+    // status check's log line and the byte-comparison below - calling
+    // .text() and then .arrayBuffer() on the same Response drains the
+    // stream on the first call and silently makes the second read empty.
     const roundTrippedBytes = Buffer.from(await getRes.arrayBuffer().catch(() => new ArrayBuffer(0)));
+    check('07c Uploaded object is readable back from the public URL', getRes.status, 200, roundTrippedBytes.toString('base64').slice(0, 80));
+
     check(
       '07d Round-tripped bytes match what was uploaded',
       roundTrippedBytes.equals(fileBytes) ? 1 : 0,
@@ -198,6 +203,18 @@ async function main() {
 
   r = await request('org', 'DELETE', `/events/${eventId}/media/${media1.id}`);
   check('19 Organizer deletes own event media', r.status, 204, r.body);
+
+  // media1 was created with `objectKey` (the same key checks 07b-07d PUT
+  // real bytes to), so deleting it is also our chance to prove the R2
+  // object itself actually gets cleaned up, not just the DB row - skipped
+  // when there's no real bucket to check against, same as 07b-07d.
+  if (uploadResult.publicUrl) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const afterDeleteRes = await fetch(uploadResult.publicUrl);
+    check('19b Deleting event media also deletes the R2 object', afterDeleteRes.status === 404 ? 1 : 0, 1, `got status ${afterDeleteRes.status}`);
+  } else {
+    console.log('  \x1b[33m\u26a0\x1b[0m 19b skipped - R2_PUBLIC_URL not set, cannot verify R2 cleanup');
+  }
 
   r = await request('anon', 'GET', `/events/${eventId}/media`);
   const afterDelete = (r.body as { media: unknown[] }).media;

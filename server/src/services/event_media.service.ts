@@ -5,6 +5,7 @@ import {
   find_event_media_by_id,
   list_event_media,
 } from '../db/queries/event_media.queries';
+import { delete_object } from './media.service';
 
 const VALID_MEDIA_TYPES = ['image', 'video'];
 
@@ -81,4 +82,17 @@ export async function remove_event_media(
   }
 
   await delete_event_media(mediaId);
+
+  // Best-effort cleanup of the actual R2 object. The DB row is the source
+  // of truth for what media an event has, so we delete it first - if R2
+  // cleanup below fails (network blip, bad creds, etc.), the user-facing
+  // delete still succeeds instead of erroring out over a storage hiccup.
+  // Worst case on an R2 failure here is one orphaned object in the bucket,
+  // which is still strictly better than leaving the DB row (and therefore
+  // a broken/dangling reference) in place.
+  try {
+    await delete_object(media.object_key);
+  } catch (err) {
+    console.warn(`Failed to delete R2 object ${media.object_key} after removing event media ${mediaId}:`, err);
+  }
 }
