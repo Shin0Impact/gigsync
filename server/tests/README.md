@@ -66,12 +66,51 @@ manual verification once real R2 credentials are in place. Needs a new
 `media_type` varchar, `object_key` text, `alt_text` text, `sort_order` int,
 `created_at`) - same handoff as the events-CRUD SQL.
 
+`works.api.test.ts` runs 20 checks (plus up to 4 more) against
+`POST /api/works`, `/api/works/:workId/updates`, and
+`/api/works/updates/:updateId/media` - the "artist uploads" slice of
+Kareem's works/work_updates/update_media schema (see
+`server/src/db/social.queries.ts`): create work requires auth + the artist
+role; add update/add media both require ownership, walking
+update -> work -> userId; validation; listing works/updates/media is
+public; and delete media requires ownership + does the same real R2
+round-trip/cleanup proof as event_media (checks 15b-15d/19b, skipped not
+failed when `R2_PUBLIC_URL` isn't set).
+
+`showcase.api.test.ts` runs 17 checks against
+`POST/GET/DELETE /api/media/showcases`. Showcasing is a PIN, not an
+upload - a user stars an `event_media` or `update_media` row they already
+own onto their profile, so this file creates its pin targets via the
+works endpoints rather than uploading anything itself (the real upload
+proof lives in `works.api.test.ts`). Covers: pin requires auth + self-
+ownership of the source media (403 on someone else's); validation
+(missing/invalid `sourceType`); pinning the same media twice is a 409, not
+a duplicate row; a 4th pin is rejected once the cap (`MAX_SHOWCASE_ITEMS`
+in `showcase.service.ts`, currently 3) is hit; listing is public and
+resolves each pin to its underlying `objectKey`; and unpin requires
+ownership of the *pin* (not the source media), 404s on a nonexistent id,
+and leaves the underlying media row untouched.
+
+Needs a new `showcase_items` table shape - it's no longer upload-based.
+Run this in Supabase's SQL Editor (same handoff pattern as `event_media`):
+
+```sql
+ALTER TABLE showcase_items
+  DROP COLUMN media_type,
+  DROP COLUMN object_key,
+  DROP COLUMN alt_text,
+  ADD COLUMN event_media_id uuid REFERENCES event_media(id) ON DELETE CASCADE,
+  ADD COLUMN update_media_id bigint REFERENCES update_media(id) ON DELETE CASCADE,
+  ADD CONSTRAINT showcase_items_exactly_one_source CHECK (
+    (event_media_id IS NOT NULL AND update_media_id IS NULL) OR
+    (event_media_id IS NULL AND update_media_id IS NOT NULL)
+  );
+```
+
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return
-`501 Not implemented` stubs, and `/api/media/showcases` (artist portfolio
-uploads, a separate feature from event media) does too. Add more
-`*.test.ts` files here (and a matching `npm run test:*` script) as those
-land.
+`501 Not implemented` stubs. Add more `*.test.ts` files here (and a
+matching `npm run test:*` script) as those land.
 
 Every check in all three files was run against the real controller/service code
 (a throwaway local Postgres, not the real Supabase database) before being

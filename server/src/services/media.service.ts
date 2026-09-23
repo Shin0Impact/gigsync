@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2Client } from '../config/r2';
 import { env } from '../config/env';
@@ -71,4 +71,19 @@ export async function request_upload_url(input: RequestUploadUrlInput) {
     publicUrl: public_url,
     expiresInSeconds: UPLOAD_URL_EXPIRY_SECONDS,
   };
+}
+
+// Deletes the actual object from R2. Callers (event media, showcases, ...)
+// should call this whenever they delete a row that references an object
+// key, so removing a media item doesn't leave an orphaned file sitting in
+// the bucket forever. Deleting a key that doesn't exist is not an error
+// (S3/R2 DeleteObject is idempotent), so this is safe to call even if the
+// object was already gone somehow.
+export async function delete_object(objectKey: string): Promise<void> {
+  await r2Client.send(
+    new DeleteObjectCommand({
+      Bucket: env.r2.bucketName,
+      Key: objectKey,
+    }),
+  );
 }
