@@ -121,6 +121,88 @@ ALTER TABLE showcase_items
   );
 ```
 
+`verification.api.test.ts` runs 23 checks against
+`/api/verification/social-links`, `/api/verification/id-upload-url`,
+`/api/verification/requests`, `/api/verification/status/:userId`, and the
+moderator-only `/api/verification/requests/:id/id-document` (card #82).
+Covers: requesting an ID document upload URL requires auth; submitting a
+verification request without an `idDocumentObjectKey` is rejected (400);
+submitting a request before meeting the eligibility bar (no social link,
+or fewer than 3 prior works/events) is rejected with a specific reason,
+not a generic error; meeting the bar (>=1 social link, >=3 works for an
+artist or >=3 events for an organizer, plus an uploaded ID document key)
+lets the request through; a `fan` can't request at all (only
+artist/organizer are eligible roles); submitting twice while already
+pending is a 409, not a duplicate row; the moderator queue
+(`GET /api/verification/requests`), review endpoint
+(`PATCH /api/verification/requests/:id`), and the ID document view URL
+(`GET /api/verification/requests/:id/id-document`) are all role-gated to
+moderator/admin - a non-moderator gets 403 on each; approving flips
+`profiles.is_verified` to true, reflected on the public status endpoint;
+rejecting does not verify the user; and reviewing an already-decided
+request again is a 409.
+
+This does not upload real bytes to R2 - it only exercises presigned-URL
+issuance and the objectKey plumbing through `submit_verification_request`.
+The id-upload-url calls still need `R2_ID_DOCUMENTS_BUCKET_NAME` set to a
+real bucket or they'll fail with a 400 ("ID document uploads are not
+configured").
+
+ID documents are deliberately stored in a SEPARATE, PRIVATE R2 bucket from
+the rest of the app's media - not the existing `gigsync-media` bucket,
+which has a public dev URL enabled (fine for event photos/work media, not
+for government ID scans). The new bucket must NOT have a public dev URL:
+every read goes through a short-lived (5 min) presigned GET URL, issued
+only via the moderator-gated `/id-document` route. You'll need to:
+
+1. Create a new, separate R2 bucket in Cloudflare (do not enable its
+   public dev URL).
+2. Set `R2_ID_DOCUMENTS_BUCKET_NAME` in the server's env to that bucket's
+   name.
+3. Make sure your R2 API token's scope covers the new bucket too - the
+   existing token was scoped only to `gigsync-media`.
+
+Needs three new pieces of schema - `social_links`, `verification_requests`
+(with a required `id_document_key`), and `profiles.is_verified`. Uses a
+Postgres enum for status, matching the existing `event_status` /
+`application_status` convention rather than an unconstrained varchar. Run
+this in Supabase's SQL Editor:
+
+```sql
+CREATE TYPE verification_status AS ENUM ('pending', 'approved', 'rejected');
+
+CREATE TABLE social_links (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  platform varchar NOT NULL,
+  url text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, platform)
+);
+
+CREATE TABLE verification_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status verification_status NOT NULL DEFAULT 'pending',
+  id_document_key text NOT NULL,
+  notes text,
+  reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE profiles ADD COLUMN is_verified boolean NOT NULL DEFAULT false;
+
+CREATE INDEX idx_verification_requests_status ON verification_requests (status);
+CREATE INDEX idx_verification_requests_user_id ON verification_requests (user_id);
+CREATE INDEX idx_social_links_user_id ON social_links (user_id);
+```
+
+Note: `social_links` is a placeholder for real OAuth social-account
+connecting, which isn't built yet - for now it's just a self-reported
+platform + URL, enough to prove "has a social presence" at request time.
+Swap this out once real connecting lands.
+
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return
 `501 Not implemented` stubs. Add more `*.test.ts` files here (and a
