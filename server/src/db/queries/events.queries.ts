@@ -9,10 +9,12 @@ import { ApplicationStatus, ArtistCategory, EventStatus } from '../../types';
 // `event` table already existed for a different feature (see
 // docs/DESIGN_DOC.md section 5a) and was extended in place with the columns
 // the marketplace event/application flow needs, rather than creating a
-// second competing "event" table. Column names below match what's actually
-// live - notably `descriptions` (not `description` - a pre-existing typo on
-// the live table, left as-is rather than renamed so nothing else that reads
-// it breaks), and `id` is a bigint/number, not a UUID string.
+// second competing "event" table.
+//
+// Column names below match what's actually live - notably `descriptions`
+// (not `description` - a pre-existing typo on the live table, left as-is
+// rather than renamed so nothing else that reads it breaks), and `id` is a
+// bigint/number, not a UUID string.
 //
 // `location` is a PostGIS GEOGRAPHY(POINT) column - stored as
 // ST_MakePoint(lng, lat), read back via ST_X/ST_Y (note the x/y ↔ lng/lat
@@ -22,6 +24,7 @@ import { ApplicationStatus, ArtistCategory, EventStatus } from '../../types';
 
 export interface DbEvent {
   id: number;
+  parent_event_id: number | null;
   organizer_id: string;
   title: string;
   descriptions: string;
@@ -50,6 +53,7 @@ export interface DbEventApplication {
 
 const EVENT_COLUMNS = `
   id,
+  parent_event_id,
   organizer_id,
   title,
   descriptions,
@@ -124,6 +128,72 @@ export async function create_event(
   return result.rows[0];
 }
 
+/**
+ * Creates the next occurrence from an existing recurring event.
+ *
+ * The new event copies all event data from the source occurrence,
+ * while replacing only the occurrence-specific start/end timestamps.
+ *
+ * Each occurrence points to the occurrence that generated it through
+ * parent_event_id:
+ *
+ *   Event #1 -> parent_event_id = NULL
+ *   Event #2 -> parent_event_id = #1
+ *   Event #3 -> parent_event_id = #2
+ *   Event #4 -> parent_event_id = #3
+ *
+ * This means every occurrence is self-contained and can generate its
+ * own next occurrence without needing the original event to exist.
+ */
+export async function create_next_recurring_event(
+  event: DbEvent,
+  startAt: Date,
+  endAt: Date,
+): Promise<DbEvent> {
+  const result = await pool.query<DbEvent>(
+    `
+      INSERT INTO event (
+        parent_event_id,
+        organizer_id,
+        title,
+        descriptions,
+        start_at,
+        end_at,
+        venue_name,
+        location,
+        is_recurring,
+        recurring_rule,
+        status,
+        categories_needed
+      )
+      SELECT
+        id,
+        organizer_id,
+        title,
+        descriptions,
+        $2,
+        $3,
+        venue_name,
+        location,
+        is_recurring,
+        recurring_rule,
+        'open',
+        categories_needed
+      FROM event
+      WHERE id = $1
+        AND is_recurring = true
+      RETURNING ${EVENT_COLUMNS}
+    `,
+    [event.id, startAt, endAt],
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error('Event is no longer recurring');
+  }
+
+  return result.rows[0];
+}
+
 export async function find_event_by_id(id: number): Promise<DbEvent | null> {
   const result = await pool.query<DbEvent>(
     `SELECT ${EVENT_COLUMNS} FROM event WHERE id = $1 LIMIT 1`,
@@ -133,13 +203,62 @@ export async function find_event_by_id(id: number): Promise<DbEvent | null> {
   return result.rows[0] ?? null;
 }
 
+/**
+ * Finds recurring event occurrences that are ready to generate
+ * their next occurrence.
+ *
+ * An event is ready when:
+ *
+ *   - it is recurring
+ *   - its start time has arrived
+ *   - it has not been cancelled or completed
+ *   - it does not already have a child occurrence
+ *
+ * The last condition is important because the scheduler may run
+ * repeatedly. Once an event has generated its child, it must not
+ * generate another copy of the same occurrence.
+ *
+ * Example:
+ *
+ *   #100 -> #101
+ *
+ * Once #101 exists, #100 is no longer returned by this query.
+ *
+ * Later, when #101 starts:
+ *
+ *   #101 -> #102
+ *
+ * #101 becomes eligible because it has no child yet.
+ */
+export async function find_recurring_events_ready_to_generate(): Promise<DbEvent[]> {
+  const result = await pool.query<DbEvent>(
+    `
+      SELECT ${EVENT_COLUMNS}
+      FROM event e
+      WHERE e.is_recurring = true
+        AND e.start_at <= NOW()
+        AND e.status NOT IN ('cancelled', 'completed')
+        AND NOT EXISTS (
+          SELECT 1
+          FROM event child
+          WHERE child.parent_event_id = e.id
+        )
+      ORDER BY e.start_at ASC
+    `,
+  );
+
+  return result.rows;
+}
+
 export interface ListEventsFilters {
   status?: EventStatus;
   organizerId?: string;
   category?: ArtistCategory;
 }
 
-export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]> {
+export async function list_events(
+  filters: ListEventsFilters,
+): Promise<DbEvent[]> {
   const result = await pool.query<DbEvent>(
     `
       SELECT ${EVENT_COLUMNS}
@@ -149,7 +268,11 @@ export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]
         AND ($3::"ArtistCategory" IS NULL OR $3::"ArtistCategory" = ANY(categories_needed))
       ORDER BY start_at ASC
     `,
-    [filters.status ?? null, filters.organizerId ?? null, filters.category ?? null],
+    [
+      filters.status ?? null,
+      filters.organizerId ?? null,
+      filters.category ?? null,
+    ],
   );
 
   return result.rows;
@@ -184,13 +307,35 @@ export async function update_event(
   }
 
   if (patch.title !== undefined) add('title', patch.title);
-  if (patch.descriptions !== undefined) add('descriptions', patch.descriptions);
-  if (patch.startAt !== undefined) add('start_at', patch.startAt);
-  if (patch.endAt !== undefined) add('end_at', patch.endAt);
-  if (patch.venueName !== undefined) add('venue_name', patch.venueName);
-  if (patch.isRecurring !== undefined) add('is_recurring', patch.isRecurring);
-  if (patch.recurringRule !== undefined) add('recurring_rule', patch.recurringRule);
-  if (patch.status !== undefined) add('status', patch.status);
+
+  if (patch.descriptions !== undefined) {
+    add('descriptions', patch.descriptions);
+  }
+
+  if (patch.startAt !== undefined) {
+    add('start_at', patch.startAt);
+  }
+
+  if (patch.endAt !== undefined) {
+    add('end_at', patch.endAt);
+  }
+
+  if (patch.venueName !== undefined) {
+    add('venue_name', patch.venueName);
+  }
+
+  if (patch.isRecurring !== undefined) {
+    add('is_recurring', patch.isRecurring);
+  }
+
+  if (patch.recurringRule !== undefined) {
+    add('recurring_rule', patch.recurringRule);
+  }
+
+  if (patch.status !== undefined) {
+    add('status', patch.status);
+  }
+
   if (patch.categoriesNeeded !== undefined) {
     set_clauses.push(`categories_needed = $${i}::"ArtistCategory"[]`);
     values.push(patch.categoriesNeeded);
@@ -199,7 +344,10 @@ export async function update_event(
 
   // lat/lng only make sense together - both or neither.
   if (patch.lat !== undefined && patch.lng !== undefined) {
-    set_clauses.push(`location = ST_SetSRID(ST_MakePoint($${i}, $${i + 1}), 4326)::geography`);
+    set_clauses.push(
+      `location = ST_SetSRID(ST_MakePoint($${i}, $${i + 1}), 4326)::geography`,
+    );
+
     values.push(patch.lng, patch.lat);
     i += 2;
   }
@@ -228,6 +376,7 @@ export async function update_event(
 
 export async function delete_event(id: number): Promise<boolean> {
   const result = await pool.query('DELETE FROM event WHERE id = $1', [id]);
+
   return (result.rowCount ?? 0) > 0;
 }
 

@@ -2,6 +2,7 @@ import { pool } from '../config/db';
 import {
   create_application,
   create_event,
+  create_next_recurring_event,
   delete_event,
   find_application_by_id,
   find_event_by_id,
@@ -11,12 +12,34 @@ import {
   update_application_status,
   update_event,
 } from '../db/queries/events.queries';
+import {
+  calculate_next_occurrence,
+  RecurringRule,
+} from './recurrence.service';
 import { ApplicationStatus, ArtistCategory, EventStatus } from '../types';
 
-const VALID_CATEGORIES: ArtistCategory[] = ['painter', 'photographer', 'designer', 'musician'];
-const VALID_STATUSES: EventStatus[] = ['open', 'filled', 'completed', 'cancelled'];
+const VALID_CATEGORIES: ArtistCategory[] = [
+  'painter',
+  'photographer',
+  'designer',
+  'musician',
+];
 
-function validate_categories(categories: unknown): ArtistCategory[] | null {
+const VALID_STATUSES: EventStatus[] = [
+  'open',
+  'filled',
+  'completed',
+  'cancelled',
+];
+
+const VALID_RECURRING_RULES: RecurringRule[] = [
+  'WEEKLY',
+  'MONTHLY',
+];
+
+function validate_categories(
+  categories: unknown,
+): ArtistCategory[] | null {
   if (categories === undefined || categories === null) {
     return null;
   }
@@ -34,6 +57,19 @@ function validate_categories(categories: unknown): ArtistCategory[] | null {
   return categories as ArtistCategory[];
 }
 
+function validate_recurring_rule(
+  rule: unknown,
+): RecurringRule {
+  if (
+    typeof rule !== 'string' ||
+    !VALID_RECURRING_RULES.includes(rule as RecurringRule)
+  ) {
+    throw new Error('Invalid recurring rule');
+  }
+
+  return rule as RecurringRule;
+}
+
 export interface CreateEventInput {
   title: string;
   description: string;
@@ -46,7 +82,10 @@ export interface CreateEventInput {
   categoriesNeeded?: ArtistCategory[];
 }
 
-export async function create_event_for_organizer(organizerId: string, input: CreateEventInput) {
+export async function create_event_for_organizer(
+  organizerId: string,
+  input: CreateEventInput,
+) {
   const {
     title,
     description,
@@ -59,7 +98,14 @@ export async function create_event_for_organizer(organizerId: string, input: Cre
     categoriesNeeded,
   } = input;
 
-  if (!title || !description || !startAt || !endAt || !venueName || !location) {
+  if (
+    !title ||
+    !description ||
+    !startAt ||
+    !endAt ||
+    !venueName ||
+    !location
+  ) {
     throw new Error(
       'title, description, startAt, endAt, venueName, and location are required',
     );
@@ -74,7 +120,9 @@ export async function create_event_for_organizer(organizerId: string, input: Cre
     throw new Error('location must include numeric lat and lng');
   }
 
-  if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+  if (
+    new Date(endAt).getTime() <= new Date(startAt).getTime()
+  ) {
     throw new Error('endAt must be after startAt');
   }
 
@@ -120,12 +168,69 @@ export async function get_event(id: number) {
   return event;
 }
 
-export async function list_events_for_discovery(filters: ListEventsFilters) {
-  if (filters.status && !VALID_STATUSES.includes(filters.status)) {
+/**
+ * Generates the next occurrence of a recurring event.
+ *
+ * The current event is the source occurrence. Its own start/end times
+ * and recurring rule are used to calculate the next occurrence.
+ *
+ * The new event is then created with the current event as its parent.
+ *
+ * Example:
+ *
+ * Event #1
+ *   parent_event_id = NULL
+ *          ↓
+ * Event #2
+ *   parent_event_id = #1
+ *          ↓
+ * Event #3
+ *   parent_event_id = #2
+ */
+export async function generate_next_recurring_event(
+  eventId: number,
+) {
+  const event = await find_event_by_id(eventId);
+
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  if (!event.is_recurring) {
+    throw new Error('Event is not recurring');
+  }
+
+  const recurringRule = validate_recurring_rule(
+    event.recurring_rule,
+  );
+
+  const nextOccurrence = calculate_next_occurrence(
+    event.start_at,
+    event.end_at,
+    recurringRule,
+  );
+
+  return create_next_recurring_event(
+    event,
+    nextOccurrence.startAt,
+    nextOccurrence.endAt,
+  );
+}
+
+export async function list_events_for_discovery(
+  filters: ListEventsFilters,
+) {
+  if (
+    filters.status &&
+    !VALID_STATUSES.includes(filters.status)
+  ) {
     throw new Error(`Invalid status: ${filters.status}`);
   }
 
-  if (filters.category && !VALID_CATEGORIES.includes(filters.category)) {
+  if (
+    filters.category &&
+    !VALID_CATEGORIES.includes(filters.category)
+  ) {
     throw new Error(`Invalid category: ${filters.category}`);
   }
 
@@ -160,18 +265,23 @@ export async function update_event_for_organizer(
     throw new Error('You do not own this event');
   }
 
-  if (input.status && !VALID_STATUSES.includes(input.status)) {
+  if (
+    input.status &&
+    !VALID_STATUSES.includes(input.status)
+  ) {
     throw new Error(`Invalid status: ${input.status}`);
   }
 
-  const categories = input.categoriesNeeded !== undefined
-    ? validate_categories(input.categoriesNeeded)
-    : undefined;
+  const categories =
+    input.categoriesNeeded !== undefined
+      ? validate_categories(input.categoriesNeeded)
+      : undefined;
 
   if (
     input.startAt !== undefined &&
     input.endAt !== undefined &&
-    new Date(input.endAt).getTime() <= new Date(input.startAt).getTime()
+    new Date(input.endAt).getTime() <=
+      new Date(input.startAt).getTime()
   ) {
     throw new Error('endAt must be after startAt');
   }
@@ -197,7 +307,10 @@ export async function update_event_for_organizer(
   return updated;
 }
 
-export async function delete_event_for_organizer(organizerId: string, eventId: number) {
+export async function delete_event_for_organizer(
+  organizerId: string,
+  eventId: number,
+) {
   const event = await find_event_by_id(eventId);
 
   if (!event) {
@@ -213,7 +326,11 @@ export async function delete_event_for_organizer(organizerId: string, eventId: n
 
 // --- applications ---------------------------------------------------------
 
-export async function apply_to_event(artistId: string, eventId: number, coverNote?: string) {
+export async function apply_to_event(
+  artistId: string,
+  eventId: number,
+  coverNote?: string,
+) {
   const event = await find_event_by_id(eventId);
 
   if (!event) {
@@ -229,17 +346,31 @@ export async function apply_to_event(artistId: string, eventId: number, coverNot
   }
 
   try {
-    return await create_application(eventId, artistId, coverNote ?? null);
+    return await create_application(
+      eventId,
+      artistId,
+      coverNote ?? null,
+    );
   } catch (error) {
     // Postgres unique_violation on (event_id, artist_id)
-    if (error instanceof Error && 'code' in error && (error as { code: string }).code === '23505') {
-      throw new Error('You have already applied to this event');
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: string }).code === '23505'
+    ) {
+      throw new Error(
+        'You have already applied to this event',
+      );
     }
+
     throw error;
   }
 }
 
-export async function list_applications_for_organizer(organizerId: string, eventId: number) {
+export async function list_applications_for_organizer(
+  organizerId: string,
+  eventId: number,
+) {
   const event = await find_event_by_id(eventId);
 
   if (!event) {
@@ -260,7 +391,9 @@ export async function update_application_status_for_organizer(
   status: ApplicationStatus,
 ) {
   if (status !== 'accepted' && status !== 'rejected') {
-    throw new Error("status must be 'accepted' or 'rejected'");
+    throw new Error(
+      "status must be 'accepted' or 'rejected'",
+    );
   }
 
   const event = await find_event_by_id(eventId);
@@ -273,14 +406,18 @@ export async function update_application_status_for_organizer(
     throw new Error('You do not own this event');
   }
 
-  const application = await find_application_by_id(applicationId);
+  const application = await find_application_by_id(
+    applicationId,
+  );
 
   if (!application || application.event_id !== eventId) {
     throw new Error('Application not found');
   }
 
   if (application.status !== 'pending') {
-    throw new Error(`Application has already been ${application.status}`);
+    throw new Error(
+      `Application has already been ${application.status}`,
+    );
   }
 
   return update_application_status(applicationId, status);
