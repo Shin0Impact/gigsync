@@ -15,7 +15,8 @@
     "test:event-media": "tsx tests/event_media.api.test.ts",
     "test:showcase": "tsx tests/showcase.api.test.ts",
     "test:works": "tsx tests/works.api.test.ts",
-    "test:artists": "tsx tests/artists.api.test.ts"
+    "test:artists": "tsx tests/artists.api.test.ts",
+    "test:sockets": "tsx tests/sockets.conversation-auth.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.629.0",
@@ -26,6 +27,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^7.5.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.12.0",
     "socket.io": "^4.7.5"
@@ -42,6 +44,7 @@
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
     "eslint": "^8.57.0",
+    "socket.io-client": "^4.8.3",
     "tsx": "^4.16.2",
     "typescript": "~5.5.4"
   }

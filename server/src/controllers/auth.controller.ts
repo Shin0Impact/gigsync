@@ -53,7 +53,8 @@ export async function register(req: Request, res: Response) {
       error instanceof Error &&
       (
         error.message === 'Artist type is required for artists' ||
-        error.message === 'Only artists can have an artist type'
+        error.message === 'Only artists can have an artist type' ||
+        error.message === 'Invalid role'
       )
     ) {
       return res.status(400).json({

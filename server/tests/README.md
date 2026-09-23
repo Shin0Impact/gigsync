@@ -13,6 +13,7 @@ dependency), using Node's built-in `fetch`.
    npm run test:auth
    npm run test:events
    npm run test:event-media
+   npm run test:sockets
    ```
 
 Each one prints a pass/fail line per check and exits with a non-zero code
@@ -145,9 +146,12 @@ available once); and the public status endpoint reports the *effective*
 current state (accounting for an expired `emergencyUntil`, not just the
 raw stored boolean) for any single artist.
 
-Does NOT assert on the Socket.IO broadcast itself - there's no
-`socket.io-client` dev dependency in this repo to drive that from a plain
-`fetch`-based test file. Verify that part manually: connect a socket
+Does NOT assert on the Socket.IO `emergency_status_changed` broadcast
+itself - PATCH-ing the status is covered here, but proving the broadcast
+actually arrives on a connected socket needs a `socket.io-client`, which
+`sockets.conversation-auth.test.ts` (below) now pulls in as a dev
+dependency for its own coverage. Still worth wiring up as its own check if
+this area gets touched again; for now, verify manually: connect a socket
 client, PATCH the status, confirm `emergency_status_changed` arrives.
 
 Needs three new columns on the live `profiles` table (not run yet):
@@ -171,6 +175,60 @@ just filters out any row whose `emergency_until` is in the past, live, on
 every search. An artist can also always turn it off early via the same
 PATCH. `GET /api/artists/search` (card #24, general category/radius
 artist search) is a separate, still-`501` stub - not part of this file.
+
+`sockets.conversation-auth.test.ts` runs 7 checks against the Socket.IO
+gateway's `join_conversation`/`send_message` handlers (`sockets/index.ts`)
+- a security fix: those handlers previously did zero authorization, so any
+authenticated user could join or send into ANY conversation room just by
+knowing/guessing a `conversationId`. `POST /api/conversations` is still a
+`501` stub, so there's no REST endpoint yet to create a conversation or
+add a participant - unlike every other file here, this one talks to the
+DB directly (`query` from `src/config/db`) to set up a conversation +
+`conversation_participants` fixture row, then drives the actual gateway
+with a real `socket.io-client` connection authenticated via the same
+`access_token` cookie the HTTP tests use. Covers: the real participant can
+join and send a message, which is actually persisted; a non-participant is
+rejected on both `join_conversation` and `send_message` (not just told no
+- checked directly against the `messages` table, so a rejected send
+genuinely writes nothing); and an empty `conversationId` is rejected
+outright. All fixture rows (messages, participant, conversation, both test
+users) are deleted at the end of the run.
+
+Needs the `conversations`/`conversation_participants`/`messages` tables,
+which are in `schema.sql` but were never actually applied to the live
+Supabase project (unlike everything else in that file). Run this in
+Supabase's SQL Editor:
+
+```sql
+CREATE TABLE conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- Not a FK yet: schema.sql's `events` (plural) was superseded by the
+  -- live `event` (singular) table (see the events.api.test.ts note
+  -- above) before this table was ever applied. Add a real FK once
+  -- card #76 settles whether/how a conversation links to an event.
+  event_id UUID,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE conversation_participants (
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (conversation_id, user_id)
+);
+
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_messages_conversation ON messages (conversation_id, created_at DESC);
+```
 
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return

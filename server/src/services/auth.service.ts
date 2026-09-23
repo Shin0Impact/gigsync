@@ -42,6 +42,16 @@ export interface LoginInput {
   password: string;
 }
 
+// Roles a person can self-assign through public registration. `admin` and
+// `moderator` are deliberately excluded - those accounts review/approve
+// verification requests and can view other users' uploaded ID documents,
+// so they must be created out-of-band (a seed script, or an existing
+// admin promoting someone), never picked by whoever fills out the signup
+// form. `role` is typed as `UserRole` (includes admin/moderator) because
+// that's what the rest of the app needs it to be after this check passes -
+// this whitelist is what actually enforces the restriction at runtime.
+const SELF_REGISTERABLE_ROLES: UserRole[] = ['artist', 'organizer', 'fan'];
+
 export async function register_user(input: RegisterInput) {
   const {
     email,
@@ -50,6 +60,10 @@ export async function register_user(input: RegisterInput) {
     user_name,
     artists_type = null,
   } = input;
+
+  if (!SELF_REGISTERABLE_ROLES.includes(role)) {
+    throw new Error('Invalid role');
+  }
 
   const existing_user = await find_user_by_email(email);
 
