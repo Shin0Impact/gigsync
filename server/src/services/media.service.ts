@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2Client } from '../config/r2';
 import { env } from '../config/env';
@@ -112,6 +112,81 @@ export async function delete_object(objectKey: string): Promise<void> {
   await r2Client.send(
     new DeleteObjectCommand({
       Bucket: env.r2.bucketName,
+      Key: objectKey,
+    }),
+  );
+}
+
+// --- Verification ID documents (card #82) --------------------------------
+// A SEPARATE, private bucket - never the public media bucket above, and
+// never returns a public URL. An ID photo has no business being fetchable
+// by anyone who happens to have the link; the only way to ever read one
+// back is get_id_document_view_url below, called from a moderator-only
+// route for one specific request.
+
+const ID_DOCUMENT_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const ID_DOCUMENT_VIEW_URL_EXPIRY_SECONDS = 5 * 60;
+
+export interface RequestIdDocumentUploadUrlInput {
+  fileName: string;
+  contentType: string;
+}
+
+export async function request_id_document_upload_url(input: RequestIdDocumentUploadUrlInput) {
+  const { fileName, contentType } = input;
+
+  if (!fileName || !contentType) {
+    throw new Error('fileName and contentType are required');
+  }
+
+  if (!ID_DOCUMENT_CONTENT_TYPES.includes(contentType)) {
+    throw new Error(`Unsupported contentType: ${contentType}`);
+  }
+
+  if (!env.r2.idDocumentsBucketName) {
+    throw new Error('ID document uploads are not configured (R2_ID_DOCUMENTS_BUCKET_NAME is not set)');
+  }
+
+  const object_key = `id-documents/${randomUUID()}-${sanitize_file_name(fileName)}`;
+
+  const command = new PutObjectCommand({
+    Bucket: env.r2.idDocumentsBucketName,
+    Key: object_key,
+    ContentType: contentType,
+  });
+
+  const upload_url = await getSignedUrl(r2Client, command, {
+    expiresIn: UPLOAD_URL_EXPIRY_SECONDS,
+  });
+
+  // Deliberately no publicUrl field here, unlike request_upload_url -
+  // this bucket has no public dev URL, and returning one would be a bug,
+  // not a convenience.
+  return {
+    uploadUrl: upload_url,
+    objectKey: object_key,
+    expiresInSeconds: UPLOAD_URL_EXPIRY_SECONDS,
+  };
+}
+
+// Generates a short-lived presigned GET for one specific ID document.
+// Called only from a moderator-role-gated route (see
+// verification.controller.ts) - this function itself does no auth
+// checking, it just assumes the caller already verified the requester is
+// allowed to see this document.
+export async function get_id_document_view_url(objectKey: string): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: env.r2.idDocumentsBucketName,
+    Key: objectKey,
+  });
+
+  return getSignedUrl(r2Client, command, { expiresIn: ID_DOCUMENT_VIEW_URL_EXPIRY_SECONDS });
+}
+
+export async function delete_id_document(objectKey: string): Promise<void> {
+  await r2Client.send(
+    new DeleteObjectCommand({
+      Bucket: env.r2.idDocumentsBucketName,
       Key: objectKey,
     }),
   );

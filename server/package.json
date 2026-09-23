@@ -18,7 +18,8 @@
     "test:artists": "tsx tests/artists.api.test.ts",
     "test:sockets": "tsx tests/sockets.conversation-auth.test.ts",
     "test:rate-limit": "tsx tests/rateLimit.api.test.ts",
-    "test:login-timing": "tsx tests/loginTiming.api.test.ts"
+    "test:login-timing": "tsx tests/loginTiming.api.test.ts",
+    "test:verification": "tsx tests/verification.api.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.629.0",

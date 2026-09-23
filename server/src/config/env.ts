@@ -56,5 +56,11 @@ export const env = {
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
     bucketName: process.env.R2_BUCKET_NAME ?? 'gigsync-media',
     publicUrl: process.env.R2_PUBLIC_URL ?? '',
+    // A SEPARATE, private bucket for verification ID documents (card #82).
+    // Must NOT have a public dev URL enabled in Cloudflare - unlike the
+    // main media bucket, nothing in here is ever meant to be reachable by
+    // a bare URL. Every read goes through a short-lived presigned GET,
+    // generated only for a moderator reviewing a specific request.
+    idDocumentsBucketName: process.env.R2_ID_DOCUMENTS_BUCKET_NAME ?? '',
   },
 };
