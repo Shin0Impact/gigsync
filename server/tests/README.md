@@ -50,21 +50,28 @@ extension and those same columns/table before this will pass - see the
 event-CRUD handoff for the exact `ALTER TABLE`/`CREATE TABLE` statements
 (same ones already run against the real Supabase project).
 
-`event_media.api.test.ts` runs 20 checks against `POST /api/media/upload-url`
-and `/api/events/:id/media`: upload-url auth + validation (missing fields,
-unsupported content type) and that it returns a real pre-signed R2 PUT URL
-plus a sanitized `objectKey` under the requested folder; add/list/delete on
-event media with ownership checks (only the owning organizer can add or
-delete, an artist can't touch either write endpoint, listing is public);
-validation (missing fields, invalid `mediaType`); and `sort_order` ordering
-on list. Generating a pre-signed URL is a local HMAC computation - the AWS
-SDK never makes a network call to do it - so this passes even with
-placeholder `R2_*` credentials in `.env`. It does **not** prove an actual
-`PUT` to that URL succeeds against a real R2 bucket - that still needs
-manual verification once real R2 credentials are in place. Needs a new
-`event_media` table (`id` uuid pk, `event_id` bigint references `event(id)`,
-`media_type` varchar, `object_key` text, `alt_text` text, `sort_order` int,
-`created_at`) - same handoff as the events-CRUD SQL.
+`event_media.api.test.ts` runs 20 checks (plus up to 3 more, see below)
+against `POST /api/media/upload-url` and `/api/events/:id/media`: upload-url
+auth + validation (missing fields, unsupported content type) and that it
+returns a real pre-signed R2 PUT URL plus a sanitized `objectKey` under the
+requested folder; add/list/delete on event media with ownership checks (only
+the owning organizer can add or delete, an artist can't touch either write
+endpoint, listing is public); validation (missing fields, invalid
+`mediaType`); and `sort_order` ordering on list. Needs a new `event_media`
+table (`id` uuid pk, `event_id` bigint references `event(id)`, `media_type`
+varchar, `object_key` text, `alt_text` text, `sort_order` int, `created_at`)
+- same handoff as the events-CRUD SQL.
+
+**Real R2 round-trip (checks 07b-07d):** generating a pre-signed URL is a
+local HMAC computation - the AWS SDK never makes a network call to do it -
+so checks 01-07 and 08-20 all pass even with placeholder `R2_*` credentials
+in `.env`, proving only that the signing logic is correct. Checks 07b-07d
+go further: they actually `PUT` a real 1x1 PNG to the presigned URL, then
+`GET` it back from `R2_PUBLIC_URL` and diff the bytes, so a pass there is
+the real proof an upload works against your actual bucket. They
+automatically skip (not fail) if `R2_PUBLIC_URL` isn't set in `.env`, so
+teammates without real R2 credentials configured yet still get a clean run
+on everything else.
 
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return

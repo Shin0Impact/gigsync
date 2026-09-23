@@ -111,11 +111,51 @@ async function main() {
 
   r = await request('org', 'POST', '/media/upload-url', { fileName: 'flyer poster.png', contentType: 'image/png', folder: 'events' });
   check('04 upload-url success', r.status, 200, r.body);
-  const uploadResult = r.body as { uploadUrl: string; objectKey: string };
+  const uploadResult = r.body as { uploadUrl: string; objectKey: string; publicUrl: string | null };
   check('05 uploadUrl is a real pre-signed R2 PUT URL', uploadResult.uploadUrl?.includes('X-Amz-Signature') ? 1 : 0, 1, uploadResult.uploadUrl);
   check('06 objectKey lands under the requested folder', uploadResult.objectKey?.startsWith('events/') ? 1 : 0, 1, uploadResult.objectKey);
   check('07 objectKey sanitizes unsafe filename characters', uploadResult.objectKey?.includes(' ') ? 0 : 1, 1, uploadResult.objectKey);
   const objectKey = uploadResult.objectKey;
+
+  // --- Real R2 round-trip, not just signature shape -----------------------
+  // Everything above only proves the SIGNATURE is well-formed - presigning
+  // is a local HMAC computation, so it "passes" even against placeholder
+  // R2_* env vars with no real bucket behind them. These checks are the
+  // ones that actually prove R2 is wired up: we PUT real bytes to the
+  // presigned URL, then read them back via the public URL. They're skipped
+  // (not failed) when R2_PUBLIC_URL isn't set, so this file still runs
+  // clean for teammates who haven't configured a real bucket yet.
+  if (uploadResult.publicUrl) {
+    const fileBytes = Buffer.from(
+      // 1x1 transparent PNG, so the content-type actually matches real image bytes
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64'
+    );
+
+    const putRes = await fetch(uploadResult.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'image/png' },
+      body: fileBytes,
+    });
+    check('07b PUT to presigned URL is accepted by R2', putRes.status, 200, await putRes.text().catch(() => ''));
+
+    // R2 is eventually-consistent-ish on very fresh writes in rare cases;
+    // give it a beat before reading back.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const getRes = await fetch(uploadResult.publicUrl);
+    check('07c Uploaded object is readable back from the public URL', getRes.status, 200, await getRes.text().catch(() => ''));
+
+    const roundTrippedBytes = Buffer.from(await getRes.arrayBuffer().catch(() => new ArrayBuffer(0)));
+    check(
+      '07d Round-tripped bytes match what was uploaded',
+      roundTrippedBytes.equals(fileBytes) ? 1 : 0,
+      1,
+      `uploaded ${fileBytes.length} bytes, got back ${roundTrippedBytes.length} bytes`
+    );
+  } else {
+    console.log('  \x1b[33m\u26a0\x1b[0m 07b-07d skipped - R2_PUBLIC_URL not set, cannot verify a real round trip');
+  }
 
   r = await request('org', 'POST', '/events', {
     title: 'Art Fair', description: 'desc', startAt: '2027-02-01T10:00:00Z', endAt: '2027-02-01T18:00:00Z',
