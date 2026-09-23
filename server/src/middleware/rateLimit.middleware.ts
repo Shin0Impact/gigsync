@@ -18,7 +18,7 @@ import rateLimit from 'express-rate-limit';
 // same window. Separate limiter instances (not one shared between both
 // routes) so hammering one endpoint doesn't also throttle the other.
 const WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS = 20;
+const MAX_REQUESTS = 6;
 
 function tooManyRequestsHandler(_req: Request, res: Response) {
   res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
