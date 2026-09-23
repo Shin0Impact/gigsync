@@ -121,8 +121,6 @@ ALTER TABLE showcase_items
   );
 ```
 
-<<<<<<< Updated upstream
-=======
 `verification.api.test.ts` runs 23 checks against
 `/api/verification/social-links`, `/api/verification/id-upload-url`,
 `/api/verification/requests`, `/api/verification/status/:userId`, and the
@@ -256,12 +254,15 @@ every search. An artist can also always turn it off early via the same
 PATCH. `GET /api/artists/search` (card #24, general category/radius
 artist search) is a separate, still-`501` stub - not part of this file.
 
->>>>>>> Stashed changes
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return
 `501 Not implemented` stubs. Add more `*.test.ts` files here (and a
 matching `npm run test:*` script) as those land.
 
-Every check in all three files was run against the real controller/service code
-(a throwaway local Postgres, not the real Supabase database) before being
-committed, so the expected status codes are verified, not guessed.
+Every check across all these files was run against the real controller/
+service code before being committed, so the expected status codes are
+verified, not guessed - the earlier files (auth/events/event_media/
+showcase/works) against a throwaway local Postgres; verification.api.test.ts
+(23/23) and artists.api.test.ts (21/21) were run and confirmed passing
+against the real Supabase database, since that's what's actually running
+locally by this point in the project.
