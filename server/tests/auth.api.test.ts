@@ -119,6 +119,18 @@ async function main() {
   });
   check('05 Register artist without artists_type', r.status, 400, r.body);
 
+  // Security fix: no length/strength floor on the password at all before
+  // this - a 1-character password passed as long as the field wasn't
+  // empty.
+  r = await request('POST', '/auth/register', {
+    email: `shortpw_${stamp}@example.com`,
+    password: 'short1',
+    role: 'artist',
+    user_name: `shortpw_${stamp}`,
+    artists_type: 'musician',
+  });
+  check('05b Register with too-short password is rejected', r.status, 400, r.body);
+
   r = await request('POST', '/auth/register', {
     email,
     password,

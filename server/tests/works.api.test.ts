@@ -129,7 +129,14 @@ async function main() {
   r = await request('anon', 'GET', `/works/${work.id}/updates`);
   check('10 List work updates is public', r.status, 200, r.body);
 
-  r = await request('artist', 'POST', '/media/upload-url', { fileName: 'progress shot.png', contentType: 'image/png', folder: 'works' });
+  // Security fix: fileSizeBytes is now required on upload-url requests
+  // (previously nothing capped how large a file the presigned URL would
+  // accept) - 68 matches the 1x1 PNG decoded below for the real R2
+  // round-trip, and is also what's already passed as fileSizeBytes to the
+  // add-media endpoint further down (check 15).
+  r = await request('artist', 'POST', '/media/upload-url', {
+    fileName: 'progress shot.png', contentType: 'image/png', fileSizeBytes: 68, folder: 'works',
+  });
   check('11 upload-url success', r.status, 200, r.body);
   const uploadResult = r.body as { uploadUrl: string; objectKey: string; publicUrl: string | null };
   const objectKey = uploadResult.objectKey;

@@ -100,16 +100,40 @@ async function main() {
   });
   await request('artist', 'POST', '/auth/login', { identifier: `artist_${stamp}@example.com`, password: 'TestPass123!' });
 
-  let r = await request('anon', 'POST', '/media/upload-url', { fileName: 'flyer.png', contentType: 'image/png' });
+  // 1x1 transparent PNG, decoded up front so its real byte length can be
+  // declared in the upload-url request below (fileSizeBytes is now
+  // required - see the security-fix note further down).
+  const fileBytes = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    'base64'
+  );
+
+  let r = await request('anon', 'POST', '/media/upload-url', {
+    fileName: 'flyer.png', contentType: 'image/png', fileSizeBytes: fileBytes.length,
+  });
   check('01 upload-url requires auth', r.status, 401, r.body);
 
-  r = await request('org', 'POST', '/media/upload-url', { fileName: 'flyer.png' });
+  r = await request('org', 'POST', '/media/upload-url', { fileName: 'flyer.png', fileSizeBytes: fileBytes.length });
   check('02 upload-url missing contentType', r.status, 400, r.body);
 
-  r = await request('org', 'POST', '/media/upload-url', { fileName: 'virus.exe', contentType: 'application/x-msdownload' });
+  r = await request('org', 'POST', '/media/upload-url', {
+    fileName: 'virus.exe', contentType: 'application/x-msdownload', fileSizeBytes: fileBytes.length,
+  });
   check('03 upload-url unsupported contentType', r.status, 400, r.body);
 
-  r = await request('org', 'POST', '/media/upload-url', { fileName: 'flyer poster.png', contentType: 'image/png', folder: 'events' });
+  // Security fix: nothing capped the declared upload size before this -
+  // a caller could ask for a presigned URL for an arbitrarily large file.
+  r = await request('org', 'POST', '/media/upload-url', { fileName: 'flyer.png', contentType: 'image/png' });
+  check('03b upload-url missing fileSizeBytes', r.status, 400, r.body);
+
+  r = await request('org', 'POST', '/media/upload-url', {
+    fileName: 'flyer.png', contentType: 'image/png', fileSizeBytes: 200 * 1024 * 1024,
+  });
+  check('03c upload-url fileSizeBytes over the limit is rejected', r.status, 400, r.body);
+
+  r = await request('org', 'POST', '/media/upload-url', {
+    fileName: 'flyer poster.png', contentType: 'image/png', fileSizeBytes: fileBytes.length, folder: 'events',
+  });
   check('04 upload-url success', r.status, 200, r.body);
   const uploadResult = r.body as { uploadUrl: string; objectKey: string; publicUrl: string | null };
   check('05 uploadUrl is a real pre-signed R2 PUT URL', uploadResult.uploadUrl?.includes('X-Amz-Signature') ? 1 : 0, 1, uploadResult.uploadUrl);
@@ -126,12 +150,6 @@ async function main() {
   // (not failed) when R2_PUBLIC_URL isn't set, so this file still runs
   // clean for teammates who haven't configured a real bucket yet.
   if (uploadResult.publicUrl) {
-    const fileBytes = Buffer.from(
-      // 1x1 transparent PNG, so the content-type actually matches real image bytes
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-      'base64'
-    );
-
     const putRes = await fetch(uploadResult.uploadUrl, {
       method: 'PUT',
       headers: { 'Content-Type': 'image/png' },

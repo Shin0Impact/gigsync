@@ -15,6 +15,7 @@ dependency), using Node's built-in `fetch`.
    npm run test:event-media
    npm run test:sockets
    npm run test:rate-limit
+   npm run test:login-timing
    ```
 
 Each one prints a pass/fail line per check and exits with a non-zero code
@@ -24,13 +25,17 @@ database, which CI doesn't spin up).
 
 ## What's covered
 
-`auth.api.test.ts` runs 14 checks end-to-end against `/api/auth`:
+`auth.api.test.ts` runs 18 checks end-to-end against `/api/auth`:
 registration (artist success, organizer success, missing fields, artist
-without `artists_type`, duplicate email), login (success, missing fields,
-wrong password), and the session lifecycle (`/me` unauthenticated, after
-login, after token refresh, after logout, and confirming unauthenticated
-again). It manages its own cookie jar between requests to mirror what a
-real client does with the `access_token`/`refresh_token` cookies.
+without `artists_type`, too-short password, duplicate email, and that
+self-assigning the `moderator`/`admin` role is rejected and doesn't
+actually create an account), login (success, missing fields, wrong
+password), and the session lifecycle (`/me` unauthenticated, after login,
+after token refresh, after logout, and confirming unauthenticated again).
+It manages its own cookie jar between requests to mirror what a real
+client does with the `access_token`/`refresh_token` cookies. Passwords
+must be at least 8 characters (length only, no forced complexity - see
+the comment in `register_user`).
 
 `events.api.test.ts` runs 26 checks end-to-end against `/api/events`
 (board card #23): role-gated create (organizer only), validation (missing
@@ -52,17 +57,31 @@ extension and those same columns/table before this will pass - see the
 event-CRUD handoff for the exact `ALTER TABLE`/`CREATE TABLE` statements
 (same ones already run against the real Supabase project).
 
-`event_media.api.test.ts` runs 20 checks (plus up to 3 more, see below)
+`event_media.api.test.ts` runs 22 checks (plus up to 3 more, see below)
 against `POST /api/media/upload-url` and `/api/events/:id/media`: upload-url
-auth + validation (missing fields, unsupported content type) and that it
-returns a real pre-signed R2 PUT URL plus a sanitized `objectKey` under the
-requested folder; add/list/delete on event media with ownership checks (only
+auth + validation (missing fields, unsupported content type, and - security
+fix - a missing or over-the-cap `fileSizeBytes`) and that it returns a real
+pre-signed R2 PUT URL plus a sanitized `objectKey` under the requested
+folder; add/list/delete on event media with ownership checks (only
 the owning organizer can add or delete, an artist can't touch either write
 endpoint, listing is public); validation (missing fields, invalid
 `mediaType`); and `sort_order` ordering on list. Needs a new `event_media`
 table (`id` uuid pk, `event_id` bigint references `event(id)`, `media_type`
 varchar, `object_key` text, `alt_text` text, `sort_order` int, `created_at`)
 - same handoff as the events-CRUD SQL.
+
+**Security fix (`upload-url` size cap):** nothing capped the size of a file
+a presigned URL would accept before this - a caller could request a URL for
+a "photo" and PUT a multi-gigabyte file into R2 with it. `POST
+/api/media/upload-url` now requires a `fileSizeBytes` field, rejects it
+outright over 50MB (`MAX_UPLOAD_SIZE_BYTES` in `media.service.ts`), and
+signs `ContentLength` into the presigned URL itself so R2 rejects the
+actual PUT if its real `Content-Length` doesn't match what was declared -
+a client can't get a URL for a small declared size and then stream
+something bigger into it. This does NOT verify the uploaded bytes actually
+match the declared `contentType` (that would need inspecting the real
+bytes after upload, e.g. magic-number sniffing or a content-scan step) -
+still a known gap, just a smaller one than "no size limit at all".
 
 **Real R2 round-trip (checks 07b-07d):** generating a pre-signed URL is a
 local HMAC computation - the AWS SDK never makes a network call to do it -
@@ -249,6 +268,22 @@ chunk of the 1-minute window for whichever endpoint it just hit, so a
 different file's first request or two can occasionally see a 429 if it
 lands in the same window right after. That's the limiter working as
 intended, not a bug - wait a few seconds and re-run.
+
+`loginTiming.api.test.ts` runs 4 checks against the login timing
+side-channel fix in `login_user` (`src/services/auth.service.ts`) - it
+used to return immediately (skipping `bcrypt.compare` entirely) when the
+identifier didn't match any user, but ran a real cost-12 `bcrypt.compare`
+when it did. Same generic "Invalid credentials" error either way, but the
+RESPONSE TIME gave away whether an email was actually registered - enough
+to enumerate real accounts via timing alone. This file times 5 sequential
+wrong-password attempts against a real (freshly registered) user against
+5 attempts against a made-up email, and checks the two medians land
+within a loose 2x-ish ratio of each other (comfortably passes normal
+network/DB jitter, clearly fails the old skip-bcrypt behavior). Only 10
+login attempts total, well under the 20/minute limit on its own - but
+don't run it in the same 60s window as `test:auth` or `test:rate-limit`,
+which both also hit `/auth/login`; check 01 fails clearly (instead of
+reporting bogus timing) if it gets rate-limited.
 
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return

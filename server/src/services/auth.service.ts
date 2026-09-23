@@ -65,6 +65,18 @@ export async function register_user(input: RegisterInput) {
     throw new Error('Invalid role');
   }
 
+  // Only a length floor, not a complexity rule (no forced uppercase/
+  // digit/symbol) - NIST 800-63B's current guidance is that a minimum
+  // length does more for real-world security than arbitrary composition
+  // rules, which mostly just push people toward predictable patterns
+  // like "Password1!". The controller already rejected a missing
+  // password outright; this only rejects one that's too short to be
+  // worth hashing and storing.
+  const MIN_PASSWORD_LENGTH = 8;
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+  }
+
   const existing_user = await find_user_by_email(email);
 
   if (existing_user) {
@@ -126,6 +138,11 @@ export async function register_user(input: RegisterInput) {
   }
 }
 
+// Precomputed once at module load (same cost factor - 12 - used for real
+// password hashes below) so login_user always has a hash to compare
+// against, even when the account doesn't exist.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync('dummy-password-for-constant-time-login', 12);
+
 export async function login_user(input: LoginInput) {
   const {
     identifier,
@@ -134,16 +151,20 @@ export async function login_user(input: LoginInput) {
 
   const user = await find_user_by_identifier(identifier);
 
-  if (!user) {
-    throw new Error('Invalid credentials');
-  }
-
+  // Always run bcrypt.compare, with the same cost factor, whether or not
+  // the account exists - comparing against DUMMY_PASSWORD_HASH when it
+  // doesn't. Previously a missing user returned immediately, skipping
+  // bcrypt.compare entirely; since that call consistently takes tens of
+  // milliseconds, timing a batch of login attempts let an attacker tell
+  // "no such account" apart from "wrong password" and enumerate valid
+  // emails - even though the error message itself was already the same
+  // generic "Invalid credentials" either way.
   const password_matches = await bcrypt.compare(
     password,
-    user.password_hash,
+    user?.password_hash ?? DUMMY_PASSWORD_HASH,
   );
 
-  if (!password_matches) {
+  if (!user || !password_matches) {
     throw new Error('Invalid credentials');
   }
 
