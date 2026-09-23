@@ -77,33 +77,40 @@ public; and delete media requires ownership + does the same real R2
 round-trip/cleanup proof as event_media (checks 15b-15d/19b, skipped not
 failed when `R2_PUBLIC_URL` isn't set).
 
-`showcase.api.test.ts` runs 17 checks against
-`POST/GET/DELETE /api/media/showcases`. Showcasing is a PIN, not an
-upload - a user stars an `event_media` or `update_media` row they already
-own onto their profile, so this file creates its pin targets via the
-works endpoints rather than uploading anything itself (the real upload
-proof lives in `works.api.test.ts`). Covers: pin requires auth + self-
-ownership of the source media (403 on someone else's); validation
-(missing/invalid `sourceType`); pinning the same media twice is a 409, not
-a duplicate row; a 4th pin is rejected once the cap (`MAX_SHOWCASE_ITEMS`
-in `showcase.service.ts`, currently 3) is hit; listing is public and
-resolves each pin to its underlying `objectKey`; and unpin requires
-ownership of the *pin* (not the source media), 404s on a nonexistent id,
-and leaves the underlying media row untouched.
+`showcase.api.test.ts` runs 23 checks against
+`POST/GET/DELETE /api/media/showcases`. Showcasing pins a whole PROJECT or
+EVENT, not a single post/media file: an artist pins one of their own
+`works`, an organizer pins one of their own `event`s. A work has many
+versions (`work_updates`) over time, so the pin points at the work itself,
+not one update - the showcase always reflects the project's current
+state. This file creates its pin targets via the works/events endpoints
+rather than uploading anything itself (the real upload proof lives in
+`works.api.test.ts` / `event_media.api.test.ts`). Covers: pin requires
+auth + self-ownership of the source (403 on someone else's work or
+event); validation (missing/invalid `sourceType`); pinning the same
+work/event twice is a 409, not a duplicate row; a 4th pin is rejected once
+the cap (`MAX_SHOWCASE_ITEMS` in `showcase.service.ts`, currently 3) is
+hit; adding a NEW update to an already-pinned work, then confirming the
+showcase listing picks it up - proves the pin isn't frozen on whatever
+version existed when it was created; listing is public and resolves a
+pinned work to every update + all their media, a pinned event to its
+event_media; both source types are exercised; and unpin requires
+ownership of the *pin* (not the source), 404s on a nonexistent id, and
+leaves the underlying work/event untouched.
 
-Needs a new `showcase_items` table shape - it's no longer upload-based.
-Run this in Supabase's SQL Editor (same handoff pattern as `event_media`):
+Needs a new `showcase_items` table shape - references whole works, not
+updates or media rows. Run this in Supabase's SQL Editor. If you're
+migrating from the *previous* iteration (`work_update_id`), drop that
+constraint by name first or Postgres will refuse the column drop:
 
 ```sql
 ALTER TABLE showcase_items
-  DROP COLUMN media_type,
-  DROP COLUMN object_key,
-  DROP COLUMN alt_text,
-  ADD COLUMN event_media_id uuid REFERENCES event_media(id) ON DELETE CASCADE,
-  ADD COLUMN update_media_id bigint REFERENCES update_media(id) ON DELETE CASCADE,
+  DROP CONSTRAINT showcase_items_exactly_one_source,
+  DROP COLUMN work_update_id,
+  ADD COLUMN work_id bigint REFERENCES works(id) ON DELETE CASCADE,
   ADD CONSTRAINT showcase_items_exactly_one_source CHECK (
-    (event_media_id IS NOT NULL AND update_media_id IS NULL) OR
-    (event_media_id IS NULL AND update_media_id IS NOT NULL)
+    (event_id IS NOT NULL AND work_id IS NULL) OR
+    (event_id IS NULL AND work_id IS NOT NULL)
   );
 ```
 

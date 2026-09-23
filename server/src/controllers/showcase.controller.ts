@@ -5,9 +5,9 @@ import {
   remove_showcase_item,
 } from '../services/showcase.service';
 
-const NOT_FOUND_MESSAGES = ['Showcase item not found', 'Source media not found'];
-const FORBIDDEN_MESSAGES = ['You do not own this showcase item', 'You do not own this media'];
-const CONFLICT_MESSAGES = ['This media is already pinned'];
+const NOT_FOUND_MESSAGES = ['Showcase item not found', 'Source not found'];
+const FORBIDDEN_MESSAGES = ['You do not own this showcase item', 'You do not own this'];
+const CONFLICT_MESSAGES = ['This is already pinned'];
 
 function handle_known_error(error: unknown, res: Response, fallback: string) {
   if (error instanceof Error) {
@@ -34,7 +34,7 @@ export async function add_showcase(req: Request, res: Response) {
     const item = await add_showcase_item(req.user!.userId, req.body);
     return res.status(201).json({ item });
   } catch (error) {
-    return handle_known_error(error, res, 'Failed to pin showcase item');
+    return handle_known_error(error, res, 'Failed to pin item');
   }
 }
 
@@ -52,6 +52,6 @@ export async function delete_showcase(req: Request, res: Response) {
     await remove_showcase_item(req.user!.userId, req.params.id);
     return res.status(204).send();
   } catch (error) {
-    return handle_known_error(error, res, 'Failed to unpin showcase item');
+    return handle_known_error(error, res, 'Failed to unpin item');
   }
 }

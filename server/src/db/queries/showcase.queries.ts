@@ -1,41 +1,41 @@
 import { pool } from '../../config/db';
 
-// Showcase items are a PIN, not an upload: a user stars an existing piece
-// of media they already own (an event_media row if they're an organizer,
-// or an update_media row from their own work if they're an artist) onto
-// their profile. There's no separate upload flow here - showcasing never
-// creates a new R2 object, it just references one that already exists.
+// Showcase items pin a whole entity, not a single media file or a single
+// version: either an artist's `work` (a project, which renders with its
+// full version history and all attached media across every work_update)
+// or an organizer's `event` (with all its event_media). A work has many
+// work_updates over time, so pinning a specific update would freeze the
+// showcase on one version - pinning the work itself means it always
+// reflects the project's current state.
 //
-// Table shape (already redefined via the ALTER below, replacing the old
-// upload-based columns):
+// Table shape (already redefined via the ALTER below):
 //   id uuid pk, user_id uuid references users(id),
-//   event_media_id uuid references event_media(id) on delete cascade,
-//   update_media_id bigint references update_media(id) on delete cascade,
+//   event_id bigint references event(id) on delete cascade,
+//   work_id bigint references works(id) on delete cascade,
 //   sort_order int, created_at
-// - exactly one of event_media_id / update_media_id is set per row
-//   (enforced by a CHECK constraint, not app code, so a bad row can't
-//   land even if a future caller forgets to check).
+// - exactly one of event_id / work_id is set per row.
 //
-// Run this against Supabase (SQL Editor) before this feature works:
+// Run this against Supabase (SQL Editor) before this feature works. This
+// supersedes the work_update_id version from the previous iteration -
+// drop the old constraint by name before dropping the column it
+// references, or Postgres will refuse the DROP COLUMN:
 //
 //   ALTER TABLE showcase_items
-//     DROP COLUMN media_type,
-//     DROP COLUMN object_key,
-//     DROP COLUMN alt_text,
-//     ADD COLUMN event_media_id uuid REFERENCES event_media(id) ON DELETE CASCADE,
-//     ADD COLUMN update_media_id bigint REFERENCES update_media(id) ON DELETE CASCADE,
+//     DROP CONSTRAINT showcase_items_exactly_one_source,
+//     DROP COLUMN work_update_id,
+//     ADD COLUMN work_id bigint REFERENCES works(id) ON DELETE CASCADE,
 //     ADD CONSTRAINT showcase_items_exactly_one_source CHECK (
-//       (event_media_id IS NOT NULL AND update_media_id IS NULL) OR
-//       (event_media_id IS NULL AND update_media_id IS NOT NULL)
+//       (event_id IS NOT NULL AND work_id IS NULL) OR
+//       (event_id IS NULL AND work_id IS NOT NULL)
 //     );
 
-export type ShowcaseSourceType = 'event_media' | 'update_media';
+export type ShowcaseSourceType = 'event' | 'work';
 
 export interface DbShowcaseItem {
   id: string;
   user_id: string;
-  event_media_id: string | null;
-  update_media_id: number | null;
+  event_id: number | null;
+  work_id: number | null;
   sort_order: number;
   created_at: Date;
 }
@@ -43,23 +43,23 @@ export interface DbShowcaseItem {
 export interface CreateShowcaseItemParams {
   userId: string;
   sourceType: ShowcaseSourceType;
-  sourceId: string | number;
+  sourceId: number;
   sortOrder: number;
 }
 
 export async function create_showcase_item(
   params: CreateShowcaseItemParams,
 ): Promise<DbShowcaseItem> {
-  const eventMediaId = params.sourceType === 'event_media' ? params.sourceId : null;
-  const updateMediaId = params.sourceType === 'update_media' ? params.sourceId : null;
+  const eventId = params.sourceType === 'event' ? params.sourceId : null;
+  const workId = params.sourceType === 'work' ? params.sourceId : null;
 
   const result = await pool.query<DbShowcaseItem>(
     `
-      INSERT INTO showcase_items (user_id, event_media_id, update_media_id, sort_order)
+      INSERT INTO showcase_items (user_id, event_id, work_id, sort_order)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, user_id, event_media_id, update_media_id, sort_order, created_at
+      RETURNING id, user_id, event_id, work_id, sort_order, created_at
     `,
-    [params.userId, eventMediaId, updateMediaId, params.sortOrder],
+    [params.userId, eventId, workId, params.sortOrder],
   );
 
   return result.rows[0];
@@ -76,7 +76,7 @@ export async function count_showcase_items_for_user(userId: string): Promise<num
 export async function list_showcase_items_for_user(userId: string): Promise<DbShowcaseItem[]> {
   const result = await pool.query<DbShowcaseItem>(
     `
-      SELECT id, user_id, event_media_id, update_media_id, sort_order, created_at
+      SELECT id, user_id, event_id, work_id, sort_order, created_at
       FROM showcase_items
       WHERE user_id = $1
       ORDER BY sort_order ASC, created_at ASC
@@ -90,7 +90,7 @@ export async function list_showcase_items_for_user(userId: string): Promise<DbSh
 export async function find_showcase_item_by_id(id: string): Promise<DbShowcaseItem | null> {
   const result = await pool.query<DbShowcaseItem>(
     `
-      SELECT id, user_id, event_media_id, update_media_id, sort_order, created_at
+      SELECT id, user_id, event_id, work_id, sort_order, created_at
       FROM showcase_items
       WHERE id = $1
       LIMIT 1
@@ -101,17 +101,16 @@ export async function find_showcase_item_by_id(id: string): Promise<DbShowcaseIt
   return result.rows[0] ?? null;
 }
 
-// Prevents pinning the same underlying media twice (e.g. double-clicking
-// "pin" shouldn't create two rows for the same event_media_id).
+// Prevents pinning the same work/event twice.
 export async function find_showcase_item_by_source(
   userId: string,
   sourceType: ShowcaseSourceType,
-  sourceId: string | number,
+  sourceId: number,
 ): Promise<DbShowcaseItem | null> {
-  const column = sourceType === 'event_media' ? 'event_media_id' : 'update_media_id';
+  const column = sourceType === 'event' ? 'event_id' : 'work_id';
   const result = await pool.query<DbShowcaseItem>(
     `
-      SELECT id, user_id, event_media_id, update_media_id, sort_order, created_at
+      SELECT id, user_id, event_id, work_id, sort_order, created_at
       FROM showcase_items
       WHERE user_id = $1 AND ${column} = $2
       LIMIT 1
