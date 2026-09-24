@@ -40,3 +40,113 @@ jobs:
       - run: npm install
       - run: npm run lint --if-present
       - run: npm run build
+
+  server-tests:
+    name: Server (real DB tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gigsync_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/gigsync_ci
+      JWT_ACCESS_SECRET: ci-test-access-secret-do-not-use-in-prod
+      JWT_REFRESH_SECRET: ci-test-refresh-secret-do-not-use-in-prod
+      CLIENT_ORIGIN: http://localhost:5173
+      # Presigning (@aws-sdk/client-s3's getSignedUrl) is a local HMAC
+      # computation, no network call - placeholder R2 credentials are
+      # enough for every presign-only check. R2_PUBLIC_URL is
+      # deliberately left UNSET: the handful of checks that need a real
+      # R2 round-trip are written to skip (not fail) when it's unset,
+      # since CI has no real R2 bucket to talk to.
+      R2_ACCOUNT_ID: ci-placeholder-account-id
+      R2_ACCESS_KEY_ID: ci-placeholder-access-key-id
+      R2_SECRET_ACCESS_KEY: ci-placeholder-secret-access-key
+      R2_BUCKET_NAME: ci-gigsync-media
+      R2_ID_DOCUMENTS_BUCKET_NAME: ci-gigsync-id-documents
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm install
+
+      - name: Apply CI schema
+        run: node tests/ci-apply-schema.js
+
+      # Phase 1: every normal test file, with the rate limit relaxed way
+      # past anything a single run of any of them can hit (auth.api alone
+      # makes 8 register calls, loginTiming makes 10 login calls - both
+      # over the real 6/minute cap). This phase deliberately excludes
+      # test:rate-limit, which needs the real cap in place to mean
+      # anything.
+      - name: Start server (rate limit relaxed)
+        run: |
+          AUTH_RATE_LIMIT_MAX=100000 npx tsx src/index.ts &
+          echo $! > server.pid
+      - name: Wait for server to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4000/health > /dev/null; then
+              echo "Server is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server never became healthy"
+          exit 1
+      - name: Run tests (relaxed rate limit)
+        run: |
+          npm run test:auth
+          npm run test:events
+          npm run test:event-media
+          npm run test:showcase
+          npm run test:works
+          npm run test:artists
+          npm run test:verification
+          npm run test:sockets
+          npm run test:login-timing
+      - name: Stop server
+        if: always()
+        run: kill "$(cat server.pid)" 2>/dev/null || true
+
+      # Phase 2: test:rate-limit alone, against the server's real, unset
+      # default (6 requests/minute - see rateLimit.middleware.ts) - this
+      # is the one file whose whole point is proving that real cap
+      # actually rejects requests, so it can't run under phase 1's
+      # relaxed limit above.
+      - name: Start server (real rate limit)
+        run: |
+          npx tsx src/index.ts &
+          echo $! > server.pid
+      - name: Wait for server to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4000/health > /dev/null; then
+              echo "Server is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server never became healthy"
+          exit 1
+      - name: Run tests (real rate limit)
+        run: npm run test:rate-limit
+      - name: Stop server
+        if: always()
+        run: kill "$(cat server.pid)" 2>/dev/null || true

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import { env } from '../config/env';
 
 // Neither /auth/register nor /auth/login had any request throttling at
 // all before this - a script could hammer /login with password guesses,
@@ -11,30 +12,33 @@ import rateLimit from 'express-rate-limit';
 // infrastructure. A short 1-minute window (rather than the more
 // traditional 15 minutes) is deliberate: it still makes a brute-force
 // script slow to the point of uselessness, but a developer who trips it
-// while re-running the test suite a few times only waits a minute, not a
-// quarter hour. The cap (20) comfortably clears a single real test run
-// (auth.api.test.ts alone makes ~7 register + ~4 login calls) while still
-// being far below what an actual attack script would try to do in the
-// same window. Separate limiter instances (not one shared between both
-// routes) so hammering one endpoint doesn't also throttle the other.
-const WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS = 6;
-
+// only waits a minute, not a quarter hour.
+//
+// The real cap is 6/window (env.authRateLimit.max, see env.ts) -
+// deliberately tight. That's tighter than a single run of
+// auth.api.test.ts (8 register calls) or loginTiming.api.test.ts (10
+// login calls) can fit under, so both CI and local test runs need
+// AUTH_RATE_LIMIT_MAX set to something generous while running the normal
+// test suite - only rateLimit.api.test.ts itself should run against the
+// real, unset default (see tests/README.md).
+//
+// Separate limiter instances (not one shared between both routes) so
+// hammering one endpoint doesn't also throttle the other.
 function tooManyRequestsHandler(_req: Request, res: Response) {
   res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
 }
 
 export const registerRateLimiter = rateLimit({
-  windowMs: WINDOW_MS,
-  max: MAX_REQUESTS,
+  windowMs: env.authRateLimit.windowMs,
+  max: env.authRateLimit.max,
   standardHeaders: true,
   legacyHeaders: false,
   handler: tooManyRequestsHandler,
 });
 
 export const loginRateLimiter = rateLimit({
-  windowMs: WINDOW_MS,
-  max: MAX_REQUESTS,
+  windowMs: env.authRateLimit.windowMs,
+  max: env.authRateLimit.max,
   standardHeaders: true,
   legacyHeaders: false,
   handler: tooManyRequestsHandler,

@@ -63,4 +63,18 @@ export const env = {
     // generated only for a moderator reviewing a specific request.
     idDocumentsBucketName: process.env.R2_ID_DOCUMENTS_BUCKET_NAME ?? '',
   },
+
+  // Real production behavior is the 6/60s default below - deliberately
+  // tight (see rateLimit.middleware.ts). These overrides exist so CI and
+  // local test runs can relax that cap: `auth.api.test.ts` alone makes 8
+  // register calls and `loginTiming.api.test.ts` makes 10 login calls in
+  // a single run, both comfortably over 6, so anything exercising normal
+  // business logic (not the rate limiter itself) needs this raised - only
+  // rateLimit.api.test.ts should ever run against the real, unset
+  // default, since proving the real cap works is the whole point of that
+  // file.
+  authRateLimit: {
+    windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? 60 * 1000),
+    max: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 6),
+  },
 };

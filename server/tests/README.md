@@ -13,10 +13,28 @@ dependency), using Node's built-in `fetch`.
    npm run test:auth
    npm run test:events
    npm run test:event-media
+   npm run test:showcase
+   npm run test:works
+   npm run test:artists
+   npm run test:verification
    npm run test:sockets
    npm run test:rate-limit
    npm run test:login-timing
    ```
+
+   By default the real production rate limit (6 requests/minute per IP,
+   see below) applies to `/auth/register` and `/auth/login` - several of
+   the files above make more than 6 calls to those endpoints in one run
+   and will start seeing `429`s partway through. For a normal local test
+   session, start the server with the cap relaxed instead:
+
+   ```
+   AUTH_RATE_LIMIT_MAX=1000 npm run dev
+   ```
+
+   Only run plain `npm run dev` (no override) when you specifically want
+   to verify `test:rate-limit` against the real 6/minute cap - that's the
+   one file that has to run against the unmodified default.
 
 Each one prints a pass/fail line per check and exits with a non-zero code
 if anything fails, so they can be wired into `ci.yml` later if you want
@@ -336,7 +354,7 @@ CREATE INDEX idx_messages_conversation ON messages (conversation_id, created_at 
 (`src/middleware/rateLimit.middleware.ts`) - a security fix, since neither
 endpoint had any throttling before (nothing stopped a script from
 brute-forcing `/login` or mass-creating accounts via `/register` as fast
-as the network allowed). Each limiter allows 20 requests/minute per IP.
+as the network allowed). Each limiter allows 6 requests/minute per IP.
 This file fires a burst of 30 concurrent requests at each endpoint with
 deliberately-invalid payloads (missing fields for register, bad
 credentials for login) so it proves the limiter without creating any real
@@ -360,11 +378,12 @@ to enumerate real accounts via timing alone. This file times 5 sequential
 wrong-password attempts against a real (freshly registered) user against
 5 attempts against a made-up email, and checks the two medians land
 within a loose 2x-ish ratio of each other (comfortably passes normal
-network/DB jitter, clearly fails the old skip-bcrypt behavior). Only 10
-login attempts total, well under the 20/minute limit on its own - but
-don't run it in the same 60s window as `test:auth` or `test:rate-limit`,
-which both also hit `/auth/login`; check 01 fails clearly (instead of
-reporting bogus timing) if it gets rate-limited.
+network/DB jitter, clearly fails the old skip-bcrypt behavior). 10 login
+attempts total is already over the real 6/minute cap on its own, so the
+server needs `AUTH_RATE_LIMIT_MAX` set to something generous (see
+"Running it" above) - if it isn't, or if `test:auth`/`test:rate-limit`
+already used up this window against the same server, check 01 fails
+clearly (instead of reporting bogus timing) once it gets rate-limited.
 
 Nothing else under `/api` is tested yet because nothing else is
 implemented - `/api/artists` and `/api/conversations` still return
@@ -377,5 +396,5 @@ verified, not guessed - the earlier files (auth/events/event_media/
 showcase/works) against a throwaway local Postgres; artists.api.test.ts
 (21/21) was run and confirmed passing against the real Supabase database,
 since that's what's actually running locally by this point in the
-project. (verification.api.test.ts is covered on its own branch,
-feature/verification-id-documents / PR #89 - not part of this one.)
+project. verification.api.test.ts is part of this branch too (not a
+separate PR).

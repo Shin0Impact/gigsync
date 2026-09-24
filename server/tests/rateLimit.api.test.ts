@@ -9,15 +9,21 @@
  *   npm run test:rate-limit
  *
  * Fires a burst of BURST_SIZE concurrent requests at each endpoint - well
- * above the configured cap (20/minute) regardless of a handful of calls
- * other test files might have already made against the same server in
- * the current window - and checks that some of them come back 429 while
- * the earliest ones still come back with their normal (non-rate-limited)
- * status. This intentionally uses payloads that fail validation (400) or
- * bad credentials (401) rather than real registrations/logins, so
- * running this doesn't pollute the DB with dozens of throwaway accounts -
- * the rate limiter runs ahead of the route handler either way, so it
- * still counts against the cap.
+ * above the configured cap (6/minute - see rateLimit.middleware.ts)
+ * regardless of a handful of calls other test files might have already
+ * made against the same server in the current window - and checks that
+ * some of them come back 429 while the earliest ones still come back
+ * with their normal (non-rate-limited) status. This intentionally uses
+ * payloads that fail validation (400) or bad credentials (401) rather
+ * than real registrations/logins, so running this doesn't pollute the DB
+ * with dozens of throwaway accounts - the rate limiter runs ahead of the
+ * route handler either way, so it still counts against the cap.
+ *
+ * IMPORTANT: unlike every other test file, this one must run WITHOUT
+ * AUTH_RATE_LIMIT_MAX overridden (or with it explicitly unset back to
+ * the real default) - its whole point is proving the real 6/minute cap
+ * actually rejects requests, so relaxing the limit here would make every
+ * check in this file fail by design.
  *
  * Heads up: this burns a chunk of the 1-minute window for whichever
  * endpoint it hits, so running the full suite (all test:* scripts) back
@@ -73,7 +79,7 @@ async function main() {
     { firstStatus: registerStatuses[0] }
   );
   check(
-    `02 Register burst of ${BURST_SIZE} triggered 429s (cap is 20/min)`,
+    `02 Register burst of ${BURST_SIZE} triggered 429s (cap is 6/min)`,
     register429s > 0,
     { statuses: registerStatuses }
   );
@@ -99,7 +105,7 @@ async function main() {
     { firstStatus: loginStatuses[0] }
   );
   check(
-    `05 Login burst of ${BURST_SIZE} triggered 429s (cap is 20/min)`,
+    `05 Login burst of ${BURST_SIZE} triggered 429s (cap is 6/min)`,
     login429s > 0,
     { statuses: loginStatuses }
   );

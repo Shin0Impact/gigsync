@@ -13,13 +13,15 @@
  *
  *   npm run test:login-timing
  *
- * Only 10 total login attempts (5 against a real user with the wrong
- * password, 5 against a made-up email) - comfortably under the 20/minute
- * login rate limit added alongside this fix, but ONLY if nothing else
- * hit /auth/login in the last minute. Don't run this right after
- * test:auth or test:rate-limit in the same 60s window - if you do, wait
- * ~60s and re-run; check 01 below will tell you clearly if that happened
- * rather than silently reporting bogus timing numbers.
+ * 10 total login attempts (5 against a real user with the wrong
+ * password, 5 against a made-up email) - this is timing this function's
+ * behavior, not the rate limiter's, so it needs the limiter out of the
+ * way: the real cap (6/minute, see rateLimit.middleware.ts) is BELOW 10,
+ * so the server this runs against needs AUTH_RATE_LIMIT_MAX set to
+ * something generous (CI and the README's local instructions both do
+ * this). If it's not, or if test:auth/test:rate-limit already used up
+ * this window against the same server, check 01 below fails clearly
+ * instead of silently reporting bogus timing numbers.
  */
 
 const BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:4000/api';
