@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useLoginMutation } from "../authApi";
+import styles from "./AuthForm.module.css";
 
 interface LoginFormProps {
 	onSuccess: () => void;
@@ -15,16 +16,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 		try {
 			await login({ email, password }).unwrap();
 			onSuccess();
-		} catch {
-			// error state is already tracked by the mutation hook (see `error` above)
-		}
+		} catch {}
 	}
 
 	return (
 		<form
-			className="auth-form"
+			className={styles.authForm}
 			onSubmit={handleSubmit}>
-			<div className="field">
+			<div className={styles.field}>
 				<label htmlFor="login-email">Email</label>
 				<input
 					id="login-email"
@@ -36,7 +35,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 				/>
 			</div>
 
-			<div className="field">
+			<div className={styles.field}>
 				<label htmlFor="login-password">Password</label>
 				<input
 					id="login-password"
@@ -50,7 +49,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
 			{error && (
 				<p
-					className="field-error"
+					className={styles.fieldError}
 					role="alert">
 					Couldn't log in. Check your email and password and try again.
 				</p>
@@ -58,7 +57,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
 			<button
 				type="submit"
-				className="auth-submit"
+				className={styles.authSubmit}
 				disabled={isLoading}>
 				{isLoading ? "Logging in…" : "Log in"}
 			</button>

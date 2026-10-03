@@ -1,0 +1,78 @@
+.hero {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    box-sizing: border-box;
+    border: 0.125rem solid var(--color-black);
+    background-color: var(--color-white);
+
+    .heroShaderWrapper {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 30%;
+    }
+
+    .heroContent {
+        z-index: 1;
+        max-width: 50rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .heroTitle {
+            font-family: var(--font-coolvetica);
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: normal;
+            color: var(--color-black);
+            margin: 0 0 1.5rem 0;
+            line-height: 1.1;
+        }
+
+        .heroSubtitle {
+            font-family: var(--font-instrument);
+            font-size: clamp(1.125rem, 2vw, 1.5rem);
+            font-style: italic;
+            color: var(--color-black);
+            margin: 0 0 3rem 0;
+            line-height: 1.4;
+            max-width: 40rem;
+        }
+
+        .heroJourneyCta {
+            font-family: var(--font-coolvetica);
+            font-size: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--color-black);
+            cursor: pointer;
+            padding: 0.5rem 0;
+            position: relative;
+            text-decoration: none;
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 0.125rem;
+                background-color: var(--color-black);
+                transition: background-color 0.2s ease;
+            }
+
+            &:hover::after {
+                background-color: var(--color-blue);
+            }
+        }
+    }
+}

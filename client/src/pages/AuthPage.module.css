@@ -1,0 +1,106 @@
+.authPage {
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-cream);
+    display: flex;
+    padding: 3vh;
+    gap: 3vh;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    .sidebar {
+        position: relative;
+        width: fit-content;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-decoration: none;
+        box-sizing: border-box;
+        overflow: hidden;
+
+        .glyphArea {
+            flex: 1;
+            height: 100%;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .verticalGlyph {
+                height: 100%;
+            }
+        }
+
+        .sidebarWordmark {
+            position: absolute;
+            bottom: 1rem;
+            color: var(--color-white);
+            font-family: var(--font-coolvetica);
+            font-size: 3rem;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+    }
+
+    .contentContainer {
+        flex: 1;
+        height: 100%;
+        background-color: var(--color-white);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        padding: 4rem 2rem;
+        box-sizing: border-box;
+        border: 0.125rem solid var(--color-black);
+        overflow: hidden;
+
+        .formShaderWrapper {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 30%;
+        }
+
+        .formWrapper {
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+
+            .title {
+                font-family: var(--font-coolvetica);
+                font-size: 2.5rem;
+                color: var(--color-black);
+                margin: 0;
+                text-align: center;
+            }
+
+            .toggleButton {
+                background: none;
+                border: none;
+                font-family: var(--font-coolvetica);
+                font-size: 1rem;
+                color: var(--color-black);
+                cursor: pointer;
+                margin-top: 1rem;
+                text-align: center;
+                opacity: 0.7;
+                transition: opacity 0.2s ease;
+
+                &:hover {
+                    opacity: 1;
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}

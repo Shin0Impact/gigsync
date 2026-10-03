@@ -1,0 +1,88 @@
+.button {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-coolvetica);
+    font-size: var(--button-font-size);
+    padding: var(--tier-padding-y) var(--tier-padding-x);
+    border-radius: 0;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid transparent;
+    outline: none;
+
+    background-color: var(--color-black);
+    color: var(--color-white);
+
+    &[data-purpose="button"] {
+        &:hover {
+            background-color: var(--color-yellow);
+            color: var(--color-black);
+            border-color: var(--color-black);
+        }
+    }
+
+    &[data-variant="solid"] {
+        &:hover {
+            background-color: var(--color-yellow);
+            color: var(--color-black);
+            border-color: var(--color-black);
+        }
+    }
+
+    &[data-variant="ghost"] {
+        background-color: transparent;
+        color: var(--color-black);
+        border-color: transparent;
+
+        &:hover {
+            background-color: var(--color-yellow);
+            color: var(--color-black);
+            border-color: var(--color-black);
+        }
+    }
+
+    &[data-variant="logo"] {
+        background-color: transparent;
+        border-color: transparent;
+        padding: 0;
+        border: none;
+    }
+
+    &[data-variant="expandable"] {
+        background-color: var(--color-black);
+        color: var(--color-white);
+        white-space: nowrap;
+        overflow: hidden;
+
+        .hoverText {
+            max-width: 0;
+            display: inline-block;
+            vertical-align: top;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        &:hover {
+            background-color: var(--color-yellow);
+            color: var(--color-black);
+            border-color: var(--color-black);
+
+            .hoverText {
+                max-width: 15rem;
+            }
+        }
+    }
+
+    &[data-active="true"] {
+        background-color: var(--color-white);
+        color: var(--color-black);
+        border-color: var(--color-blue);
+        box-shadow: 0 0 0 2px var(--color-blue),
+            inset 2px 2px 0 0 var(--color-white),
+            inset -2px -2px 0 0 var(--color-white);
+    }
+}

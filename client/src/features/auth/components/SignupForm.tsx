@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useRegisterMutation } from "../authApi";
+import styles from "./AuthForm.module.css";
 
 interface SignupFormProps {
 	onSuccess: () => void;
@@ -31,15 +32,15 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 			await register({ username, email, password }).unwrap();
 			onSuccess();
 		} catch {
-			// server-side error is already tracked by the mutation hook (see `error` above)
+			// server-side error is already tracked by the mutation hook
 		}
 	}
 
 	return (
 		<form
-			className="auth-form"
+			className={styles.authForm}
 			onSubmit={handleSubmit}>
-			<div className="field">
+			<div className={styles.field}>
 				<label htmlFor="signup-username">Username</label>
 				<input
 					id="signup-username"
@@ -51,7 +52,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 				/>
 			</div>
 
-			<div className="field">
+			<div className={styles.field}>
 				<label htmlFor="signup-email">Email</label>
 				<input
 					id="signup-email"
@@ -63,7 +64,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 				/>
 			</div>
 
-			<div className="field">
+			<div className={styles.field}>
 				<label htmlFor="signup-password">Password</label>
 				<input
 					id="signup-password"
@@ -75,7 +76,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 				/>
 			</div>
 
-			<div className="field">
+			<div className={styles.field}>
 				<label htmlFor="signup-confirm-password">Confirm password</label>
 				<input
 					id="signup-confirm-password"
@@ -89,7 +90,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
 			{(localError || error) && (
 				<p
-					className="field-error"
+					className={styles.fieldError}
 					role="alert">
 					{localError ??
 						"Couldn't create your account. That email or username may already be taken."}
@@ -98,7 +99,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
 			<button
 				type="submit"
-				className="auth-submit"
+				className={styles.authSubmit}
 				disabled={isLoading}>
 				{isLoading ? "Creating account…" : "Sign up"}
 			</button>
