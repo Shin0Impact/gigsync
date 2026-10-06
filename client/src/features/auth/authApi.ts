@@ -1,18 +1,19 @@
 import { api } from "../../shared/api";
-import { IUser, RegisterPayload } from "../../shared/types";
+import { IUserRecord } from "@shared/types/index";
+import { LoginInput, RegisterInput } from "@shared/services/auth.service";
 
 export const authApi = api.injectEndpoints({
 	endpoints: (builder) => ({
-		login: builder.mutation<IUser, { email: string; password: string }>({
-			query: (body) => ({ url: "/auth/login", method: "POST", body }),
+		login: builder.mutation<IUserRecord, LoginInput>({
+			query: (body) => ({ url: "/api/auth/login", method: "POST", body }),
 			invalidatesTags: ["Auth"],
 		}),
-		register: builder.mutation<IUser, RegisterPayload>({
-			query: (body) => ({ url: "/auth/register", method: "POST", body }),
+		register: builder.mutation<IUserRecord, RegisterInput>({
+			query: (body) => ({ url: "/api/auth/register", method: "POST", body }),
 			invalidatesTags: ["Auth"],
 		}),
-		me: builder.query<IUser | null, void>({
-			query: () => "/auth/me",
+		me: builder.query<IUserRecord | null, void>({
+			query: () => "/api/auth/me",
 			providesTags: ["Auth"],
 		}),
 	}),
