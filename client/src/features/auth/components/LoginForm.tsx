@@ -16,7 +16,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 		try {
 			await login({ email, password }).unwrap();
 			onSuccess();
-		} catch {}
+		} catch {
+			// server-side error is already tracked by the mutation hook
+		}
 	}
 
 	return (

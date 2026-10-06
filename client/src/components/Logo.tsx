@@ -8,7 +8,7 @@ interface LogoProps {
 	purpose?: "static" | "button";
 	active?: boolean;
 	size?: "xs" | "s" | "m" | "l" | "xl" | "fill";
-	orientation?: "horizontal" | "vertical"; // NEW — "vertical" for tall/rotated contexts like the auth sidebar
+	orientation?: "horizontal" | "vertical";
 	className?: string;
 }
 

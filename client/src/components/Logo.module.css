@@ -74,7 +74,7 @@
 
     &[data-purpose="button"]:hover {
         color: var(--color-yellow);
-        border-color: var(--color-black);
+        border: 0.125rem solid black inset;
     }
 
     &[data-active="true"] {
