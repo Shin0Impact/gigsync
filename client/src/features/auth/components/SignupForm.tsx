@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useRegisterMutation } from "../authApi";
+import { RegisterInput, useRegisterMutation } from "../authApi";
 import styles from "./AuthForm.module.css";
 import { StepIndicator } from "../../../components/StepIndicator";
-import { RegisterInput } from "@shared/services/auth.service";
 import { UserRole } from "@shared/types/index";
 import { Button } from "../../../components/Button";
 import { useNavigate } from "react-router-dom";

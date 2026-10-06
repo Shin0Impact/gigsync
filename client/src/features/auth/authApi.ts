@@ -1,6 +1,18 @@
 import { api } from "../../shared/api";
-import { IUserRecord } from "@shared/types/index";
-import { LoginInput, RegisterInput } from "@shared/services/auth.service";
+import { ArtistCategory, IUserRecord, UserRole } from "@shared/types/index";
+
+export interface RegisterInput {
+	email: string;
+	password: string;
+	role: UserRole;
+	user_name: string;
+	artists_type?: ArtistCategory | null;
+}
+
+export interface LoginInput {
+	identifier: string;
+	password: string;
+}
 
 export const authApi = api.injectEndpoints({
 	endpoints: (builder) => ({
