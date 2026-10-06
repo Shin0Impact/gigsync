@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IMessage } from '../../shared/types';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { IMessage } from "@shared/types/index";
 
 // Real-time-only slice: holds messages pushed over Socket.IO
 // ('receive_message'), NOT fetched conversation/message history - that's
@@ -8,25 +8,25 @@ import { IMessage } from '../../shared/types';
 // authApi.ts is), not duplicated here. This slice exists because RTK Query
 // has nothing to patch for a push event with no backing query.
 interface ChatState {
-  messages: Record<string, IMessage[]>;
+	messages: Record<string, IMessage[]>;
 }
 
 const initialState: ChatState = {
-  messages: {},
+	messages: {},
 };
 
 const chatSlice = createSlice({
-  name: 'chat',
-  initialState,
-  reducers: {
-    messageReceived(state, action: PayloadAction<IMessage>) {
-      const { conversationId } = action.payload;
-      if (!state.messages[conversationId]) {
-        state.messages[conversationId] = [];
-      }
-      state.messages[conversationId].push(action.payload);
-    },
-  },
+	name: "chat",
+	initialState,
+	reducers: {
+		messageReceived(state, action: PayloadAction<IMessage>) {
+			const { conversationId } = action.payload;
+			if (!state.messages[conversationId]) {
+				state.messages[conversationId] = [];
+			}
+			state.messages[conversationId].push(action.payload);
+		},
+	},
 });
 
 export const { messageReceived } = chatSlice.actions;

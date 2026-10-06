@@ -89,13 +89,12 @@
   /* --font-coolvetica: "Coolvetica";
   --font-instrument: "Instrument Serif"; */
 
-
   --tier-padding-y: 0.5rem;
   --tier-padding-x: 1rem;
   --tier-font-size: 0.875rem;
   --tier-border-radius: 0.25rem;
 
-  --button-font-size: 1rem;
+  --button-font-size: 1.5rem;
 
   --logo-height-xs: 1rem;
   --logo-font-xs: 0.75rem;
@@ -111,9 +110,11 @@
 
   --logo-height-xl: 14vh;
   --logo-font-xl: 3.25rem;
-  >>>>>>>Stashed changes
 }
 
-body {
+body,
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
