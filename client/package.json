@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@paper-design/shaders-react": "^0.0.81",
     "@reduxjs/toolkit": "^2.2.7",
     "axios": "^1.7.4",
     "lucide-react": "^0.383.0",
