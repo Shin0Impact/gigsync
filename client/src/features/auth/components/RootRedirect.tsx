@@ -22,7 +22,7 @@ export function RootRedirect() {
 		}
 		return (
 			<Navigate
-				to={ROUTES.TIMELINE}
+				to={ROUTES.FOLLOWING}
 				replace
 			/>
 		);
