@@ -233,8 +233,8 @@ export interface CreateEventInput {
 export interface UpdateEventInput {
 	title?: string;
 	description?: string;
-	startAt?: Date;
-	endAt?: Date;
+	startAt?: string;
+	endAt?: string;
 	venueName?: string;
 	location?: { lat: number; lng: number };
 	isRecurring?: boolean;
@@ -349,7 +349,7 @@ export interface SocketReceiveMessagePayload {
 	senderId: string;
 	content: string;
 	isRead: boolean;
-	createdAt: Date;
+	createdAt: string;
 }
 
 export interface EmergencyStatusChangedPayload {

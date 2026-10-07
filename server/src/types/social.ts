@@ -13,14 +13,14 @@ export interface IProfile {
 	avatarUrl: string | null;
 	followersNumber: number;
 	artistsType: ArtistType;
-	createdAt: Date;
+	createdAt: string;
 }
 
 // roles table
 export interface IUserRole {
 	userId: string;
 	role: Role;
-	createdAt: Date;
+	createdAt: string;
 }
 
 // followings table
@@ -28,29 +28,29 @@ export interface IFollowing {
 	id: number;
 	userId: string;
 	followedId: string;
-	createdAt: Date;
+	createdAt: string;
 }
 
-// works table - portfolio items
+// works table
 export interface IWork {
 	id: number;
 	userId: string;
 	description: string | null;
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt: string;
+	updatedAt: string;
 }
 
-// work_updates table - posts against a work
+// work_updates table
 export interface IWorkUpdate {
 	id: number;
 	workId: number;
 	versionNumber: number;
 	description: string | null;
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt: string;
+	updatedAt: string;
 }
 
-// update_media table - media attachments on a work_update
+// update_media table
 export interface IUpdateMedia {
 	id: number;
 	updateId: number;
@@ -59,7 +59,7 @@ export interface IUpdateMedia {
 	mimeType: string;
 	fileSizeBytes: number;
 	sortOrder: number;
-	createdAt: Date;
+	createdAt: string;
 }
 
 // work_likes table
@@ -67,7 +67,7 @@ export interface IWorkLike {
 	id: number;
 	workId: number;
 	userId: string;
-	createdAt: Date;
+	createdAt: string;
 }
 
 // work_comments table
@@ -76,20 +76,20 @@ export interface IWorkComment {
 	workId: number;
 	userId: string;
 	content: string;
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt: string;
+	updatedAt: string;
 }
 
 export interface IPostEvent {
 	id: number;
 	postId: number;
-	startAt: Date;
-	endAt: Date;
-	createdAt: Date;
+	startAt: string;
+	endAt: string;
+	createdAt: string;
 }
 
 // -----------------------------------------------------------------------------
-// Input / Request Body DTOs
+// Works & Social Input DTOs
 // -----------------------------------------------------------------------------
 
 export interface CreateWorkInput {
@@ -109,7 +109,7 @@ export interface AddUpdateMediaInput {
 }
 
 // -----------------------------------------------------------------------------
-// Response Body Types
+// Response-body types
 // -----------------------------------------------------------------------------
 
 export interface CreateWorkResponse {
