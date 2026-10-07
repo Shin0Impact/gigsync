@@ -30,8 +30,8 @@ export interface DbUser {
 	id: string;
 	email: string;
 	password_hash: string;
-	created_at: string;
-	updated_at: string;
+	created_at: Date;
+	updated_at: Date;
 }
 
 export interface DbUserWithUsername extends DbUser {
@@ -41,12 +41,12 @@ export interface DbUserWithUsername extends DbUser {
 export interface DbRole {
 	user_id: string;
 	role: UserRole;
-	created_at: string;
+	created_at: Date;
 }
 
 export interface DbProfile {
 	id: number;
-	created_at: string;
+	created_at: Date;
 	user_name: string;
 	user_id: string;
 	avatar_url: string | null;
@@ -60,8 +60,8 @@ export interface DbEvent {
 	organizer_id: string;
 	title: string;
 	descriptions: string;
-	start_at: string;
-	end_at: string;
+	start_at: Date;
+	end_at: Date;
 	venue_name: string | null;
 	location_lat: number | null;
 	location_lng: number | null;
@@ -69,8 +69,8 @@ export interface DbEvent {
 	recurring_rule: string | null;
 	status: EventStatus;
 	categories_needed: ArtistCategory[] | null;
-	created_at: string;
-	updated_at: string | null;
+	created_at: Date;
+	updated_at: Date | null;
 }
 
 export interface DbEventApplication {
@@ -79,8 +79,8 @@ export interface DbEventApplication {
 	artist_id: string;
 	status: ApplicationStatus;
 	cover_note: string | null;
-	applied_at: string;
-	updated_at: string;
+	applied_at: Date;
+	updated_at: Date;
 }
 
 export interface DbEventMedia {
@@ -90,7 +90,7 @@ export interface DbEventMedia {
 	object_key: string;
 	alt_text: string | null;
 	sort_order: number;
-	created_at: string;
+	created_at: Date;
 }
 
 export interface DbShowcaseItem {
@@ -99,7 +99,7 @@ export interface DbShowcaseItem {
 	event_id: number | null;
 	work_id: number | null;
 	sort_order: number;
-	created_at: string;
+	created_at: Date;
 }
 
 export interface DbSocialLink {
@@ -107,7 +107,7 @@ export interface DbSocialLink {
 	user_id: string;
 	platform: string;
 	url: string;
-	created_at: string;
+	created_at: Date;
 }
 
 export interface DbVerificationRequest {
@@ -117,8 +117,8 @@ export interface DbVerificationRequest {
 	id_document_key: string;
 	notes: string | null;
 	reviewed_by: string | null;
-	reviewed_at: string | null;
-	created_at: string;
+	reviewed_at: Date | null;
+	created_at: Date;
 }
 
 // -----------------------------------------------------------------------------
@@ -134,8 +134,8 @@ export interface IArtistProfile {
 	emergencyUntil: string | null;
 	ratingAvg: number;
 	reviewCount: number;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface IExtendedArtistProfile extends IArtistProfile {
@@ -155,16 +155,16 @@ export interface IEvent {
 	status: EventStatus;
 	isRecurring: boolean;
 	recurringRule: string | null;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface IConversation {
 	id: string;
 	eventId: string | null;
 	participantIds: string[];
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface IMessage {
@@ -173,7 +173,7 @@ export interface IMessage {
 	senderId: string;
 	content: string;
 	isRead: boolean;
-	createdAt: string;
+	createdAt: Date;
 }
 
 // -----------------------------------------------------------------------------
@@ -233,8 +233,8 @@ export interface CreateEventInput {
 export interface UpdateEventInput {
 	title?: string;
 	description?: string;
-	startAt?: string;
-	endAt?: string;
+	startAt?: Date;
+	endAt?: Date;
 	venueName?: string;
 	location?: { lat: number; lng: number };
 	isRecurring?: boolean;
@@ -349,7 +349,7 @@ export interface SocketReceiveMessagePayload {
 	senderId: string;
 	content: string;
 	isRead: boolean;
-	createdAt: string;
+	createdAt: Date;
 }
 
 export interface EmergencyStatusChangedPayload {

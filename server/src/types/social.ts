@@ -13,14 +13,14 @@ export interface IProfile {
 	avatarUrl: string | null;
 	followersNumber: number;
 	artistsType: ArtistType;
-	createdAt: string;
+	createdAt: Date;
 }
 
 // roles table
 export interface IUserRole {
 	userId: string;
 	role: Role;
-	createdAt: string;
+	createdAt: Date;
 }
 
 // followings table
@@ -28,7 +28,7 @@ export interface IFollowing {
 	id: number;
 	userId: string;
 	followedId: string;
-	createdAt: string;
+	createdAt: Date;
 }
 
 // works table - portfolio items
@@ -36,8 +36,8 @@ export interface IWork {
 	id: number;
 	userId: string;
 	description: string | null;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 // work_updates table - posts against a work
@@ -46,8 +46,8 @@ export interface IWorkUpdate {
 	workId: number;
 	versionNumber: number;
 	description: string | null;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 // update_media table - media attachments on a work_update
@@ -59,7 +59,7 @@ export interface IUpdateMedia {
 	mimeType: string;
 	fileSizeBytes: number;
 	sortOrder: number;
-	createdAt: string;
+	createdAt: Date;
 }
 
 // work_likes table
@@ -67,7 +67,7 @@ export interface IWorkLike {
 	id: number;
 	workId: number;
 	userId: string;
-	createdAt: string;
+	createdAt: Date;
 }
 
 // work_comments table
@@ -76,16 +76,16 @@ export interface IWorkComment {
 	workId: number;
 	userId: string;
 	content: string;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface IPostEvent {
 	id: number;
 	postId: number;
-	startAt: string;
-	endAt: string;
-	createdAt: string;
+	startAt: Date;
+	endAt: Date;
+	createdAt: Date;
 }
 
 // -----------------------------------------------------------------------------
