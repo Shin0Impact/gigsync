@@ -47,7 +47,7 @@ function parse_id(raw: string): number | null {
 }
 
 export async function create_work_handler(
-	req: Request<{}, unknown, CreateWorkInput>,
+	req: Request<Record<string, never>, unknown, CreateWorkInput>,
 	res: Response<CreateWorkResponse | ErrorResponse>,
 ) {
 	try {

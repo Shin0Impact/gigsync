@@ -32,7 +32,7 @@ function handle_known_error(error: unknown, res: Response, fallback: string) {
 }
 
 export async function update_emergency_status_handler(
-	req: Request<{}, unknown, UpdateEmergencyStatusInput>,
+	req: Request<Record<string, never>, unknown, UpdateEmergencyStatusInput>,
 	res: Response<EmergencyStatusHandlerResponse | ErrorResponse>,
 ) {
 	try {
@@ -56,7 +56,12 @@ export async function get_emergency_status_handler(
 }
 
 export async function list_emergency_available_handler(
-	req: Request<{}, unknown, unknown, { lat?: string; lng?: string; radius_km?: string }>,
+	req: Request<
+		Record<string, never>,
+		unknown,
+		unknown,
+		{ lat?: string; lng?: string; radius_km?: string }
+	>,
 	res: Response<ListEmergencyAvailableResponse | ErrorResponse>,
 ) {
 	try {

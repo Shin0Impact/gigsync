@@ -11,7 +11,7 @@ import {
 } from "../types";
 
 export async function register(
-	req: Request<{}, unknown, RegisterInput>,
+	req: Request<Record<string, never>, unknown, RegisterInput>,
 	res: Response<RegisterResponse | ErrorResponse>,
 ) {
 	try {
@@ -70,7 +70,7 @@ export async function register(
 }
 
 export async function login(
-	req: Request<{}, unknown, LoginInput>,
+	req: Request<Record<string, never>, unknown, LoginInput>,
 	res: Response<LoginResponse | ErrorResponse>,
 ) {
 	try {

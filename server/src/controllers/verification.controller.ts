@@ -60,7 +60,7 @@ function handle_known_error(error: unknown, res: Response, fallback: string) {
 }
 
 export async function add_social_link_handler(
-	req: Request<{}, unknown, AddSocialLinkInput>,
+	req: Request<Record<string, never>, unknown, AddSocialLinkInput>,
 	res: Response<AddSocialLinkResponse | ErrorResponse>,
 ) {
 	try {
@@ -84,7 +84,7 @@ export async function list_social_links_handler(
 // verification request below. Uploads go straight to a private R2 bucket
 // with no public dev URL (card #82).
 export async function request_id_document_upload_url_handler(
-	req: Request<{}, unknown, RequestIdDocumentUploadUrlInput>,
+	req: Request<Record<string, never>, unknown, RequestIdDocumentUploadUrlInput>,
 	res: Response<IdDocumentUploadUrlResult | ErrorResponse>,
 ) {
 	try {
@@ -96,7 +96,7 @@ export async function request_id_document_upload_url_handler(
 }
 
 export async function submit_verification_request_handler(
-	req: Request<{}, unknown, SubmitVerificationInput>,
+	req: Request<Record<string, never>, unknown, SubmitVerificationInput>,
 	res: Response<SubmitVerificationResponse | ErrorResponse>,
 ) {
 	try {

@@ -1,17 +1,17 @@
-import { randomUUID } from 'crypto';
-import { Server as HttpServer } from 'http';
-import { parse as parseCookie } from 'cookie';
-import jwt from 'jsonwebtoken';
-import { Server as SocketIOServer } from 'socket.io';
-import { env } from '../config/env';
-import { query } from '../config/db';
-import { isConversationParticipant } from '../db/queries/conversations.queries';
+import { randomUUID } from "crypto";
+import { Server as HttpServer } from "http";
+import { parse as parseCookie } from "cookie";
+import jwt from "jsonwebtoken";
+import { Server as SocketIOServer } from "socket.io";
+import { env } from "../config/env";
+import { query } from "../config/db";
+import { isConversationParticipant } from "../db/queries/conversations.queries";
 import {
-  AuthTokenPayload,
-  EmergencyStatusChangedPayload,
-  SocketReceiveMessagePayload,
-  SocketSendMessagePayload,
-} from '../types';
+	AuthTokenPayload,
+	EmergencyStatusChangedPayload,
+	SocketReceiveMessagePayload,
+	SocketSendMessagePayload,
+} from "../types";
 
 // Owned by Dev 3 / Maher. Wires up the Socket.IO gateway described in design
 // doc section 7: handshake auth, per-conversation rooms, and the
@@ -31,152 +31,168 @@ import {
 let ioInstance: SocketIOServer | null = null;
 
 export function getIO(): SocketIOServer {
-  if (!ioInstance) {
-    throw new Error('Socket.IO server has not been initialized yet');
-  }
-  return ioInstance;
+	if (!ioInstance) {
+		throw new Error("Socket.IO server has not been initialized yet");
+	}
+	return ioInstance;
 }
 
 export function initSocketServer(httpServer: HttpServer) {
-  const io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: env.clientOrigin,
-      credentials: true,
-    },
-  });
+	const io = new SocketIOServer(httpServer, {
+		cors: {
+			origin: env.clientOrigin,
+			credentials: true,
+		},
+	});
 
-  io.use((socket, next) => {
-    const rawCookies = socket.handshake.headers.cookie;
-    const token = rawCookies ? parseCookie(rawCookies).access_token : undefined;
+	io.use((socket, next) => {
+		const rawCookies = socket.handshake.headers.cookie;
+		const token = rawCookies ? parseCookie(rawCookies).access_token : undefined;
 
-    if (!token) {
-      next(new Error('Not authenticated'));
-      return;
-    }
+		if (!token) {
+			next(new Error("Not authenticated"));
+			return;
+		}
 
-    try {
-      const payload = jwt.verify(token, env.jwt.accessSecret) as AuthTokenPayload;
-      socket.data.userId = payload.userId;
-      next();
-    } catch {
-      next(new Error('Invalid or expired token'));
-    }
-  });
+		try {
+			const payload = jwt.verify(token, env.jwt.accessSecret) as AuthTokenPayload;
+			socket.data.userId = payload.userId;
+			next();
+		} catch {
+			next(new Error("Invalid or expired token"));
+		}
+	});
 
-  io.on('connection', (socket) => {
-    // eslint-disable-next-line no-console
-    console.log(`[socket] connected: ${socket.id} (user ${socket.data.userId})`);
+	io.on("connection", (socket) => {
+		// eslint-disable-next-line no-console
+		console.log(`[socket] connected: ${socket.id} (user ${socket.data.userId})`);
 
-    socket.on('join_conversation', async (conversationId: string) => {
-      // Anyone with a valid access_token could otherwise join ANY
-      // conversation room by guessing/enumerating a UUID and read every
-      // message broadcast into it (io.to(conversationId).emit(...) doesn't
-      // check membership on the sending side - the room itself is the only
-      // gate). REST-side conversations isn't built yet (see
-      // conversations.routes.ts, still 501 stubs), so conversation_participants
-      // rows can currently only exist if something inserted them directly,
-      // but the socket gateway is live right now and has to be safe on its
-      // own regardless of what REST ships later.
-      if (!conversationId) {
-        socket.emit('socket_error', { message: 'conversationId is required' });
-        return;
-      }
+		socket.on("join_conversation", async (conversationId: string) => {
+			// Anyone with a valid access_token could otherwise join ANY
+			// conversation room by guessing/enumerating a UUID and read every
+			// message broadcast into it (io.to(conversationId).emit(...) doesn't
+			// check membership on the sending side - the room itself is the only
+			// gate). REST-side conversations isn't built yet (see
+			// conversations.routes.ts, still 501 stubs), so conversation_participants
+			// rows can currently only exist if something inserted them directly,
+			// but the socket gateway is live right now and has to be safe on its
+			// own regardless of what REST ships later.
+			if (!conversationId) {
+				socket.emit("socket_error", { message: "conversationId is required" });
+				return;
+			}
 
-      const isParticipant = await isConversationParticipant(conversationId, socket.data.userId as string);
-      if (!isParticipant) {
-        socket.emit('socket_error', { message: 'Not a participant of this conversation' });
-        return;
-      }
+			const isParticipant = await isConversationParticipant(
+				conversationId,
+				socket.data.userId as string,
+			);
+			if (!isParticipant) {
+				socket.emit("socket_error", { message: "Not a participant of this conversation" });
+				return;
+			}
 
-      socket.join(conversationId);
-      socket.emit('joined_conversation', { conversationId });
-    });
+			socket.join(conversationId);
+			socket.emit("joined_conversation", { conversationId });
+		});
 
-    socket.on('leave_conversation', (conversationId: string) => {
-      socket.leave(conversationId);
-    });
+		socket.on("leave_conversation", (conversationId: string) => {
+			socket.leave(conversationId);
+		});
 
-    socket.on(
-      'send_message',
-      async (payload: SocketSendMessagePayload, ack?: (message: SocketReceiveMessagePayload) => void) => {
-        if (!payload?.conversationId || !payload?.content?.trim()) {
-          socket.emit('socket_error', { message: 'conversationId and content are required' });
-          return;
-        }
+		socket.on(
+			"send_message",
+			async (
+				payload: SocketSendMessagePayload,
+				ack?: (message: SocketReceiveMessagePayload) => void,
+			) => {
+				if (!payload?.conversationId || !payload?.content?.trim()) {
+					socket.emit("socket_error", {
+						message: "conversationId and content are required",
+					});
+					return;
+				}
 
-        // Same membership gate as join_conversation above - without this, a
-        // non-participant who already knows/guesses a conversationId could
-        // send messages into a conversation they were never added to, and
-        // persistMessage's FK-failure fallback (see below) would make it
-        // look like it worked even for a made-up id.
-        const isParticipant = await isConversationParticipant(payload.conversationId, socket.data.userId as string);
-        if (!isParticipant) {
-          socket.emit('socket_error', { message: 'Not a participant of this conversation' });
-          return;
-        }
+				// Same membership gate as join_conversation above - without this, a
+				// non-participant who already knows/guesses a conversationId could
+				// send messages into a conversation they were never added to, and
+				// persistMessage's FK-failure fallback (see below) would make it
+				// look like it worked even for a made-up id.
+				const isParticipant = await isConversationParticipant(
+					payload.conversationId,
+					socket.data.userId as string,
+				);
+				if (!isParticipant) {
+					socket.emit("socket_error", {
+						message: "Not a participant of this conversation",
+					});
+					return;
+				}
 
-        const message = await persistMessage(payload, socket.data.userId as string);
-        io.to(payload.conversationId).emit('receive_message', message);
-        ack?.(message);
-      }
-    );
+				const message = await persistMessage(payload, socket.data.userId as string);
+				io.to(payload.conversationId).emit("receive_message", message);
+				ack?.(message);
+			},
+		);
 
-    socket.on('disconnect', () => {
-      // eslint-disable-next-line no-console
-      console.log(`[socket] disconnected: ${socket.id}`);
-    });
-  });
+		socket.on("disconnect", () => {
+			// eslint-disable-next-line no-console
+			console.log(`[socket] disconnected: ${socket.id}`);
+		});
+	});
 
-  ioInstance = io;
+	ioInstance = io;
 
-  return io;
+	return io;
 }
 
 async function persistMessage(
-  payload: SocketSendMessagePayload,
-  senderId: string
+	payload: SocketSendMessagePayload,
+	senderId: string,
 ): Promise<SocketReceiveMessagePayload> {
-  try {
-    const result = await query<{
-      id: string;
-      conversation_id: string;
-      sender_id: string;
-      content: string;
-      is_read: boolean;
-      created_at: string;
-    }>(
-      `INSERT INTO messages (conversation_id, sender_id, content)
+	try {
+		const result = await query<{
+			id: string;
+			conversation_id: string;
+			sender_id: string;
+			content: string;
+			is_read: boolean;
+			created_at: string;
+		}>(
+			`INSERT INTO messages (conversation_id, sender_id, content)
        VALUES ($1, $2, $3)
        RETURNING id, conversation_id, sender_id, content, is_read, created_at`,
-      [payload.conversationId, senderId, payload.content]
-    );
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      conversationId: row.conversation_id,
-      senderId: row.sender_id,
-      content: row.content,
-      isRead: row.is_read,
-      createdAt: row.created_at,
-    };
-  } catch (err) {
-    // Expected for now: the `conversations` row this message points at
-    // probably doesn't exist yet (POST /api/conversations isn't built), so
-    // the foreign key insert fails. Fall back to an in-memory message so
-    // real-time delivery can still be proven end-to-end today. Once
-    // /api/conversations + the DB are both live, this catch block should
-    // start disappearing from the logs - if it doesn't, something's wrong.
-    // eslint-disable-next-line no-console
-    console.warn('[socket] DB insert failed, using in-memory fallback message:', (err as Error).message);
-    return {
-      id: randomUUID(),
-      conversationId: payload.conversationId,
-      senderId,
-      content: payload.content,
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    };
-  }
+			[payload.conversationId, senderId, payload.content],
+		);
+		const row = result.rows[0];
+		return {
+			id: row.id,
+			conversationId: row.conversation_id,
+			senderId: row.sender_id,
+			content: row.content,
+			isRead: row.is_read,
+			createdAt: row.created_at,
+		};
+	} catch (err) {
+		// Expected for now: the `conversations` row this message points at
+		// probably doesn't exist yet (POST /api/conversations isn't built), so
+		// the foreign key insert fails. Fall back to an in-memory message so
+		// real-time delivery can still be proven end-to-end today. Once
+		// /api/conversations + the DB are both live, this catch block should
+		// start disappearing from the logs - if it doesn't, something's wrong.
+		// eslint-disable-next-line no-console
+		console.warn(
+			"[socket] DB insert failed, using in-memory fallback message:",
+			(err as Error).message,
+		);
+		return {
+			id: randomUUID(),
+			conversationId: payload.conversationId,
+			senderId,
+			content: payload.content,
+			isRead: false,
+			createdAt: new Date().toISOString(),
+		};
+	}
 }
 
 // Called from the REST layer (PATCH /api/artists/me/emergency-status, in
@@ -184,8 +200,8 @@ async function persistMessage(
 // every connected client so organizer-side emergency search views update
 // live without a refresh.
 export function broadcastEmergencyStatusChange(
-  io: SocketIOServer,
-  payload: EmergencyStatusChangedPayload
+	io: SocketIOServer,
+	payload: EmergencyStatusChangedPayload,
 ) {
-  io.emit('emergency_status_changed', payload);
+	io.emit("emergency_status_changed", payload);
 }

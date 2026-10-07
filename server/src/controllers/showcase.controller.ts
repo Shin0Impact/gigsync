@@ -39,7 +39,7 @@ function handle_known_error(error: unknown, res: Response, fallback: string) {
 }
 
 export async function add_showcase(
-	req: Request<{}, unknown, AddShowcaseItemInput>,
+	req: Request<Record<string, never>, unknown, AddShowcaseItemInput>,
 	res: Response<AddShowcaseItemResponse | ErrorResponse>,
 ) {
 	try {

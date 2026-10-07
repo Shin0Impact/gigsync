@@ -70,7 +70,7 @@ export function handle_known_error(error: unknown, res: Response, fallback: stri
 }
 
 export async function create_event(
-	req: Request<{}, unknown, CreateEventInput>,
+	req: Request<Record<string, never>, unknown, CreateEventInput>,
 	res: Response<CreateEventResponse | ErrorResponse>,
 ) {
 	try {
@@ -83,7 +83,7 @@ export async function create_event(
 
 export async function list_events(
 	req: Request<
-		{},
+		Record<string, never>,
 		unknown,
 		unknown,
 		{ status?: string; organizerId?: string; category?: string }

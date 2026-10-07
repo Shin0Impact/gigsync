@@ -3,7 +3,7 @@ import { request_upload_url } from "../services/media.service";
 import { RequestUploadUrlInput, UploadUrlResult, ErrorResponse } from "../types";
 
 export async function get_upload_url(
-	req: Request<{}, unknown, RequestUploadUrlInput>,
+	req: Request<Record<string, never>, unknown, RequestUploadUrlInput>,
 	res: Response<UploadUrlResult | ErrorResponse>,
 ) {
 	try {
