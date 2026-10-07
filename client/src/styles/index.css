@@ -1,7 +1,120 @@
-:root {
-  color-scheme: light dark;
+@font-face {
+  font-family: "Coolvetica";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../assets/fonts/Coolvetica Regular.otf");
 }
 
-body {
+@font-face {
+  font-family: "Coolvetica";
+  font-weight: normal;
+  font-style: italic;
+  src: url("../assets/fonts/Coolvetica Italic.otf");
+}
+
+/* @font-face {
+  font-family: "Instrument Serif";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../assets/fonts/InstrumentSerif Regular.ttf");
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-weight: normal;
+  font-style: italic;
+  src: url("../assets/fonts/InstrumentSerif Italic.ttf");
+} */
+
+@font-face {
+  font-family: "PP Editorial New";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../assets/fonts/PPEditorialNew-Regular.otf");
+}
+
+@font-face {
+  font-family: "PP Editorial New";
+  font-weight: normal;
+  font-style: italic;
+  src: url("../assets/fonts/PPEditorialNew-Italic.otf");
+}
+
+@font-face {
+  font-family: "PP Editorial New";
+  font-weight: lighter;
+  font-style: normal;
+  src: url("../assets/fonts/PPEditorialNew-Ultralight.otf");
+}
+
+@font-face {
+  font-family: "PP Editorial New";
+  font-weight: lighter;
+  font-style: italic;
+  src: url("../assets/fonts/PPEditorialNew-UltralightItalic.otf");
+}
+
+@font-face {
+  font-family: "PP Editorial New";
+  font-weight: bold;
+  font-style: normal;
+  src: url("../assets/fonts/PPEditorialNew-Ultrabold.otf");
+}
+
+@font-face {
+  font-family: "PP Editorial New";
+  font-weight: bold;
+  font-style: italic;
+  src: url("../assets/fonts/PPEditorialNew-UltraboldItalic.otf");
+}
+
+:root {
+  color-scheme: light dark;
+
+  --color-white: #fafafa;
+  --color-cream: #f5f3ec;
+  --color-yellow: #f3d56b;
+  --color-moss: #7a9a83;
+  --color-blue: #8eabee;
+  --color-gray: #605f5d;
+  --color-black: #272727;
+
+  --color-background: light-dark(var(--color-cream), var(--color-gray));
+  --color-primary: light-dark(var(--color-white), var(--color-black));
+  --color-accent: light-dark(var(--color-black), var(--color-white));
+
+  --font-serif: "PP Editorial New";
+  --font-sans: "Coolvetica";
+
+  /* --font-coolvetica: "Coolvetica";
+  --font-instrument: "Instrument Serif"; */
+
+  --tier-padding-y: 0.5rem;
+  --tier-padding-x: 1rem;
+  --tier-font-size: 0.875rem;
+  --tier-border-radius: 0.25rem;
+
+  --button-font-size: 1.5rem;
+
+  --logo-height-xs: 1rem;
+  --logo-font-xs: 0.75rem;
+
+  --logo-height-s: 1.25rem;
+  --logo-font-s: 0.875rem;
+
+  --logo-height-m: 1.5rem;
+  --logo-font-m: 1rem;
+
+  --logo-height-l: 10vh;
+  --logo-font-l: 2.25rem;
+
+  --logo-height-xl: 14vh;
+  --logo-font-xl: 3.25rem;
+}
+
+body,
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }

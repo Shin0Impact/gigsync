@@ -1,0 +1,86 @@
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    box-sizing: content-box;
+    border: 0.125rem solid transparent inset;
+    color: var(--color-black);
+    text-decoration: none;
+    font-family: var(--font-coolvetica);
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &[data-size="xs"] {
+        height: var(--logo-height-xs);
+
+        .wordmark {
+            font-size: var(--logo-font-xs);
+        }
+    }
+
+    &[data-size="s"] {
+        height: var(--logo-height-s);
+
+        .wordmark {
+            font-size: var(--logo-font-s);
+        }
+    }
+
+    &[data-size="m"] {
+        height: var(--logo-height-m);
+
+        .wordmark {
+            font-size: var(--logo-font-m);
+        }
+    }
+
+    &[data-size="l"] {
+        height: var(--logo-height-l);
+
+        .wordmark {
+            font-size: var(--logo-font-l);
+        }
+    }
+
+    &[data-size="xl"] {
+        height: var(--logo-height-xl);
+
+        .wordmark {
+            font-size: var(--logo-font-xl);
+        }
+    }
+
+    &[data-size="fill"] {
+        width: 100%;
+        position: relative;
+
+        .glyph {
+            width: 100%;
+        }
+
+        .wordmark {
+            font-size: var(--logo-font-xl);
+        }
+    }
+
+    .glyph {
+        height: 100%;
+        width: auto;
+    }
+
+    .wordmark {
+        font-weight: normal;
+        line-height: 1;
+    }
+
+    &[data-purpose="button"]:hover {
+        color: var(--color-yellow);
+        border: 0.125rem solid black inset;
+    }
+
+    &[data-active="true"] {
+        color: var(--color-black);
+        background-color: var(--color-white);
+        border-color: var(--color-blue);
+        box-shadow: 0 0 0 0.125rem var(--color-blue);
+    }
+}

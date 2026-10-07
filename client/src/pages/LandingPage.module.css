@@ -1,0 +1,10 @@
+.landingPage {
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-cream);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3vh;
+    gap: 3vh;
+}

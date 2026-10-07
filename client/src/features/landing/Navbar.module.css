@@ -1,0 +1,24 @@
+.navbar {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+.logoLink {
+    display: inline-flex;
+    text-decoration: none;
+    align-items: center;
+}
+
+.links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
