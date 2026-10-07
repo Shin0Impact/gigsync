@@ -1,18 +1,18 @@
-import { Routes, Route } from "react-router-dom";
-import { RequireAuth } from "../features/auth/components/RequireAuth";
+import { Route, Routes } from "react-router-dom";
+import { ROUTES } from "./routePaths";
 import { RootRedirect } from "../features/auth/components/RootRedirect";
 import { AuthPage } from "../pages/AuthPage";
-import { NotFoundPage } from "../pages/NotFoundPage";
-import { ROUTES } from "./routePaths";
+import { RequireAuth } from "../features/auth/components/RequireAuth";
 import OnboardingPage from "../pages/OnboardingPage";
-import FeedPage from "../pages/FeedPage";
-import ProjectPage from "../pages/ProjectPage";
-import PortfolioPage from "../pages/PortfolioPage";
-
-// import { OnboardingPage } from '../pages/OnboardingPage'; // not built yet
-// import { FeedPage } from '../pages/FeedPage';             // not built yet
-// import { ProjectPage } from '../pages/ProjectPage';       // not built yet
-// import { PortfolioPage } from '../pages/PortfolioPage';   // not built yet
+import { RoleGuard } from "../features/auth/components/RoleGaurd";
+import SupporterLayout from "../layout/SupporterLayout";
+import ExplorePage from "../pages/ExplorePage";
+import PiecePage from "../pages/PiecePage";
+import CreativeLayout from "../layout/CreativeLayout";
+import { NotFoundPage } from "../pages/NotFoundPage";
+import CreativeDashboard from "../pages/creative/CreativeDashboard";
+import ExplorePiecesPage from "../features/explore/ExplorePiecesPage";
+import ExplorePiecesEvents from "../features/explore/ExploreEventsPage";
 
 export function AppRoutes() {
 	return (
@@ -21,7 +21,6 @@ export function AppRoutes() {
 				path={ROUTES.HOME}
 				element={<RootRedirect />}
 			/>
-
 			<Route
 				path={ROUTES.LOGIN}
 				element={<AuthPage />}
@@ -40,33 +39,84 @@ export function AppRoutes() {
 				}
 			/>
 
-			<Route
-				path={ROUTES.FEED}
-				element={
-					<RequireAuth>
-						<FeedPage />
-					</RequireAuth>
-				}
-			/>
+			<Route element={<RoleGuard allowedRoles={["fan"]} />}>
+				<Route element={<SupporterLayout />}>
+					<Route
+						path={ROUTES.FOLLOWING}
+						element={<ExplorePage />}
+					/>
+					<Route
+						path={ROUTES.EXPLORE}
+						element={<ExplorePage />}
+					/>
 
-			<Route
-				path="/project/:id"
-				element={
-					<RequireAuth>
-						<ProjectPage />
-					</RequireAuth>
-				}
-			/>
+					<Route
+						path={ROUTES.EXPLORE_PIECES}
+						element={<ExplorePiecesPage />}
+					/>
+					<Route
+						path={ROUTES.EXPLORE_EVENTS}
+						element={<ExplorePiecesEvents />}
+					/>
+					<Route
+						path={ROUTES.SINGLE_PIECE(":id")}
+						element={<PiecePage />}
+					/>
 
-			<Route
-				path="/portfolio/:username"
-				element={
-					<RequireAuth>
-						<PortfolioPage />
-					</RequireAuth>
-				}
-			/>
+					{/* <Route
+						path={ROUTES.PROFILE(":username")}
+						element={<ProfilePage />}
+					/>
+					<Route
+						path={ROUTES.PORTFOLIO(":username")}
+						element={<PortfolioPage />}
+					/>
+					<Route
+						path={ROUTES.USER_PIECES(":username")}
+						element={<UserPiecesPage />}
+					/>
+					<Route
+						path={ROUTES.USER_EVENTS(":username")}
+						element={<UserEventsPage />}
+					/> */}
+				</Route>
+			</Route>
 
+			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
+				<Route element={<CreativeLayout />}>
+					<Route
+						path={ROUTES.DASHBOARD}
+						element={<CreativeDashboard />}
+					/>
+					{/* <Route
+						path={ROUTES.PIECES}
+						element={<ManagePiecesPage />}
+					/>
+					<Route
+						path={ROUTES.VERIFICATION}
+						element={<VerificationPage />}
+					/> */}
+				</Route>
+			</Route>
+
+			{/* <Route element={<RoleGuard allowedRoles={["organizer"]} />}>
+				<Route element={<OrganizerLayout />}>
+					<Route
+						path={ROUTES.DASHBOARD}
+						element={<OrganizerDashboard />}
+					/>
+					<Route
+						path={ROUTES.EVENTS}
+						element={<ManageEventsPage />}
+					/>
+					<Route
+						path={ROUTES.VERIFICATION}
+						element={<VerificationPage />}
+					/>
+				</Route>
+			</Route> */}
+
+			{/* Fallback */}
 			<Route
 				path="*"
 				element={<NotFoundPage />}
