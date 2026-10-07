@@ -1,5 +1,3 @@
-// src/features/pieces/api/worksApi.ts
-
 import {
 	CreateWorkInput,
 	CreateWorkUpdateInput,
@@ -15,7 +13,6 @@ import { api } from "../../shared/api";
 
 export const worksApi = api.injectEndpoints({
 	endpoints: (builder) => ({
-		// POST /api/works - Create a new portfolio piece
 		createPiece: builder.mutation<CreateWorkResponse, CreateWorkInput>({
 			query: (body) => ({
 				url: "/api/works",
@@ -25,7 +22,6 @@ export const worksApi = api.injectEndpoints({
 			invalidatesTags: ["Piece"],
 		}),
 
-		// GET /api/works/:userId - List pieces for a user
 		listPieces: builder.query<ListWorksResponse, string>({
 			query: (userId) => `/api/works/${userId}`,
 			providesTags: (result, _error, userId) =>
@@ -37,7 +33,6 @@ export const worksApi = api.injectEndpoints({
 					: [{ type: "Piece", id: `USER_${userId}` }],
 		}),
 
-		// POST /api/works/:workId/updates - Add an intermezzo to a piece
 		addIntermezzo: builder.mutation<
 			AddWorkUpdateResponse,
 			{ pieceId: number | string; body: CreateWorkUpdateInput }
@@ -52,13 +47,11 @@ export const worksApi = api.injectEndpoints({
 			],
 		}),
 
-		// GET /api/works/:workId/updates - List intermezzos for a piece
 		listIntermezzos: builder.query<ListWorkUpdatesResponse, number | string>({
 			query: (pieceId) => `/api/works/${pieceId}/updates`,
 			providesTags: (_result, _error, pieceId) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
-		// POST /api/works/updates/:updateId/media - Attach a vignette to an intermezzo
 		addVignette: builder.mutation<
 			AddUpdateMediaResponse,
 			{ intermezzoId: number | string; body: AddUpdateMediaInput }
@@ -73,7 +66,6 @@ export const worksApi = api.injectEndpoints({
 			],
 		}),
 
-		// GET /api/works/updates/:updateId/media - List vignettes for an intermezzo
 		listVignettes: builder.query<ListUpdateMediaResponse, number | string>({
 			query: (intermezzoId) => `/api/works/updates/${intermezzoId}/media`,
 			providesTags: (_result, _error, intermezzoId) => [
@@ -81,7 +73,6 @@ export const worksApi = api.injectEndpoints({
 			],
 		}),
 
-		// DELETE /api/works/updates/:updateId/media/:mediaId - Remove a vignette
 		deleteVignette: builder.mutation<
 			void,
 			{ intermezzoId: number | string; vignetteId: number | string }

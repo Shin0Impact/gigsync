@@ -5,14 +5,16 @@ import { AuthPage } from "../pages/AuthPage";
 import { RequireAuth } from "../features/auth/components/RequireAuth";
 import OnboardingPage from "../pages/OnboardingPage";
 import { RoleGuard } from "../features/auth/components/RoleGaurd";
-import SupporterLayout from "../layout/SupporterLayout";
+import SupporterLayout from "../layouts/SupporterLayout";
 import ExplorePage from "../pages/ExplorePage";
 import PiecePage from "../pages/PiecePage";
-import CreativeLayout from "../layout/CreativeLayout";
+import CreativeLayout from "../layouts/CreativeLayout";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import CreativeDashboard from "../pages/creative/CreativeDashboard";
 import ExplorePiecesPage from "../features/explore/ExplorePiecesPage";
 import ExplorePiecesEvents from "../features/explore/ExploreEventsPage";
+import { CreatePieceForm } from "../features/pieces/components/CreatePieceForm";
+import { CreateIntermezzoForm } from "../features/pieces/components/CreateIntermezzoForm";
 
 export function AppRoutes() {
 	return (
@@ -87,6 +89,14 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.DASHBOARD}
 						element={<CreativeDashboard />}
+					/>
+					<Route
+						path={ROUTES.CREATE_PIECE}
+						element={<CreatePieceForm />}
+					/>
+					<Route
+						path={ROUTES.CREATE_INTERMEZZO}
+						element={<CreateIntermezzoForm />}
 					/>
 					{/* <Route
 						path={ROUTES.PIECES}
