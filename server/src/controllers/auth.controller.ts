@@ -1,203 +1,189 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
+import { login_user, refresh_tokens, register_user } from "../services/auth.service";
 import {
-  login_user,
-  refresh_tokens,
-  register_user,
-} from '../services/auth.service';
+	RegisterInput,
+	LoginInput,
+	RegisterResponse,
+	LoginResponse,
+	RefreshResponse,
+	MeResponse,
+	ErrorResponse,
+} from "../types";
 
-export async function register(req: Request, res: Response) {
-  try {
-    const {
-      email,
-      password,
-      role,
-      user_name,
-      artists_type,
-    } = req.body;
+export async function register(
+	req: Request<{}, unknown, RegisterInput>,
+	res: Response<RegisterResponse | ErrorResponse>,
+) {
+	try {
+		const { email, password, role, user_name, artists_type } = req.body;
 
-    if (!email || !password || !role || !user_name) {
-      return res.status(400).json({
-        error: 'email, password, role, and user_name are required',
-      });
-    }
+		if (!email || !password || !role || !user_name) {
+			return res.status(400).json({
+				error: "email, password, role, and user_name are required",
+			});
+		}
 
-    const result = await register_user({
-      email,
-      password,
-      role,
-      user_name,
-      artists_type,
-    });
+		const result = await register_user({
+			email,
+			password,
+			role,
+			user_name,
+			artists_type,
+		});
 
-    const { password_hash, ...safe_user } = result.user;
+		const { password_hash, ...safe_user } = result.user;
 
-    return res.status(201).json({
-      user: safe_user,
-      role: result.role,
-      profile: result.profile,
-    });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (
-        error.message === 'Email is already registered' ||
-        error.message === 'Username is already taken'
-      )
-    ) {
-      return res.status(409).json({
-        error: error.message,
-      });
-    }
+		return res.status(201).json({
+			user: safe_user,
+			role: result.role,
+			profile: result.profile,
+		});
+	} catch (error) {
+		if (
+			error instanceof Error &&
+			(error.message === "Email is already registered" ||
+				error.message === "Username is already taken")
+		) {
+			return res.status(409).json({
+				error: error.message,
+			});
+		}
 
-    if (
-      error instanceof Error &&
-      (
-        error.message === 'Artist type is required for artists' ||
-        error.message === 'Only artists can have an artist type' ||
-        error.message === 'Invalid role' ||
-        error.message === 'Password must be at least 8 characters'
-      )
-    ) {
-      return res.status(400).json({
-        error: error.message,
-      });
-    }
+		if (
+			error instanceof Error &&
+			(error.message === "Artist type is required for artists" ||
+				error.message === "Only artists can have an artist type" ||
+				error.message === "Invalid role" ||
+				error.message === "Password must be at least 8 characters")
+		) {
+			return res.status(400).json({
+				error: error.message,
+			});
+		}
 
-    console.error('Registration failed:', error);
+		console.error("Registration failed:", error);
 
-    return res.status(500).json({
-      error: 'Registration failed',
-    });
-  }
+		return res.status(500).json({
+			error: "Registration failed",
+		});
+	}
 }
 
-export async function login(req: Request, res: Response) {
-  try {
-    const {
-      identifier,
-      password,
-    } = req.body;
+export async function login(
+	req: Request<{}, unknown, LoginInput>,
+	res: Response<LoginResponse | ErrorResponse>,
+) {
+	try {
+		const { identifier, password } = req.body;
 
-    if (!identifier || !password) {
-      return res.status(400).json({
-        error: 'identifier and password are required',
-      });
-    }
+		if (!identifier || !password) {
+			return res.status(400).json({
+				error: "identifier and password are required",
+			});
+		}
 
-    const result = await login_user({
-      identifier,
-      password,
-    });
+		const result = await login_user({
+			identifier,
+			password,
+		});
 
-    res.cookie('access_token', result.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
+		res.cookie("access_token", result.access_token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 15 * 60 * 1000,
+		});
 
-    res.cookie('refresh_token', result.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+		res.cookie("refresh_token", result.refresh_token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+		});
 
-    const { password_hash, ...safe_user } = result.user;
+		const { password_hash, ...safe_user } = result.user;
 
-    return res.status(200).json({
-      user: safe_user,
-      role: result.role,
-    });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === 'Invalid credentials'
-    ) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-      });
-    }
+		return res.status(200).json({
+			user: safe_user,
+			role: result.role,
+		});
+	} catch (error) {
+		if (error instanceof Error && error.message === "Invalid credentials") {
+			return res.status(401).json({
+				error: "Invalid credentials",
+			});
+		}
 
-    if (
-      error instanceof Error &&
-      error.message === 'User role not found'
-    ) {
-      return res.status(500).json({
-        error: 'User role not found',
-      });
-    }
+		if (error instanceof Error && error.message === "User role not found") {
+			return res.status(500).json({
+				error: "User role not found",
+			});
+		}
 
-    console.error('Login failed:', error);
+		console.error("Login failed:", error);
 
-    return res.status(500).json({
-      error: 'Login failed',
-    });
-  }
+		return res.status(500).json({
+			error: "Login failed",
+		});
+	}
 }
 
-export async function refresh(req: Request, res: Response) {
-  try {
-    const refresh_token = req.cookies?.refresh_token;
+export async function refresh(req: Request, res: Response<RefreshResponse | ErrorResponse>) {
+	try {
+		const refresh_token = req.cookies?.refresh_token;
 
-    if (!refresh_token) {
-      return res.status(401).json({
-        error: 'Refresh token required',
-      });
-    }
+		if (!refresh_token) {
+			return res.status(401).json({
+				error: "Refresh token required",
+			});
+		}
 
-    const result = await refresh_tokens(refresh_token);
+		const result = await refresh_tokens(refresh_token);
 
-    res.cookie('access_token', result.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
+		res.cookie("access_token", result.access_token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 15 * 60 * 1000,
+		});
 
-    res.cookie('refresh_token', result.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+		res.cookie("refresh_token", result.refresh_token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+		});
 
-    return res.status(200).json({
-      message: 'Token refreshed successfully',
-    });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === 'Invalid or expired refresh token'
-    ) {
-      return res.status(401).json({
-        error: 'Invalid or expired refresh token',
-      });
-    }
+		return res.status(200).json({
+			message: "Token refreshed successfully",
+		});
+	} catch (error) {
+		if (error instanceof Error && error.message === "Invalid or expired refresh token") {
+			return res.status(401).json({
+				error: "Invalid or expired refresh token",
+			});
+		}
 
-    if (
-      error instanceof Error &&
-      error.message === 'User role not found'
-    ) {
-      return res.status(500).json({
-        error: 'User role not found',
-      });
-    }
+		if (error instanceof Error && error.message === "User role not found") {
+			return res.status(500).json({
+				error: "User role not found",
+			});
+		}
 
-    console.error('Token refresh failed:', error);
+		console.error("Token refresh failed:", error);
 
-    return res.status(500).json({
-      error: 'Token refresh failed',
-    });
-  }
+		return res.status(500).json({
+			error: "Token refresh failed",
+		});
+	}
 }
 
-export async function logout(_req: Request, res: Response) {
-  res.clearCookie('access_token');
-  res.clearCookie('refresh_token');
-  res.status(204).send();
+export async function logout(_req: Request, res: Response<void>) {
+	res.clearCookie("access_token");
+	res.clearCookie("refresh_token");
+	res.status(204).send();
 }
 
-export async function me(req: Request, res: Response) {
-  res.json({ user: req.user ?? null });
+export async function me(req: Request, res: Response<MeResponse>) {
+	res.json({ user: req.user ?? null });
 }
