@@ -13,7 +13,7 @@ export function AuthPage() {
 	const mode = location.pathname === ROUTES.LOGIN ? "login" : "signup";
 
 	function handleLoginSuccess() {
-		navigate(ROUTES.FEED, { replace: true });
+		navigate(ROUTES.FOLLOWING, { replace: true });
 	}
 	function handleSignupSuccess() {
 		navigate(ROUTES.ONBOARDING, { replace: true });

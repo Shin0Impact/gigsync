@@ -1,17 +1,29 @@
-// src/features/auth/components/RootRedirect.tsx
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { UserRole } from "@shared/types/index";
 import { useMeQuery } from "../authApi";
 import { ROUTES } from "../../../routes/routePaths";
-import { LandingPage } from "../../../pages/LandingPage";
 
-export function RootRedirect() {
+interface RoleGuardProps {
+	allowedRoles: UserRole[];
+}
+
+export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 	const { data, isLoading } = useMeQuery();
 
 	if (isLoading) return <p>Loading…</p>;
 
 	const user = data?.user;
 
-	if (user) {
+	if (!user) {
+		return (
+			<Navigate
+				to={ROUTES.LOGIN}
+				replace
+			/>
+		);
+	}
+
+	if (!allowedRoles.includes(user.role)) {
 		if (user.role === "artist" || user.role === "organizer") {
 			return (
 				<Navigate
@@ -27,6 +39,5 @@ export function RootRedirect() {
 			/>
 		);
 	}
-
-	return <LandingPage />;
+	return <Outlet />;
 }
