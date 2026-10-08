@@ -1,287 +1,469 @@
-export type UserRole = 'artist' | 'organizer' | 'fan' | 'admin' | 'moderator';
+// types/index.ts
 
-export type ArtistCategory =
-  | 'painter'
-  | 'photographer'
-  | 'designer'
-  | 'musician';
+import type { IUpdateMedia, IWorkUpdate } from "./social";
 
-export interface AuthTokenPayload {
-  userId: string;
-  role: UserRole;
-}
+export type UserRole = "artist" | "organizer" | "fan" | "admin" | "moderator";
 
-// --- Domain types (mirror server/src/db/schema.sql) ---
-//
-// These represent rows as the app works with them (camelCase, after mapping
-// from Postgres's snake_case columns) - not raw `pg` query results, and not
-// the client's src/types (those are API-response/view shapes, which can
-// differ - e.g. the client's IArtistProfile includes a joined `name` and
-// `distanceKm` that don't exist on the artist_profiles table itself).
+export type ArtistCategory = "painter" | "photographer" | "designer" | "musician";
 
-export type EventStatus = 'open' | 'filled' | 'completed' | 'cancelled';
-export type ApplicationStatus = 'pending' | 'accepted' | 'rejected';
-export type ReportStatus = 'pending' | 'investigating' | 'resolved' | 'dismissed';
-export type MediaType = 'image' | 'video' | 'audio';
+export type EventStatus = "open" | "filled" | "completed" | "cancelled";
+export type ApplicationStatus = "pending" | "accepted" | "rejected";
+export type ReportStatus = "pending" | "investigating" | "resolved" | "dismissed";
+export type MediaType = "image" | "video" | "audio";
+export type VerificationStatus = "pending" | "approved" | "rejected";
 
 export interface GeoPoint {
-  lat: number;
-  lng: number;
+	lat: number;
+	lng: number;
+}
+
+export interface AuthTokenPayload {
+	userId: string;
+	role: UserRole;
 }
 
 // -----------------------------------------------------------------------------
-// Current database types
+// Database Entity Wire Shapes (Frontend-safe representations of PostgreSQL rows)
 // -----------------------------------------------------------------------------
-//
-// These interfaces reflect the current PostgreSQL tables used by the backend.
-// The property names intentionally use snake_case to match the database schema.
-//
-// Current authentication-related tables:
-//
-// users
-// roles
-// profiles
-//
-// The application currently keeps authentication data in `users`, role data
-// in `roles`, and public/profile information in `profiles`.
 
-// users table
-export interface IUserRecord {
-  id: string;
-  email: string;
-  password_hash: string;
-  created_at: string;
-  updated_at: string;
+export interface DbUser {
+	id: string;
+	email: string;
+	password_hash: string;
+	created_at: Date;
+	updated_at: Date;
 }
 
-// roles table
-export interface IRole {
-  user_id: string;
-  role: UserRole;
-  created_at: string;
+export interface DbUserWithUsername extends DbUser {
+	user_name: string;
 }
 
-// profiles table
-export interface IProfile {
-  id: number;
-  created_at: string;
-  user_name: string;
-  user_id: string;
-  avatar_url: string | null;
-  followers_number: number;
-  artists_type: ArtistCategory | null;
+export interface DbRole {
+	user_id: string;
+	role: UserRole;
+	created_at: Date;
 }
 
-// works table
-export interface IWork {
-  id: number;
-  created_at: string;
-  description: string;
-  user_id: string;
-  updated_at: string;
+export interface DbProfile {
+	id: number;
+	created_at: Date;
+	user_name: string;
+	user_id: string;
+	avatar_url: string | null;
+	followers_number: number;
+	artists_type: string | null;
 }
 
-// work_updates table
-export interface IWorkUpdate {
-  id: number;
-  created_at: string;
-  updated_at: string;
-  work_id: number;
-  version_number: number;
-  description: string;
+export interface DbEvent {
+	id: number;
+	parent_event_id: number | null;
+	organizer_id: string;
+	title: string;
+	descriptions: string;
+	start_at: Date;
+	end_at: Date;
+	venue_name: string | null;
+	location_lat: number | null;
+	location_lng: number | null;
+	is_recurring: boolean;
+	recurring_rule: string | null;
+	status: EventStatus;
+	categories_needed: ArtistCategory[] | null;
+	created_at: Date;
+	updated_at: Date | null;
 }
 
-// update_media table
-export interface IUpdateMedia {
-  id: number;
-  created_at: string;
-  update_id: number;
-  media_type: string;
-  r2_key: string;
-  mime_type: string;
-  file_size: number;
-  sort_order: number;
+export interface DbEventApplication {
+	id: string;
+	event_id: number;
+	artist_id: string;
+	status: ApplicationStatus;
+	cover_note: string | null;
+	applied_at: Date;
+	updated_at: Date;
 }
 
-// work_likes table
-export interface IWorkLike {
-  id: number;
-  created_at: string;
-  work_id: number;
-  user_id: string;
+export interface DbEventMedia {
+	id: string;
+	event_id: number;
+	media_type: string;
+	object_key: string;
+	alt_text: string | null;
+	sort_order: number;
+	created_at: Date;
 }
 
-// work_comments table
-export interface IWorkComment {
-  id: number;
-  created_at: string;
-  work_id: number;
-  user_id: string;
-  content: string;
-  updated_at: string;
+export interface DbShowcaseItem {
+	id: string;
+	user_id: string;
+	event_id: number | null;
+	work_id: number | null;
+	sort_order: number;
+	created_at: Date;
 }
 
-// followings table
-export interface IFollowing {
-  id: number;
-  created_at: string;
-  user_id: string;
-  followed_id: string;
+export interface DbSocialLink {
+	id: string;
+	user_id: string;
+	platform: string;
+	url: string;
+	created_at: Date;
 }
 
-// event table
-export interface IEventRecord {
-  id: number;
-  created_at: string;
-  start_at: string;
-  end_at: string;
-  post_id: number;
+export interface DbVerificationRequest {
+	id: string;
+	user_id: string;
+	status: VerificationStatus;
+	id_document_key: string;
+	notes: string | null;
+	reviewed_by: string | null;
+	reviewed_at: Date | null;
+	created_at: Date;
 }
 
 // -----------------------------------------------------------------------------
-// Legacy / planned user shape
+// Core Domain / Application Models
 // -----------------------------------------------------------------------------
-//
-// Kept as a reference because some existing client/server work may still
-// depend on this shape. These fields do NOT represent the current `users`
-// PostgreSQL table.
-//
-// If these fields are introduced into the database later, this interface can
-// be revisited and moved into the appropriate domain/profile types.
 
-/*
-export interface IUser {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatarUrl: string | null;
-  avatarR2Key: string | null;
-  location: GeoPoint | null;
-  addressName: string | null;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-*/
-
-// artist_profiles table (one-to-one with users where role = 'artist')
 export interface IArtistProfile {
-  id: string;
-  userId: string;
-  bio: string | null;
-  hourlyRate: number | null;
-  isEmergencyAvailable: boolean;
-  emergencyUntil: string | null;
-  ratingAvg: number;
-  reviewCount: number;
-  createdAt: string;
-  updatedAt: string;
+	id: string;
+	userId: string;
+	bio: string | null;
+	hourlyRate: number | null;
+	isEmergencyAvailable: boolean;
+	emergencyUntil: string | null;
+	ratingAvg: number;
+	reviewCount: number;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-// artist_profiles joined with users + artist_categories - the shape most
-// "get an artist" endpoints actually return. If mockStore.ts needs fields
-// beyond this (e.g. a flat `id` that's really the user's id, not the
-// profile's), extend this interface here rather than redefining it
-// per-file, so client and server stay talking about the same shape.
 export interface IExtendedArtistProfile extends IArtistProfile {
-  name: string;
-  avatarUrl: string | null;
-  categories: string[];
+	name: string;
+	avatarUrl: string | null;
+	categories: string[];
 }
 
-// events table
 export interface IEvent {
-  id: string;
-  organizerId: string;
-  title: string;
-  description: string;
-  venueName: string;
-  location: GeoPoint;
-  eventDate: string;
-  status: EventStatus;
-  isRecurring: boolean;
-  recurringRule: string | null;
-  createdAt: string;
-  updatedAt: string;
+	id: string;
+	organizerId: string;
+	title: string;
+	description: string;
+	venueName: string;
+	location: GeoPoint;
+	eventDate: string;
+	status: EventStatus;
+	isRecurring: boolean;
+	recurringRule: string | null;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-// conversations table + conversation_participants
 export interface IConversation {
-  id: string;
-  eventId: string | null;
-  participantIds: string[];
-  createdAt: string;
-  updatedAt: string;
+	id: string;
+	eventId: string | null;
+	participantIds: string[];
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-// messages table
 export interface IMessage {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  content: string;
-  isRead: boolean;
-  createdAt: string;
+	id: string;
+	conversationId: string;
+	senderId: string;
+	content: string;
+	isRead: boolean;
+	createdAt: Date;
 }
 
 // -----------------------------------------------------------------------------
-// Registration
+// Service & Controller Input Types (DTOs)
 // -----------------------------------------------------------------------------
-//
-// Input accepted by POST /api/auth/register.
-//
-// user_name is required for every user.
-// artists_type is required only when role = 'artist'.
-// artists_type must be null/omitted for non-artists.
 
 export interface RegisterInput {
-  email: string;
-  password: string;
-  role: UserRole;
-  user_name: string;
-  artists_type?: ArtistCategory | null;
+	email: string;
+	password: string;
+	role: UserRole;
+	user_name: string;
+	artists_type?: ArtistCategory | null;
 }
 
-// Result returned internally by the registration service.
-
-export interface RegisterResult {
-  user: IUserRecord;
-  role: IRole;
-  profile: IProfile;
+export interface LoginInput {
+	identifier: string;
+	password: string;
 }
 
-// --- Socket.IO event payloads (design doc section 7) ---
+export interface UpdateEmergencyStatusInput {
+	isEmergencyAvailable: boolean;
+	emergencyUntil?: string | null;
+	lat?: number;
+	lng?: number;
+}
+
+export interface SearchEmergencyAvailableInput {
+	lat: number;
+	lng: number;
+	radiusKm: number;
+}
+
+export interface RequestUploadUrlInput {
+	fileName: string;
+	contentType: string;
+	fileSizeBytes: number;
+	folder?: string;
+}
+
+export interface RequestIdDocumentUploadUrlInput {
+	fileName: string;
+	contentType: string;
+}
+
+export interface CreateEventInput {
+	title: string;
+	description: string;
+	startAt: string;
+	endAt: string;
+	venueName: string;
+	location: { lat: number; lng: number };
+	isRecurring?: boolean;
+	recurringRule?: string | null;
+	categoriesNeeded?: ArtistCategory[];
+}
+
+export interface UpdateEventInput {
+	title?: string;
+	description?: string;
+	startAt?: string;
+	endAt?: string;
+	venueName?: string;
+	location?: { lat: number; lng: number };
+	isRecurring?: boolean;
+	recurringRule?: string | null;
+	status?: EventStatus;
+	categoriesNeeded?: ArtistCategory[];
+}
+
+export interface AddEventMediaInput {
+	mediaType: string;
+	objectKey: string;
+	altText?: string | null;
+	sortOrder?: number;
+}
+
+export interface AddShowcaseItemInput {
+	sourceType: "event" | "work";
+	sourceId: number;
+	sortOrder?: number;
+}
+
+export interface AddSocialLinkInput {
+	platform: string;
+	url: string;
+}
+
+export interface SubmitVerificationInput {
+	idDocumentObjectKey: string;
+}
+
+export interface ReviewVerificationInput {
+	status: "approved" | "rejected";
+	notes?: string | null;
+}
+
+// -----------------------------------------------------------------------------
+// Service Results & Composite Types
+// -----------------------------------------------------------------------------
+
+export interface EmergencyStatusResponse {
+	userId: string;
+	isEmergencyAvailable: boolean;
+	emergencyUntil: Date | string | null;
+	location: GeoPoint | null;
+}
+
+export interface EmergencyAvailableArtist {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+	artistsType: string | null;
+	emergencyUntil: Date | string | null;
+	location: GeoPoint | null;
+	distanceKm: number;
+}
+
+export interface UploadUrlResult {
+	uploadUrl: string;
+	objectKey: string;
+	publicUrl: string | null;
+	expiresInSeconds: number;
+}
+
+export interface IdDocumentUploadUrlResult {
+	uploadUrl: string;
+	objectKey: string;
+	expiresInSeconds: number;
+}
+
+export interface VerificationStatusResult {
+	isVerified: boolean;
+	request: DbVerificationRequest | null;
+}
+
+export interface ShowcaseEventPost {
+	id: number;
+	title: string;
+	description: string;
+	media: DbEventMedia[];
+}
+
+export interface ShowcaseWorkUpdateWithMedia extends IWorkUpdate {
+	media: IUpdateMedia[];
+}
+
+export interface ShowcaseWorkPost {
+	id: number;
+	description: string | null;
+	updates: ShowcaseWorkUpdateWithMedia[];
+}
+
+export interface ShowcaseItemResult {
+	id: string;
+	sourceType: "event" | "work";
+	sortOrder: number;
+	createdAt: Date | string;
+	post: ShowcaseEventPost | ShowcaseWorkPost | null;
+}
+
+// -----------------------------------------------------------------------------
+// Socket.IO Payload Definitions
+// -----------------------------------------------------------------------------
 
 export interface SocketSendMessagePayload {
-  conversationId: string;
-  content: string;
+	conversationId: string;
+	content: string;
 }
 
 export interface SocketReceiveMessagePayload {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  content: string;
-  isRead: boolean;
-  createdAt: string;
+	id: string;
+	conversationId: string;
+	senderId: string;
+	content: string;
+	isRead: boolean;
+	createdAt: string;
 }
 
 export interface EmergencyStatusChangedPayload {
-  artistId: string;
-  isEmergencyAvailable: boolean;
-  emergencyUntil: string | null;
+	artistId: string;
+	isEmergencyAvailable: boolean;
+	emergencyUntil: string | null;
 }
 
-// Extend Express's Request type with the authenticated user, set by
-// auth.middleware.ts once a JWT has been verified.
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      user?: AuthTokenPayload;
-    }
-  }
+// -----------------------------------------------------------------------------
+// Controller Response-Body Types
+// -----------------------------------------------------------------------------
+
+export interface ErrorResponse {
+	error: string;
 }
 
-export {};
+// auth.controller.ts
+export interface RegisterResponse {
+	user: Omit<DbUser, "password_hash">;
+	role: DbRole;
+	profile: DbProfile;
+}
+
+export interface LoginResponse {
+	user: Omit<DbUserWithUsername, "password_hash">;
+	role: DbRole;
+}
+
+export interface RefreshResponse {
+	message: string;
+}
+
+export interface MeResponse {
+	user: AuthTokenPayload | null;
+}
+
+// artists.controller.ts
+export interface EmergencyStatusHandlerResponse {
+	status: EmergencyStatusResponse;
+}
+
+export interface ListEmergencyAvailableResponse {
+	artists: EmergencyAvailableArtist[];
+}
+
+// event_media.controller.ts
+export interface AddEventMediaResponse {
+	media: DbEventMedia;
+}
+
+export interface ListEventMediaResponse {
+	media: DbEventMedia[];
+}
+
+// events.controller.ts
+export interface CreateEventResponse {
+	event: DbEvent;
+}
+
+export interface ListEventsResponse {
+	events: DbEvent[];
+}
+
+export interface GetEventResponse {
+	event: DbEvent;
+}
+
+export interface UpdateEventResponse {
+	event: DbEvent;
+}
+
+export interface ApplyToEventResponse {
+	application: DbEventApplication;
+}
+
+export interface ListApplicationsResponse {
+	applications: DbEventApplication[];
+}
+
+export interface UpdateApplicationResponse {
+	application: DbEventApplication | null;
+}
+
+// showcase.controller.ts
+export interface AddShowcaseItemResponse {
+	item: DbShowcaseItem;
+}
+
+export interface ListShowcaseItemsResponse {
+	items: ShowcaseItemResult[];
+}
+
+// verification.controller.ts
+export interface AddSocialLinkResponse {
+	link: DbSocialLink;
+}
+
+export interface ListSocialLinksResponse {
+	links: DbSocialLink[];
+}
+
+export interface SubmitVerificationResponse {
+	request: DbVerificationRequest;
+}
+
+export interface ListPendingVerificationRequestsResponse {
+	requests: DbVerificationRequest[];
+}
+
+export interface GetIdDocumentViewUrlResponse {
+	url: string;
+	expiresInSeconds: number;
+}
+
+export interface ReviewVerificationRequestResponse {
+	request: DbVerificationRequest;
+}

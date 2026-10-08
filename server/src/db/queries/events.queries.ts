@@ -1,6 +1,6 @@
-import { PoolClient } from 'pg';
-import { pool } from '../../config/db';
-import { ApplicationStatus, ArtistCategory, EventStatus } from '../../types';
+import { PoolClient } from "pg";
+import { pool } from "../../config/db";
+import { ApplicationStatus, ArtistCategory, EventStatus } from "../../types";
 
 // Card #23 - Event CRUD + application endpoints.
 //
@@ -23,32 +23,32 @@ import { ApplicationStatus, ArtistCategory, EventStatus } from '../../types';
 // null - no separate branching needed.
 
 export interface DbEvent {
-  id: number;
-  parent_event_id: number | null;
-  organizer_id: string;
-  title: string;
-  descriptions: string;
-  start_at: Date;
-  end_at: Date;
-  venue_name: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
-  is_recurring: boolean;
-  recurring_rule: string | null;
-  status: EventStatus;
-  categories_needed: ArtistCategory[] | null;
-  created_at: Date;
-  updated_at: Date | null;
+	id: number;
+	parent_event_id: number | null;
+	organizer_id: string;
+	title: string;
+	descriptions: string;
+	start_at: Date;
+	end_at: Date;
+	venue_name: string | null;
+	location_lat: number | null;
+	location_lng: number | null;
+	is_recurring: boolean;
+	recurring_rule: string | null;
+	status: EventStatus;
+	categories_needed: ArtistCategory[] | null;
+	created_at: Date;
+	updated_at: Date | null;
 }
 
 export interface DbEventApplication {
-  id: string;
-  event_id: number;
-  artist_id: string;
-  status: ApplicationStatus;
-  cover_note: string | null;
-  applied_at: Date;
-  updated_at: Date;
+	id: string;
+	event_id: number;
+	artist_id: string;
+	status: ApplicationStatus;
+	cover_note: string | null;
+	applied_at: Date;
+	updated_at: Date;
 }
 
 const EVENT_COLUMNS = `
@@ -71,25 +71,25 @@ const EVENT_COLUMNS = `
 `;
 
 export interface CreateEventParams {
-  organizerId: string;
-  title: string;
-  descriptions: string;
-  startAt: string;
-  endAt: string;
-  venueName: string;
-  lat: number;
-  lng: number;
-  isRecurring: boolean;
-  recurringRule: string | null;
-  categoriesNeeded: ArtistCategory[] | null;
+	organizerId: string;
+	title: string;
+	descriptions: string;
+	startAt: string;
+	endAt: string;
+	venueName: string;
+	lat: number;
+	lng: number;
+	isRecurring: boolean;
+	recurringRule: string | null;
+	categoriesNeeded: ArtistCategory[] | null;
 }
 
 export async function create_event(
-  client: PoolClient,
-  params: CreateEventParams,
+	client: PoolClient,
+	params: CreateEventParams,
 ): Promise<DbEvent> {
-  const result = await client.query<DbEvent>(
-    `
+	const result = await client.query<DbEvent>(
+		`
       INSERT INTO event (
         organizer_id,
         title,
@@ -110,22 +110,22 @@ export async function create_event(
       )
       RETURNING ${EVENT_COLUMNS}
     `,
-    [
-      params.organizerId,
-      params.title,
-      params.descriptions,
-      params.startAt,
-      params.endAt,
-      params.venueName,
-      params.lng,
-      params.lat,
-      params.isRecurring,
-      params.recurringRule,
-      params.categoriesNeeded,
-    ],
-  );
+		[
+			params.organizerId,
+			params.title,
+			params.descriptions,
+			params.startAt,
+			params.endAt,
+			params.venueName,
+			params.lng,
+			params.lat,
+			params.isRecurring,
+			params.recurringRule,
+			params.categoriesNeeded,
+		],
+	);
 
-  return result.rows[0];
+	return result.rows[0];
 }
 
 /**
@@ -146,12 +146,12 @@ export async function create_event(
  * own next occurrence without needing the original event to exist.
  */
 export async function create_next_recurring_event(
-  event: DbEvent,
-  startAt: Date,
-  endAt: Date,
+	event: DbEvent,
+	startAt: Date,
+	endAt: Date,
 ): Promise<DbEvent> {
-  const result = await pool.query<DbEvent>(
-    `
+	const result = await pool.query<DbEvent>(
+		`
       INSERT INTO event (
         parent_event_id,
         organizer_id,
@@ -184,23 +184,23 @@ export async function create_next_recurring_event(
         AND is_recurring = true
       RETURNING ${EVENT_COLUMNS}
     `,
-    [event.id, startAt, endAt],
-  );
+		[event.id, startAt, endAt],
+	);
 
-  if (result.rows.length === 0) {
-    throw new Error('Event is no longer recurring');
-  }
+	if (result.rows.length === 0) {
+		throw new Error("Event is no longer recurring");
+	}
 
-  return result.rows[0];
+	return result.rows[0];
 }
 
 export async function find_event_by_id(id: number): Promise<DbEvent | null> {
-  const result = await pool.query<DbEvent>(
-    `SELECT ${EVENT_COLUMNS} FROM event WHERE id = $1 LIMIT 1`,
-    [id],
-  );
+	const result = await pool.query<DbEvent>(
+		`SELECT ${EVENT_COLUMNS} FROM event WHERE id = $1 LIMIT 1`,
+		[id],
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
 }
 
 /**
@@ -231,8 +231,8 @@ export async function find_event_by_id(id: number): Promise<DbEvent | null> {
  * #101 becomes eligible because it has no child yet.
  */
 export async function find_recurring_events_ready_to_generate(): Promise<DbEvent[]> {
-  const result = await pool.query<DbEvent>(
-    `
+	const result = await pool.query<DbEvent>(
+		`
       SELECT ${EVENT_COLUMNS}
       FROM event e
       WHERE e.is_recurring = true
@@ -245,22 +245,20 @@ export async function find_recurring_events_ready_to_generate(): Promise<DbEvent
         )
       ORDER BY e.start_at ASC
     `,
-  );
+	);
 
-  return result.rows;
+	return result.rows;
 }
 
 export interface ListEventsFilters {
-  status?: EventStatus;
-  organizerId?: string;
-  category?: ArtistCategory;
+	status?: EventStatus;
+	organizerId?: string;
+	category?: ArtistCategory;
 }
 
-export async function list_events(
-  filters: ListEventsFilters,
-): Promise<DbEvent[]> {
-  const result = await pool.query<DbEvent>(
-    `
+export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]> {
+	const result = await pool.query<DbEvent>(
+		`
       SELECT ${EVENT_COLUMNS}
       FROM event
       WHERE ($1::event_status IS NULL OR status = $1)
@@ -268,182 +266,169 @@ export async function list_events(
         AND ($3::"ArtistCategory" IS NULL OR $3::"ArtistCategory" = ANY(categories_needed))
       ORDER BY start_at ASC
     `,
-    [
-      filters.status ?? null,
-      filters.organizerId ?? null,
-      filters.category ?? null,
-    ],
-  );
+		[filters.status ?? null, filters.organizerId ?? null, filters.category ?? null],
+	);
 
-  return result.rows;
+	return result.rows;
 }
 
 export interface UpdateEventParams {
-  title?: string;
-  descriptions?: string;
-  startAt?: string;
-  endAt?: string;
-  venueName?: string;
-  lat?: number;
-  lng?: number;
-  isRecurring?: boolean;
-  recurringRule?: string | null;
-  status?: EventStatus;
-  categoriesNeeded?: ArtistCategory[] | null;
+	title?: string;
+	descriptions?: string;
+	startAt?: string;
+	endAt?: string;
+	venueName?: string;
+	lat?: number;
+	lng?: number;
+	isRecurring?: boolean;
+	recurringRule?: string | null;
+	status?: EventStatus;
+	categoriesNeeded?: ArtistCategory[] | null;
 }
 
-export async function update_event(
-  id: number,
-  patch: UpdateEventParams,
-): Promise<DbEvent | null> {
-  const set_clauses: string[] = [];
-  const values: unknown[] = [];
-  let i = 1;
+export async function update_event(id: number, patch: UpdateEventParams): Promise<DbEvent | null> {
+	const set_clauses: string[] = [];
+	const values: unknown[] = [];
+	let i = 1;
 
-  function add(column: string, value: unknown) {
-    set_clauses.push(`${column} = $${i}`);
-    values.push(value);
-    i += 1;
-  }
+	function add(column: string, value: unknown) {
+		set_clauses.push(`${column} = $${i}`);
+		values.push(value);
+		i += 1;
+	}
 
-  if (patch.title !== undefined) add('title', patch.title);
+	if (patch.title !== undefined) add("title", patch.title);
 
-  if (patch.descriptions !== undefined) {
-    add('descriptions', patch.descriptions);
-  }
+	if (patch.descriptions !== undefined) {
+		add("descriptions", patch.descriptions);
+	}
 
-  if (patch.startAt !== undefined) {
-    add('start_at', patch.startAt);
-  }
+	if (patch.startAt !== undefined) {
+		add("start_at", patch.startAt);
+	}
 
-  if (patch.endAt !== undefined) {
-    add('end_at', patch.endAt);
-  }
+	if (patch.endAt !== undefined) {
+		add("end_at", patch.endAt);
+	}
 
-  if (patch.venueName !== undefined) {
-    add('venue_name', patch.venueName);
-  }
+	if (patch.venueName !== undefined) {
+		add("venue_name", patch.venueName);
+	}
 
-  if (patch.isRecurring !== undefined) {
-    add('is_recurring', patch.isRecurring);
-  }
+	if (patch.isRecurring !== undefined) {
+		add("is_recurring", patch.isRecurring);
+	}
 
-  if (patch.recurringRule !== undefined) {
-    add('recurring_rule', patch.recurringRule);
-  }
+	if (patch.recurringRule !== undefined) {
+		add("recurring_rule", patch.recurringRule);
+	}
 
-  if (patch.status !== undefined) {
-    add('status', patch.status);
-  }
+	if (patch.status !== undefined) {
+		add("status", patch.status);
+	}
 
-  if (patch.categoriesNeeded !== undefined) {
-    set_clauses.push(`categories_needed = $${i}::"ArtistCategory"[]`);
-    values.push(patch.categoriesNeeded);
-    i += 1;
-  }
+	if (patch.categoriesNeeded !== undefined) {
+		set_clauses.push(`categories_needed = $${i}::"ArtistCategory"[]`);
+		values.push(patch.categoriesNeeded);
+		i += 1;
+	}
 
-  // lat/lng only make sense together - both or neither.
-  if (patch.lat !== undefined && patch.lng !== undefined) {
-    set_clauses.push(
-      `location = ST_SetSRID(ST_MakePoint($${i}, $${i + 1}), 4326)::geography`,
-    );
+	// lat/lng only make sense together - both or neither.
+	if (patch.lat !== undefined && patch.lng !== undefined) {
+		set_clauses.push(`location = ST_SetSRID(ST_MakePoint($${i}, $${i + 1}), 4326)::geography`);
 
-    values.push(patch.lng, patch.lat);
-    i += 2;
-  }
+		values.push(patch.lng, patch.lat);
+		i += 2;
+	}
 
-  set_clauses.push('updated_at = NOW()');
+	set_clauses.push("updated_at = NOW()");
 
-  if (set_clauses.length === 1) {
-    // Only updated_at would change - nothing was actually provided.
-    return find_event_by_id(id);
-  }
+	if (set_clauses.length === 1) {
+		// Only updated_at would change - nothing was actually provided.
+		return find_event_by_id(id);
+	}
 
-  values.push(id);
+	values.push(id);
 
-  const result = await pool.query<DbEvent>(
-    `
+	const result = await pool.query<DbEvent>(
+		`
       UPDATE event
-      SET ${set_clauses.join(', ')}
+      SET ${set_clauses.join(", ")}
       WHERE id = $${i}
       RETURNING ${EVENT_COLUMNS}
     `,
-    values,
-  );
+		values,
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
 }
 
 export async function delete_event(id: number): Promise<boolean> {
-  const result = await pool.query('DELETE FROM event WHERE id = $1', [id]);
+	const result = await pool.query("DELETE FROM event WHERE id = $1", [id]);
 
-  return (result.rowCount ?? 0) > 0;
+	return (result.rowCount ?? 0) > 0;
 }
 
 // --- event_applications -------------------------------------------------
 
 export async function create_application(
-  eventId: number,
-  artistId: string,
-  coverNote: string | null,
+	eventId: number,
+	artistId: string,
+	coverNote: string | null,
 ): Promise<DbEventApplication> {
-  const result = await pool.query<DbEventApplication>(
-    `
+	const result = await pool.query<DbEventApplication>(
+		`
       INSERT INTO event_applications (event_id, artist_id, cover_note)
       VALUES ($1, $2, $3)
       RETURNING id, event_id, artist_id, status, cover_note, applied_at, updated_at
     `,
-    [eventId, artistId, coverNote],
-  );
+		[eventId, artistId, coverNote],
+	);
 
-  return result.rows[0];
+	return result.rows[0];
 }
 
-export async function find_application_by_id(
-  id: string,
-): Promise<DbEventApplication | null> {
-  const result = await pool.query<DbEventApplication>(
-    `
+export async function find_application_by_id(id: string): Promise<DbEventApplication | null> {
+	const result = await pool.query<DbEventApplication>(
+		`
       SELECT id, event_id, artist_id, status, cover_note, applied_at, updated_at
       FROM event_applications
       WHERE id = $1
       LIMIT 1
     `,
-    [id],
-  );
+		[id],
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
 }
 
-export async function list_applications_for_event(
-  eventId: number,
-): Promise<DbEventApplication[]> {
-  const result = await pool.query<DbEventApplication>(
-    `
+export async function list_applications_for_event(eventId: number): Promise<DbEventApplication[]> {
+	const result = await pool.query<DbEventApplication>(
+		`
       SELECT id, event_id, artist_id, status, cover_note, applied_at, updated_at
       FROM event_applications
       WHERE event_id = $1
       ORDER BY applied_at ASC
     `,
-    [eventId],
-  );
+		[eventId],
+	);
 
-  return result.rows;
+	return result.rows;
 }
 
 export async function update_application_status(
-  id: string,
-  status: ApplicationStatus,
+	id: string,
+	status: ApplicationStatus,
 ): Promise<DbEventApplication | null> {
-  const result = await pool.query<DbEventApplication>(
-    `
+	const result = await pool.query<DbEventApplication>(
+		`
       UPDATE event_applications
       SET status = $1, updated_at = NOW()
       WHERE id = $2
       RETURNING id, event_id, artist_id, status, cover_note, applied_at, updated_at
     `,
-    [status, id],
-  );
+		[status, id],
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
 }
