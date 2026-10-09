@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreatePieceMutation, useAddVignetteMutation } from "../piecesApi";
 import { uploadFileToR2 } from "../../../shared/uploadClient";
-import { Form } from "@components";
+import { Form } from "../../../components";
 
 const mediaTypeOptions = [
 	{ label: "Image", value: "image" },
