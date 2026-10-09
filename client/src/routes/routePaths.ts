@@ -10,16 +10,20 @@ export const ROUTES = {
 	EXPLORE_PIECES: "/explore/pieces",
 	EXPLORE_EVENTS: "/explore/events",
 
+	STUDIO: "/studio",
 	DASHBOARD: "/dashboard",
 	PIECES: "/pieces",
-	portfolio: "/portfolio",
+	PORTFOLIO: "/portfolio",
 	EVENTS: "/events",
 	VERIFICATION: "/verification",
 
 	SINGLE_PIECE: (id: string) => `/pieces/${id}`,
 
 	PROFILE: (username: string) => `/${username}`,
-	PORTFOLIO: (username: string) => `/${username}/portfolio`,
+	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
 	USER_PIECES: (username: string) => `/${username}/pieces`,
 	USER_EVENTS: (username: string) => `/${username}/events`,
+
+	CREATE_PIECE: "/pieces/new",
+	CREATE_INTERMEZZO: "/intermezze/new",
 } as const;

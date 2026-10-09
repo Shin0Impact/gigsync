@@ -1,11 +1,11 @@
 import Hero from "../features/landing/Hero";
-import { Navbar } from "../features/landing/Navbar";
+import { GuestNavigation } from "../features/landing/GuestNavigation";
 import styles from "./LandingPage.module.css";
 
 export function LandingPage() {
 	return (
 		<div className={styles.landingPage}>
-			<Navbar />
+			<GuestNavigation />
 			<Hero />
 		</div>
 	);

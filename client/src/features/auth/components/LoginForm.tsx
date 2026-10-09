@@ -30,8 +30,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
 	return (
 		<div className={styles.formWrapper}>
-			<div className={styles.formHeader}>
-				{/* Empty left placeholder or a subtle back link if needed */}
+			<header className={styles.formHeader}>
 				<div style={{ width: "60px" }} />
 
 				<div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -45,7 +44,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					style={{ textAlign: "right", margin: 0 }}>
 					No account yet?
 				</button>
-			</div>
+			</header>
 
 			<div className={styles.formBody}>
 				<h1 className={styles.title}>Good to see you again.</h1>

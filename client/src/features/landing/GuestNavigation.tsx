@@ -1,15 +1,15 @@
 import { ButtonLink } from "../../components/ButtonLink";
 import { Logo } from "../../components/Logo";
 import { ROUTES } from "../../routes/routePaths";
-import navStyles from "./Navbar.module.css";
+import styles from "./GuestNavigation.module.css";
 
-export function Navbar() {
+export function GuestNavigation() {
 	return (
-		<nav className={navStyles.navbar}>
+		<nav className={styles.navbar}>
 			<ButtonLink
 				to={ROUTES.HOME}
 				variant="logo"
-				className={navStyles.logoLink}
+				className={styles.logoLink}
 				aria-label="Home">
 				<Logo
 					variant="mark"
@@ -17,7 +17,7 @@ export function Navbar() {
 				/>
 			</ButtonLink>
 
-			<ul className={navStyles.links}>
+			<ul className={styles.links}>
 				<li>
 					<ButtonLink
 						href="#about"
