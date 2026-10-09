@@ -33,14 +33,14 @@ export function Navbar({ role }: NavbarProps) {
 					<ButtonLink
 						to={ROUTES.FOLLOWING}
 						variant="ghost">
-						Following
+						Timeline
 					</ButtonLink>
 				</li>
 				<li>
 					<ButtonLink
 						to={ROUTES.EXPLORE}
 						variant="ghost">
-						Explore
+						Discovery
 					</ButtonLink>
 				</li>
 			</ul>

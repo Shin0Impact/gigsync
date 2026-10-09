@@ -51,7 +51,7 @@ export function FormPieceCreate() {
 				try {
 					setIsUploadingFile(true);
 
-					const { objectKey } = await uploadFileToR2(selectedFile);
+					const { objectKey } = await uploadFileToR2(selectedFile, "works");
 
 					await addVignette({
 						intermezzoId: createdPiece.createdAt,

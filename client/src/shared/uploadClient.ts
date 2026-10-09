@@ -3,7 +3,7 @@ interface PresignedUrlResponse {
 	objectKey: string;
 }
 
-export async function uploadFileToR2(file: File): Promise<{ objectKey: string }> {
+export async function uploadFileToR2(file: File, folder?: string): Promise<{ objectKey: string }> {
 	const res = await fetch("/api/media/upload-url", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -11,6 +11,7 @@ export async function uploadFileToR2(file: File): Promise<{ objectKey: string }>
 			fileName: file.name,
 			contentType: file.type,
 			fileSizeBytes: file.size,
+			...(folder && { folder }),
 		}),
 	});
 

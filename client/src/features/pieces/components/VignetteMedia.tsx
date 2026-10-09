@@ -1,12 +1,13 @@
 import type { IUpdateMedia as Vignette } from "@shared/types/social";
 import styles from "./VignetteMedia.module.css";
+import { getMediaUrl } from "../../../shared/mediaUrl";
 
 interface VignetteMediaProps {
 	vignette: Vignette;
 }
 
 export function VignetteMedia({ vignette }: VignetteMediaProps) {
-	const mediaUrl = `/api/media/${vignette.r2Key}`;
+	const mediaUrl = getMediaUrl(vignette.r2Key);
 
 	switch (vignette.mediaType) {
 		case "image":
