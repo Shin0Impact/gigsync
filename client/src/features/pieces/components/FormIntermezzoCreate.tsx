@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMeQuery } from "../../auth/authApi";
 import { useListPiecesQuery, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
 import { uploadFileToR2 } from "../../../shared/uploadClient";
-import { Form } from "../../../components";
+import { Form } from "@components";
 
 // const mediaTypeOptions = [
 // 	{ label: "Image", value: "image" },

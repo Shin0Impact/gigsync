@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useRegisterMutation } from "../authApi";
 import { StepIndicator } from "../../../components/StepIndicator";
 import { RegisterInput, UserRole } from "@shared/types/index";
-import { Form } from "../../../components";
+import { Form } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 
 const roleOptions = [
