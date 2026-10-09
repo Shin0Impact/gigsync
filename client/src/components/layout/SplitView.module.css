@@ -1,0 +1,57 @@
+.view {
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-background);
+    display: flex;
+    padding: 3vh;
+    gap: 3vh;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    &[data-role="creative"] {
+        --color-role: var(--color-yellow);
+        background-color: var(--color-role);
+    }
+
+    &[data-role="supporter"] {
+        --color-role: var(--color-blue);
+        background-color: var(--color-background);
+    }
+
+    &[data-role="organizer"] {
+        --color-role: var(--color-blue);
+        background-color: var(--color-role);
+    }
+
+    .content {
+        flex: 1;
+        height: 100%;
+        background-color: var(--color-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        box-sizing: border-box;
+        border: 0.125rem solid var(--color-accent);
+        box-shadow: inset 0 0 0.25rem var(--color-accent);
+        overflow: hidden;
+        padding: 1rem;
+
+        .contentDecoration {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 30%;
+        }
+
+        .children {
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+}

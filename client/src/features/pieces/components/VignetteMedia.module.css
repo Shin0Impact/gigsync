@@ -1,0 +1,41 @@
+/* VignetteMedia.module.css */
+.mediaContainer {
+    width: 100%;
+    max-height: 500px;
+    overflow: hidden;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 0.125rem solid var(--color-accent);
+}
+
+.image,
+.video {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: contain;
+    display: block;
+}
+
+.audioContainer {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    box-sizing: border-box;
+}
+
+.audio {
+    width: 100%;
+}
+
+.fallbackContainer {
+    padding: 1rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.9rem;
+    color: var(--color-accent);
+}

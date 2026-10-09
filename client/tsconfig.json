@@ -17,7 +17,9 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "@shared/types/*": ["./../server/src/types/*"]
+      "@shared/types/*": ["./../server/src/types/*"],
+      "@components": ["./src/components"],
+      "@components/*": ["./src/components/*"]
     }
   },
   "include": ["src"],

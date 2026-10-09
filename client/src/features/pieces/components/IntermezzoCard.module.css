@@ -1,0 +1,80 @@
+/* IntermezzoCard.module.css */
+.card {
+    position: relative;
+    display: flex;
+    gap: 1.5rem;
+    padding-left: 0.5rem;
+}
+
+.timelineBadge {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 700;
+    z-index: 2;
+}
+
+.cardContent {
+    flex: 1;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.15);
+    padding-bottom: 0.75rem;
+}
+
+.title {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.25rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.date {
+    font-family: var(--font-serif, serif);
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.7;
+}
+
+.description {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.05rem;
+    color: var(--color-accent);
+    margin: 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.vignettesGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.vignettesLoading {
+    font-family: var(--font-serif, serif);
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.6;
+}

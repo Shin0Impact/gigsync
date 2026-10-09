@@ -1,0 +1,31 @@
+.navLink {
+    --color-link-default: var(--color-accent);
+    --color-link-hover: var(--color-role);
+
+    font-family: var(--font-sans);
+    font-size: var(--link-font-size);
+    color: var(--color-link-default);
+
+    text-decoration: underline solid 1pt;
+    text-decoration-color: transparent;
+
+    text-box: trim-both ex alphabetical;
+
+    transition: var(--transition-fast);
+
+    &:hover {
+        color: var(--color-link-hover);
+        text-decoration-color: var(--color-link-hover);
+    }
+
+    &[data-color="invert"] {
+        --color-link-default: var(--color-primary);
+    }
+
+    /* &[data-color="white"] {
+        --color-link-default: var(--color-white);
+        --color-link-hover: var(--color-yellow);
+    } */
+
+    /* "white" | "black" | "yellow" | "blue" | "green" | "cream" */
+}

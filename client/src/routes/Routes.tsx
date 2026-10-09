@@ -1,20 +1,15 @@
 import { Route, Routes } from "react-router-dom";
 import { ROUTES } from "./routePaths";
 import { RootRedirect } from "../features/auth/components/RootRedirect";
-import { AuthPage } from "../pages/AuthPage";
 import { RequireAuth } from "../features/auth/components/RequireAuth";
 import OnboardingPage from "../pages/OnboardingPage";
-import { RoleGuard } from "../features/auth/components/RoleGaurd";
-import SupporterLayout from "../layouts/SupporterLayout";
-import ExplorePage from "../pages/ExplorePage";
-import PiecePage from "../pages/PiecePage";
-import CreativeLayout from "../layouts/CreativeLayout";
+import { RoleGuard } from "../features/auth/components/RoleGuard";
 import { NotFoundPage } from "../pages/NotFoundPage";
-import CreativeDashboard from "../pages/creative/CreativeDashboard";
-import ExplorePiecesPage from "../features/explore/ExplorePiecesPage";
-import ExplorePiecesEvents from "../features/explore/ExploreEventsPage";
-import { CreatePieceForm } from "../features/pieces/components/CreatePieceForm";
-import { CreateIntermezzoForm } from "../features/pieces/components/CreateIntermezzoForm";
+import Layout from "../layouts/Layout";
+import { FormLogin, FormSignup } from "../features/auth";
+import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
+import { MyPieces } from "../pages/creative/MyPieces";
+import { PieceDetails } from "../pages/creative/PieceDetails";
 
 export function AppRoutes() {
 	return (
@@ -24,13 +19,21 @@ export function AppRoutes() {
 				element={<RootRedirect />}
 			/>
 			<Route
-				path={ROUTES.LOGIN}
-				element={<AuthPage />}
-			/>
-			<Route
-				path={ROUTES.SIGNUP}
-				element={<AuthPage />}
-			/>
+				element={
+					<Layout
+						type="form"
+						role="guest"
+					/>
+				}>
+				<Route
+					path={ROUTES.LOGIN}
+					element={<FormLogin />}
+				/>
+				<Route
+					path={ROUTES.SIGNUP}
+					element={<FormSignup />}
+				/>
+			</Route>
 
 			<Route
 				path={ROUTES.ONBOARDING}
@@ -41,92 +44,48 @@ export function AppRoutes() {
 				}
 			/>
 
-			<Route element={<RoleGuard allowedRoles={["fan"]} />}>
-				<Route element={<SupporterLayout />}>
-					<Route
-						path={ROUTES.FOLLOWING}
-						element={<ExplorePage />}
-					/>
-					<Route
-						path={ROUTES.EXPLORE}
-						element={<ExplorePage />}
-					/>
-
-					<Route
-						path={ROUTES.EXPLORE_PIECES}
-						element={<ExplorePiecesPage />}
-					/>
-					<Route
-						path={ROUTES.EXPLORE_EVENTS}
-						element={<ExplorePiecesEvents />}
-					/>
-					<Route
-						path={ROUTES.SINGLE_PIECE(":id")}
-						element={<PiecePage />}
-					/>
-
-					{/* <Route
-						path={ROUTES.PROFILE(":username")}
-						element={<ProfilePage />}
-					/>
-					<Route
-						path={ROUTES.PORTFOLIO(":username")}
-						element={<PortfolioPage />}
-					/>
-					<Route
-						path={ROUTES.USER_PIECES(":username")}
-						element={<UserPiecesPage />}
-					/>
-					<Route
-						path={ROUTES.USER_EVENTS(":username")}
-						element={<UserEventsPage />}
-					/> */}
-				</Route>
+			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
+				<Route
+					path="/pieces/:id"
+					element={<PieceDetails />}
+				/>
 			</Route>
 
 			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
-				<Route element={<CreativeLayout />}>
+				<Route
+					element={
+						<Layout
+							type="page"
+							role="creative"
+						/>
+					}>
 					<Route
 						path={ROUTES.DASHBOARD}
-						element={<CreativeDashboard />}
+						element={<MyPieces />}
 					/>
 					<Route
+						path={ROUTES.PIECES}
+						element={<MyPieces />}
+					/>
+				</Route>
+				<Route
+					element={
+						<Layout
+							type="form"
+							role="creative"
+						/>
+					}>
+					<Route
 						path={ROUTES.CREATE_PIECE}
-						element={<CreatePieceForm />}
+						element={<FormPieceCreate />}
 					/>
 					<Route
 						path={ROUTES.CREATE_INTERMEZZO}
-						element={<CreateIntermezzoForm />}
+						element={<FormIntermezzoCreate />}
 					/>
-					{/* <Route
-						path={ROUTES.PIECES}
-						element={<ManagePiecesPage />}
-					/>
-					<Route
-						path={ROUTES.VERIFICATION}
-						element={<VerificationPage />}
-					/> */}
 				</Route>
 			</Route>
 
-			{/* <Route element={<RoleGuard allowedRoles={["organizer"]} />}>
-				<Route element={<OrganizerLayout />}>
-					<Route
-						path={ROUTES.DASHBOARD}
-						element={<OrganizerDashboard />}
-					/>
-					<Route
-						path={ROUTES.EVENTS}
-						element={<ManageEventsPage />}
-					/>
-					<Route
-						path={ROUTES.VERIFICATION}
-						element={<VerificationPage />}
-					/>
-				</Route>
-			</Route> */}
-
-			{/* Fallback */}
 			<Route
 				path="*"
 				element={<NotFoundPage />}
