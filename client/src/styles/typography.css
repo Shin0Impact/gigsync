@@ -1,0 +1,69 @@
+@font-face {
+    font-family: "Coolvetica";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../assets/fonts/Coolvetica Regular.otf");
+}
+
+@font-face {
+    font-family: "Coolvetica";
+    font-weight: normal;
+    font-style: italic;
+    src: url("../assets/fonts/Coolvetica Italic.otf");
+}
+
+/* @font-face {
+  font-family: "Instrument Serif";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../assets/fonts/InstrumentSerif Regular.ttf");
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-weight: normal;
+  font-style: italic;
+  src: url("../assets/fonts/InstrumentSerif Italic.ttf");
+} */
+
+@font-face {
+    font-family: "PP Editorial New";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../assets/fonts/PPEditorialNew-Regular.otf");
+}
+
+@font-face {
+    font-family: "PP Editorial New";
+    font-weight: normal;
+    font-style: italic;
+    src: url("../assets/fonts/PPEditorialNew-Italic.otf");
+}
+
+@font-face {
+    font-family: "PP Editorial New";
+    font-weight: lighter;
+    font-style: normal;
+    src: url("../assets/fonts/PPEditorialNew-Ultralight.otf");
+}
+
+@font-face {
+    font-family: "PP Editorial New";
+    font-weight: lighter;
+    font-style: italic;
+    src: url("../assets/fonts/PPEditorialNew-UltralightItalic.otf");
+}
+
+@font-face {
+    font-family: "PP Editorial New";
+    font-weight: bold;
+    font-style: normal;
+    src: url("../assets/fonts/PPEditorialNew-Ultrabold.otf");
+}
+
+@font-face {
+    font-family: "PP Editorial New";
+    font-weight: bold;
+    font-style: italic;
+    src: url("../assets/fonts/PPEditorialNew-UltraboldItalic.otf");
+}

@@ -1,4 +1,4 @@
-import { Button } from "../../components/Button";
+import { Button } from "../../components/ui/Button/Button";
 import styles from "./Hero.module.css";
 import { Voronoi } from "@paper-design/shaders-react";
 

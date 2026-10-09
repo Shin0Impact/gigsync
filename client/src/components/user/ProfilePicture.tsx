@@ -5,8 +5,8 @@ interface ProfilePictureProps {
 }
 
 function ProfilePicture({ isLoading = false, isDefault = true, variant }: ProfilePictureProps) {
-	if (isLoading || isDefault || variant == "profile") return <div>ProfilePicture</div>;
-	return <div>ProfilePicture</div>;
+	if (isLoading || isDefault || variant == "profile") return <div>PFP</div>;
+	return <div>PFP</div>;
 }
 
 export default ProfilePicture;

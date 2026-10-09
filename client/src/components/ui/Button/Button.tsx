@@ -1,9 +1,9 @@
 import styles from "./Button.module.css";
 
 export type ButtonVariant = "solid" | "ghost" | "logo" | "expandable";
-export type ButtonColor = "white" | "black" | "cream" | "yellow" | "moss" | "blue";
+export type ButtonColor = "default" | "white" | "black" | "cream" | "yellow" | "moss" | "blue";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	variant?: ButtonVariant;
 	active?: boolean;
 	hoverText?: string;

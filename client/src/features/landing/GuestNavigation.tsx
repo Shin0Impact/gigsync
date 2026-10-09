@@ -1,4 +1,4 @@
-import { ButtonLink } from "../../components/ButtonLink";
+import { ButtonLink } from "@components/ui";
 import { Logo } from "../../components/Logo";
 import { ROUTES } from "../../routes/routePaths";
 import styles from "./GuestNavigation.module.css";

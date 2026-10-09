@@ -13,16 +13,10 @@
     border: 1px solid transparent;
     outline: none;
 
+    text-box: trim-both ex alphabetical;
+
     background-color: var(--color-black);
     color: var(--color-white);
-
-    &[data-purpose="button"] {
-        &:hover {
-            background-color: var(--color-yellow);
-            color: var(--color-black);
-            border-color: var(--color-black);
-        }
-    }
 
     &[data-variant="solid"] {
         &:hover {
