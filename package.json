@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run build --prefix client && tsx server/src/index.ts",
+    "dev": "concurrently -n SERVER,CLIENT -c blue,magenta \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "build:client": "npm run build --prefix client",
     "build:server": "npm run build --prefix server",
     "build": "npm run build:client && npm run build:server",
@@ -11,6 +11,7 @@
     "lint": "npm run typecheck --prefix client && npm run typecheck --prefix server"
   },
   "devDependencies": {
+    "concurrently": "^9.2.5",
     "eslint-plugin-import": "^2.32.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4"
