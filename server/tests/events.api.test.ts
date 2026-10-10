@@ -91,6 +91,7 @@ async function main() {
     password: 'TestPass123!',
     role: 'organizer',
     user_name: `org_${stamp}`,
+    name: `User ${stamp}`,
   });
   check('01 Register organizer', r.status, 201, r.body);
 
@@ -99,6 +100,7 @@ async function main() {
     password: 'TestPass123!',
     role: 'artist',
     user_name: `artist_${stamp}`,
+    name: `User ${stamp}`,
     artists_type: 'musician',
   });
   check('02 Register artist', r.status, 201, r.body);
@@ -108,6 +110,7 @@ async function main() {
     password: 'TestPass123!',
     role: 'artist',
     user_name: `artist2_${stamp}`,
+    name: `User ${stamp}`,
     artists_type: 'painter',
   });
   check('03 Register second artist', r.status, 201, r.body);

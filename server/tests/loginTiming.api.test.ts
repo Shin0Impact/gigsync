@@ -14,7 +14,7 @@
  *   npm run test:login-timing
  *
  * Only 10 total login attempts (5 against a real user with the wrong
- * password, 5 against a made-up email) - comfortably under the 20/minute
+ * password, 5 against a made-up email) - paced under the 6/minute
  * login rate limit added alongside this fix, but ONLY if nothing else
  * hit /auth/login in the last minute. Don't run this right after
  * test:auth or test:rate-limit in the same 60s window - if you do, wait
@@ -24,6 +24,12 @@
 
 const BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:4000/api';
 const SAMPLES_PER_GROUP = 5;
+
+// Login is rate-limited to 6 req/min/IP, and this suite makes 10
+// timed attempts - pace them just under the cap. Spacing does not
+// distort the measurement: the timing signal is per-request bcrypt
+// cost, not throughput.
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 let passed = 0;
 let failed = 0;
@@ -70,6 +76,7 @@ async function main() {
       password: 'Test1234!',
       role: 'artist',
       user_name: `timing_${stamp}`,
+      name: `Timing User`,
       artists_type: 'musician',
     }),
   });
@@ -81,11 +88,13 @@ async function main() {
   // request, and it naturally stays well under the rate limiter too.
   const existingUserSamples: { status: number; ms: number }[] = [];
   for (let i = 0; i < SAMPLES_PER_GROUP; i++) {
+    await sleep(11000);
     existingUserSamples.push(await timedLogin(realEmail, 'definitely-the-wrong-password'));
   }
 
   const missingUserSamples: { status: number; ms: number }[] = [];
   for (let i = 0; i < SAMPLES_PER_GROUP; i++) {
+    await sleep(11000);
     missingUserSamples.push(await timedLogin(`nobody_${stamp}_${i}@example.com`, 'whatever-password'));
   }
 

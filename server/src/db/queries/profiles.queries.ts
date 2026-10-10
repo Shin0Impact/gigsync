@@ -6,6 +6,7 @@ export interface DbProfile {
   created_at: Date;
   user_name: string;
   user_id: string;
+  name: string | null;
   avatar_url: string | null;
   followers_number: number;
   artists_type: string | null;
@@ -21,6 +22,7 @@ export async function find_profile_by_user_name(
         created_at,
         user_name,
         user_id,
+        name,
         avatar_url,
         followers_number,
         artists_type
@@ -34,10 +36,73 @@ export async function find_profile_by_user_name(
   return result.rows[0] ?? null;
 }
 
+// --- Public profile lookup (card: profile pages) -------------------------
+//
+// One profile row joined with its role (and email for the owner-facing
+// variant). powers GET /api/users/:identifier (public, email stripped by
+// the service layer) and the hydrated GET /api/auth/me.
+
+export interface DbProfileWithRole {
+  user_id: string;
+  user_name: string;
+  name: string | null;
+  email: string;
+  email_verified: boolean;
+  role: string;
+  avatar_url: string | null;
+  followers_number: number;
+  artists_type: string | null;
+  is_verified: boolean;
+  created_at: Date;
+}
+
+const PROFILE_WITH_ROLE_SELECT = `
+  SELECT
+    p.user_id,
+    p.user_name,
+    p.name,
+    u.email,
+    u.email_verified,
+    r.role,
+    p.avatar_url,
+    p.followers_number,
+    p.artists_type,
+    p.is_verified,
+    p.created_at
+  FROM profiles p
+  INNER JOIN users u
+    ON u.id = p.user_id
+  INNER JOIN roles r
+    ON r.user_id = p.user_id
+`;
+
+export async function find_profile_with_role_by_user_id(
+  user_id: string,
+): Promise<DbProfileWithRole | null> {
+  const result = await pool.query<DbProfileWithRole>(
+    `${PROFILE_WITH_ROLE_SELECT} WHERE p.user_id = $1 LIMIT 1`,
+    [user_id],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function find_profile_with_role_by_user_name(
+  user_name: string,
+): Promise<DbProfileWithRole | null> {
+  const result = await pool.query<DbProfileWithRole>(
+    `${PROFILE_WITH_ROLE_SELECT} WHERE p.user_name = $1 LIMIT 1`,
+    [user_name],
+  );
+
+  return result.rows[0] ?? null;
+}
+
 export async function create_profile(
   client: PoolClient,
   user_id: string,
   user_name: string,
+  name: string,
   artists_type: string | null,
 ): Promise<DbProfile> {
   const result = await client.query<DbProfile>(
@@ -45,19 +110,21 @@ export async function create_profile(
       INSERT INTO profiles (
         user_id,
         user_name,
+        name,
         artists_type
       )
-      VALUES ($1, $2, $3)
+      VALUES ($1, $2, $3, $4)
       RETURNING
         id,
         created_at,
         user_name,
         user_id,
+        name,
         avatar_url,
         followers_number,
         artists_type
     `,
-    [user_id, user_name, artists_type],
+    [user_id, user_name, name, artists_type],
   );
 
   return result.rows[0];

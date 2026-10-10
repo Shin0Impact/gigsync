@@ -9,12 +9,18 @@
  * (from the server/ directory). Exits with a non-zero code if anything
  * fails, so it's CI-friendly later if you want to wire it into ci.yml.
  *
- * Covers registration (artist + organizer success, missing fields, artist
- * missing artists_type, duplicate email), login (success, missing fields,
- * wrong password), and the session lifecycle (/me before login, after
- * login, after token refresh, after logout, confirming unauthenticated
- * again). Nothing else under /api is implemented yet - everything else
- * (artists/events/media/conversations) still returns 501 stubs.
+ * Covers registration (artist + organizer success, missing fields, missing
+ * display name, artist missing artists_type, duplicate email), login
+ * (success, missing fields, wrong password), and the session lifecycle
+ * (/me before login, after login, after token refresh, after logout,
+ * confirming unauthenticated again). Nothing else under /api is
+ * implemented yet - everything else (artists/events/media/conversations)
+ * still returns 501 stubs.
+ *
+ * Note: register/login are rate-limited to 6 req/min/IP, and this suite
+ * fires more register calls than that - registerReq() paces them ~11s
+ * apart so the limiter doesn't swallow the assertions. The suite takes
+ * ~2 minutes because of that.
  */
 
 const BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:4000/api';
@@ -63,6 +69,18 @@ async function request(
   return { status: res.status, body: json };
 }
 
+// --- register helper with rate-limit pacing -------------------------------
+// Register (like login) is rate-limited to 6 requests/min/IP, and this
+// suite fires more than that - pace register calls just under the cap so
+// the security assertions get tested instead of the limiter (a 429 here
+// would silently skip the very check it guards).
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function registerReq(body: unknown) {
+  await sleep(11000);
+  return request('POST', '/auth/register', body);
+}
+
 // --- tiny assertion helper ----------------------------------------------
 let passed = 0;
 let failed = 0;
@@ -91,51 +109,75 @@ async function main() {
   let r = await request('GET', '/auth/me');
   check('01 Me (unauthenticated)', r.status, 401, r.body);
 
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
     email,
     password,
     role: 'artist',
     user_name: username,
+    name: `Artist ${stamp}`,
     artists_type: 'musician',
   });
   check('02 Register artist (success)', r.status, 201, r.body);
 
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
     email: orgEmail,
     password,
     role: 'organizer',
     user_name: orgUsername,
+    name: `Organizer ${stamp}`,
   });
   check('03 Register organizer (success)', r.status, 201, r.body);
 
-  r = await request('POST', '/auth/register', { email: 'incomplete@example.com' });
+  r = await registerReq({ email: 'incomplete@example.com' });
   check('04 Register missing fields', r.status, 400, r.body);
 
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
+    email: `noname_${stamp}@example.com`,
+    password,
+    role: 'artist',
+    user_name: `noname_${stamp}`,
+    artists_type: 'musician',
+  });
+  check('05 Register without name is rejected', r.status, 400, r.body);
+
+  r = await registerReq({
+    email: `blankname_${stamp}@example.com`,
+    password,
+    role: 'artist',
+    user_name: `blankname_${stamp}`,
+    name: '   ',
+    artists_type: 'musician',
+  });
+  check('05a Register with blank/whitespace name is rejected', r.status, 400, r.body);
+
+  r = await registerReq({
     email: `noartisttype_${stamp}@example.com`,
     password,
     role: 'artist',
     user_name: `noartisttype_${stamp}`,
+    name: `NoArtistType ${stamp}`,
   });
-  check('05 Register artist without artists_type', r.status, 400, r.body);
+  check('05b Register artist without artists_type', r.status, 400, r.body);
 
   // Security fix: no length/strength floor on the password at all before
   // this - a 1-character password passed as long as the field wasn't
   // empty.
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
     email: `shortpw_${stamp}@example.com`,
     password: 'short1',
     role: 'artist',
     user_name: `shortpw_${stamp}`,
+    name: `ShortPw ${stamp}`,
     artists_type: 'musician',
   });
-  check('05b Register with too-short password is rejected', r.status, 400, r.body);
+  check('05c Register with too-short password is rejected', r.status, 400, r.body);
 
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
     email,
     password,
     role: 'artist',
     user_name: `dup_${stamp}`,
+    name: `Dup ${stamp}`,
     artists_type: 'painter',
   });
   check('06 Register duplicate email', r.status, 409, r.body);
@@ -145,19 +187,21 @@ async function main() {
   // ID documents and approve/reject requests - those accounts must be
   // created out-of-band, never picked from the public signup form.
   const modEmail = `wouldbemod_${stamp}@example.com`;
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
     email: modEmail,
     password,
     role: 'moderator',
     user_name: `wouldbemod_${stamp}`,
+    name: `WouldBeMod ${stamp}`,
   });
   check('06b Register as moderator is rejected', r.status, 400, r.body);
 
-  r = await request('POST', '/auth/register', {
+  r = await registerReq({
     email: `wouldbeadmin_${stamp}@example.com`,
     password,
     role: 'admin',
     user_name: `wouldbeadmin_${stamp}`,
+    name: `WouldBeAdmin ${stamp}`,
   });
   check('06c Register as admin is rejected', r.status, 400, r.body);
 

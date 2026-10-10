@@ -37,6 +37,31 @@
 
 const BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:4000/api';
 
+// Moderators can't be created through public registration (the API
+// rejects self-assigned privileged roles on purpose), so this suite
+// seeds its moderator directly into the database - the same
+// out-of-band path an admin would use in production.
+import { randomUUID } from 'crypto';
+import bcrypt from 'bcrypt';
+import pg from 'pg';
+import dotenv from 'dotenv';
+dotenv.config({ path: '../.env' });
+
+async function seedModerator(email: string, userName: string, name: string, password: string): Promise<void> {
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await client.connect();
+  try {
+    const uid = randomUUID();
+    const hash = bcrypt.hashSync(password, 12);
+    await client.query('INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3)', [uid, email, hash]);
+    await client.query('INSERT INTO roles (user_id, role) VALUES ($1, $2)', [uid, 'moderator']);
+    await client.query('INSERT INTO profiles (user_id, user_name, name) VALUES ($1, $2, $3)', [uid, userName, name]);
+  } finally {
+    await client.end();
+  }
+}
+
+
 const jars: Record<string, string[]> = {};
 
 function cookieHeader(who: string): string {
@@ -110,23 +135,23 @@ async function main() {
   const stamp = Date.now();
 
   await request('artist', 'POST', '/auth/register', {
-    email: `artist_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist_${stamp}`, artists_type: 'musician',
+    email: `artist_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist_${stamp}`, name: `User ${stamp}`, artists_type: 'musician',
   });
   await request('artist', 'POST', '/auth/login', { identifier: `artist_${stamp}@example.com`, password: 'TestPass123!' });
 
   await request('org', 'POST', '/auth/register', {
     email: `org_${stamp}@example.com`, password: 'TestPass123!', role: 'organizer', user_name: `org_${stamp}`,
+    name: `User ${stamp}`,
   });
   await request('org', 'POST', '/auth/login', { identifier: `org_${stamp}@example.com`, password: 'TestPass123!' });
 
   await request('fan', 'POST', '/auth/register', {
     email: `fan_${stamp}@example.com`, password: 'TestPass123!', role: 'fan', user_name: `fan_${stamp}`,
+    name: `User ${stamp}`,
   });
   await request('fan', 'POST', '/auth/login', { identifier: `fan_${stamp}@example.com`, password: 'TestPass123!' });
 
-  await request('mod', 'POST', '/auth/register', {
-    email: `mod_${stamp}@example.com`, password: 'TestPass123!', role: 'moderator', user_name: `mod_${stamp}`,
-  });
+  await seedModerator(`mod_${stamp}@example.com`, `mod_${stamp}`, `User ${stamp}`, 'TestPass123!');
   await request('mod', 'POST', '/auth/login', { identifier: `mod_${stamp}@example.com`, password: 'TestPass123!' });
 
   // --- ID document upload URL -------------------------------------------

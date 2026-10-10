@@ -7,6 +7,11 @@ import { env } from './env';
 // <bucket>.s3.amazonaws.com addressing the AWS SDK defaults to).
 // `region` is required by the SDK's types but is meaningless to R2 - "auto"
 // is what Cloudflare's own docs use.
+//
+// requestChecksumCalculation: "when_required" - AWS SDK v3.7xx+ computes a
+// CRC32 checksum by default and bakes x-amz-sdk-checksum-algorithm into
+// presigned URLs; R2 rejects those signatures (SignatureDoesNotMatch),
+// which silently broke the whole upload-url flow until this was set.
 export const r2Client = new S3Client({
   region: 'auto',
   endpoint: `https://${env.r2.accountId}.r2.cloudflarestorage.com`,
@@ -15,4 +20,5 @@ export const r2Client = new S3Client({
     secretAccessKey: env.r2.secretAccessKey,
   },
   forcePathStyle: true,
+  requestChecksumCalculation: 'WHEN_REQUIRED',
 });

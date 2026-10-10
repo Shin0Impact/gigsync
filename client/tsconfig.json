@@ -18,6 +18,8 @@
 
     "paths": {
       "@shared/types/*": ["./../server/src/types/*"],
+      "@shared/services": ["./../server/src/services"],
+      "@shared/services/*": ["./../server/src/services/*"],
       "@components": ["./src/components"],
       "@components/*": ["./src/components/*"]
     }

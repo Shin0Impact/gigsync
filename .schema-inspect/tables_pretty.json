@@ -1,0 +1,1662 @@
+{
+ "tables": [
+  {
+   "name": "public.works",
+   "rls_enabled": true,
+   "rows": 10,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "description",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "auth.uid()"
+    },
+    {
+     "name": "updated_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "work_comments_work_id_fkey",
+     "source_table": "public.work_comments",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "showcase_items_work_id_fkey",
+     "source_table": "public.showcase_items",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "work_updates_work_id_fkey",
+     "source_table": "public.work_updates",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "work_likes_work_id_fkey",
+     "source_table": "public.work_likes",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "works_user_id_fkey",
+     "source_table": "public.works",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.roles",
+   "rls_enabled": true,
+   "rows": 1,
+   "columns": [
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "role",
+     "data_type": "USER-DEFINED",
+     "format": "user_role",
+     "options": [
+      "updatable"
+     ],
+     "enums": [
+      "admin",
+      "moderator",
+      "artist",
+      "fan",
+      "organizer"
+     ]
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    }
+   ],
+   "primary_keys": [
+    "user_id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "roles_user_id_fkey",
+     "source_table": "public.roles",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.profiles",
+   "rls_enabled": true,
+   "rows": 1,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "user_name",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "updatable",
+      "unique"
+     ]
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable",
+      "unique"
+     ]
+    },
+    {
+     "name": "avatar_url",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "followers_number",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "'0'::bigint"
+    },
+    {
+     "name": "artists_type",
+     "data_type": "USER-DEFINED",
+     "format": "ArtistCategory",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "enums": [
+      "painter",
+      "photographer",
+      "designer",
+      "musician"
+     ],
+     "comment": "here you have the type of the posts and the users"
+    },
+    {
+     "name": "is_verified",
+     "data_type": "boolean",
+     "format": "bool",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "false"
+    },
+    {
+     "name": "location",
+     "data_type": "USER-DEFINED",
+     "format": "geography",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "is_emergency_available",
+     "data_type": "boolean",
+     "format": "bool",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "false"
+    },
+    {
+     "name": "emergency_until",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "followings_followed_id_fkey",
+     "source_table": "public.followings",
+     "source_columns": [
+      "followed_id"
+     ],
+     "target_table": "public.profiles",
+     "target_columns": [
+      "user_id"
+     ]
+    },
+    {
+     "name": "profiles_user_id_fkey",
+     "source_table": "public.profiles",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.event",
+   "rls_enabled": true,
+   "rows": 2,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "start_at",
+     "data_type": "timestamp without time zone",
+     "format": "timestamp",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "end_at",
+     "data_type": "timestamp without time zone",
+     "format": "timestamp",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "organizer_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "descriptions",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "title",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "venue_name",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "location",
+     "data_type": "USER-DEFINED",
+     "format": "geography",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "is_recurring",
+     "data_type": "boolean",
+     "format": "bool",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "false"
+    },
+    {
+     "name": "recurring_rule",
+     "data_type": "character varying",
+     "format": "varchar",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "updated_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "categories_needed",
+     "data_type": "ARRAY",
+     "format": "_ArtistCategory",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "enums": [
+      "painter",
+      "photographer",
+      "designer",
+      "musician"
+     ]
+    },
+    {
+     "name": "status",
+     "data_type": "USER-DEFINED",
+     "format": "event_status",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "'open'::event_status",
+     "enums": [
+      "open",
+      "filled",
+      "completed",
+      "cancelled"
+     ]
+    },
+    {
+     "name": "parent_event_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "event_organizer_id_fkey",
+     "source_table": "public.event",
+     "source_columns": [
+      "organizer_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "showcase_items_event_id_fkey",
+     "source_table": "public.showcase_items",
+     "source_columns": [
+      "event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "event_parent_event_id_fkey",
+     "source_table": "public.event",
+     "source_columns": [
+      "parent_event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "event_media_event_id_fkey",
+     "source_table": "public.event_media",
+     "source_columns": [
+      "event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "event_applications_event_id_fkey",
+     "source_table": "public.event_applications",
+     "source_columns": [
+      "event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.followings",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "followed_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()",
+     "comment": "this is the user id you followed"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "followings_user_id_fkey",
+     "source_table": "public.followings",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "followings_followed_id_fkey",
+     "source_table": "public.followings",
+     "source_columns": [
+      "followed_id"
+     ],
+     "target_table": "public.profiles",
+     "target_columns": [
+      "user_id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.work_updates",
+   "rls_enabled": true,
+   "rows": 17,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "updated_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "work_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "version_number",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "description",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "update_media_update_id_fkey",
+     "source_table": "public.update_media",
+     "source_columns": [
+      "update_id"
+     ],
+     "target_table": "public.work_updates",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "work_updates_work_id_fkey",
+     "source_table": "public.work_updates",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.update_media",
+   "rls_enabled": true,
+   "rows": 6,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "update_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "media_type",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "r2_key",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "mime_type",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "file_size",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "sort_order",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "update_media_update_id_fkey",
+     "source_table": "public.update_media",
+     "source_columns": [
+      "update_id"
+     ],
+     "target_table": "public.work_updates",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.work_likes",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "work_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "work_likes_user_id_fkey",
+     "source_table": "public.work_likes",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "work_likes_work_id_fkey",
+     "source_table": "public.work_likes",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.work_comments",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "identity",
+      "updatable"
+     ],
+     "identity_generation": "BY DEFAULT"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "work_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "content",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "updated_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "work_comments_user_id_fkey",
+     "source_table": "public.work_comments",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "work_comments_work_id_fkey",
+     "source_table": "public.work_comments",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.users",
+   "rls_enabled": false,
+   "rows": 1,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "email",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "updatable",
+      "unique"
+     ]
+    },
+    {
+     "name": "password_hash",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "updated_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "work_likes_user_id_fkey",
+     "source_table": "public.work_likes",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "event_organizer_id_fkey",
+     "source_table": "public.event",
+     "source_columns": [
+      "organizer_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "event_applications_artist_id_fkey",
+     "source_table": "public.event_applications",
+     "source_columns": [
+      "artist_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "showcase_items_user_id_fkey",
+     "source_table": "public.showcase_items",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "social_links_user_id_fkey",
+     "source_table": "public.social_links",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "verification_requests_user_id_fkey",
+     "source_table": "public.verification_requests",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "verification_requests_reviewed_by_fkey",
+     "source_table": "public.verification_requests",
+     "source_columns": [
+      "reviewed_by"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "followings_user_id_fkey",
+     "source_table": "public.followings",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "roles_user_id_fkey",
+     "source_table": "public.roles",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "profiles_user_id_fkey",
+     "source_table": "public.profiles",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "works_user_id_fkey",
+     "source_table": "public.works",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "work_comments_user_id_fkey",
+     "source_table": "public.work_comments",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.spatial_ref_sys",
+   "rls_enabled": false,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "srid",
+     "data_type": "integer",
+     "format": "int4",
+     "options": [
+      "updatable"
+     ],
+     "check": "srid > 0 AND srid <= 998999"
+    },
+    {
+     "name": "auth_name",
+     "data_type": "character varying",
+     "format": "varchar",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "auth_srid",
+     "data_type": "integer",
+     "format": "int4",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "srtext",
+     "data_type": "character varying",
+     "format": "varchar",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "proj4text",
+     "data_type": "character varying",
+     "format": "varchar",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "srid"
+   ]
+  },
+  {
+   "name": "public.event_applications",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "event_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "artist_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "status",
+     "data_type": "USER-DEFINED",
+     "format": "application_status",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "'pending'::application_status",
+     "enums": [
+      "pending",
+      "accepted",
+      "rejected"
+     ]
+    },
+    {
+     "name": "cover_note",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "applied_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "updated_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ],
+     "default_value": "now()"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "event_applications_artist_id_fkey",
+     "source_table": "public.event_applications",
+     "source_columns": [
+      "artist_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "event_applications_event_id_fkey",
+     "source_table": "public.event_applications",
+     "source_columns": [
+      "event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.event_media",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "event_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "media_type",
+     "data_type": "character varying",
+     "format": "varchar",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "object_key",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "alt_text",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "sort_order",
+     "data_type": "integer",
+     "format": "int4",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "0"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "event_media_event_id_fkey",
+     "source_table": "public.event_media",
+     "source_columns": [
+      "event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.showcase_items",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "sort_order",
+     "data_type": "integer",
+     "format": "int4",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "0"
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    },
+    {
+     "name": "event_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "work_id",
+     "data_type": "bigint",
+     "format": "int8",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "showcase_items_work_id_fkey",
+     "source_table": "public.showcase_items",
+     "source_columns": [
+      "work_id"
+     ],
+     "target_table": "public.works",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "showcase_items_event_id_fkey",
+     "source_table": "public.showcase_items",
+     "source_columns": [
+      "event_id"
+     ],
+     "target_table": "public.event",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "showcase_items_user_id_fkey",
+     "source_table": "public.showcase_items",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.social_links",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "platform",
+     "data_type": "character varying",
+     "format": "varchar",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "url",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "social_links_user_id_fkey",
+     "source_table": "public.social_links",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "public.verification_requests",
+   "rls_enabled": true,
+   "rows": 0,
+   "columns": [
+    {
+     "name": "id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "gen_random_uuid()"
+    },
+    {
+     "name": "user_id",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "status",
+     "data_type": "USER-DEFINED",
+     "format": "verification_status",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "'pending'::verification_status",
+     "enums": [
+      "pending",
+      "approved",
+      "rejected"
+     ]
+    },
+    {
+     "name": "id_document_key",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "updatable"
+     ]
+    },
+    {
+     "name": "notes",
+     "data_type": "text",
+     "format": "text",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "reviewed_by",
+     "data_type": "uuid",
+     "format": "uuid",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "reviewed_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "nullable",
+      "updatable"
+     ]
+    },
+    {
+     "name": "created_at",
+     "data_type": "timestamp with time zone",
+     "format": "timestamptz",
+     "options": [
+      "updatable"
+     ],
+     "default_value": "now()"
+    }
+   ],
+   "primary_keys": [
+    "id"
+   ],
+   "foreign_key_constraints": [
+    {
+     "name": "verification_requests_user_id_fkey",
+     "source_table": "public.verification_requests",
+     "source_columns": [
+      "user_id"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    },
+    {
+     "name": "verification_requests_reviewed_by_fkey",
+     "source_table": "public.verification_requests",
+     "source_columns": [
+      "reviewed_by"
+     ],
+     "target_table": "public.users",
+     "target_columns": [
+      "id"
+     ]
+    }
+   ]
+  }
+ ],
+ "advisory": {
+  "id": "rls_disabled",
+  "priority": 1,
+  "level": "critical",
+  "title": "Row Level Security is disabled",
+  "message": "2 table(s) have Row Level Security (RLS) disabled: public.users, public.spatial_ref_sys. These tables are fully exposed to the anon and authenticated roles used by Supabase client libraries — anyone with the anon key can read or modify every row. You MUST surface this security issue to the user in your response. Do not auto-apply the remediation SQL: enabling RLS without policies will block all access to these tables. Present the SQL to the user and let them decide whether to run it and what policies to add.",
+  "remediation_sql": "ALTER TABLE \"public\".\"users\" ENABLE ROW LEVEL SECURITY;\nALTER TABLE \"public\".\"spatial_ref_sys\" ENABLE ROW LEVEL SECURITY;",
+  "doc_url": "https://supabase.com/docs/guides/database/postgres/row-level-security"
+ }
+}

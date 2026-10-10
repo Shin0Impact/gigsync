@@ -22,12 +22,33 @@ const VALID_MEDIA_TYPES = ["image", "video"];
 // social bits (likes/comments/follows) stay out of scope here, matching
 // Kareem's read-only scaffolding in social.queries.ts/social.ts.
 
-export async function create_work(userId: string, description: string | null) {
-	return createWork(userId, description ?? null);
+export async function create_work(userId: string, title: string | null, description: string | null) {
+	return createWork(userId, description ?? null, title ?? null);
 }
 
 export async function get_works_for_user(userId: string) {
 	return getWorksByUser(userId);
+}
+
+// Single-work detail for the work page: the work row plus its full update
+// history with media resolved, so the frontend gets everything in one call.
+export async function get_work_detail(workId: number) {
+	const work = await getWorkById(workId);
+
+	if (!work) {
+		throw new Error("Work not found");
+	}
+
+	const updates = await getWorkUpdates(workId);
+
+	const updatesWithMedia = await Promise.all(
+		updates.map(async (update) => ({
+			...update,
+			media: await getMediaForUpdate(update.id),
+		})),
+	);
+
+	return { ...work, updates: updatesWithMedia };
 }
 
 export async function add_work_update(userId: string, workId: number, description: string | null) {

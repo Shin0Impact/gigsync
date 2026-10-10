@@ -1,17 +1,42 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
+import crypto from "crypto";
 
 import { pool } from "../config/db";
 import {
 	create_user,
 	find_user_by_email,
+	find_user_by_id,
 	find_user_by_identifier,
+	mark_user_email_verified,
+	update_user_password,
 } from "../db/queries/users.queries";
 import { create_profile, find_profile_by_user_name } from "../db/queries/profiles.queries";
 import { create_role, find_role_by_user_id } from "../db/queries/roles.queries";
+import {
+	create_auth_token,
+	find_valid_auth_token,
+	mark_auth_token_used,
+} from "../db/queries/auth-tokens.queries";
+import { send_email } from "./mailer.service";
 
 import { env } from "../config/env";
 import { AuthTokenPayload, UserRole, ArtistCategory, RegisterInput, LoginInput } from "../types";
+
+// --- Account-recovery token constants ------------------------------------
+//
+// The raw token goes to the user (email link); only its SHA-256 hash is
+// stored, so a leaked DB row alone can't reset anything. Single-use via
+// used_at, expiring via expires_at, and creating a new token of the same
+// type invalidates the user's older unused ones (see auth-tokens.queries).
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const EMAIL_VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function generate_token_pair(): { raw: string; hash: string } {
+	const raw = crypto.randomBytes(32).toString("hex");
+	const hash = crypto.createHash("sha256").update(raw).digest("hex");
+	return { raw, hash };
+}
 
 // Roles a person can self-assign through public registration. `admin` and
 // `moderator` are deliberately excluded - those accounts review/approve
@@ -24,10 +49,14 @@ import { AuthTokenPayload, UserRole, ArtistCategory, RegisterInput, LoginInput }
 const SELF_REGISTERABLE_ROLES: UserRole[] = ["artist", "organizer", "fan"];
 
 export async function register_user(input: RegisterInput) {
-	const { email, password, role, user_name, artists_type = null } = input;
+	const { email, password, role, user_name, name, artists_type = null } = input;
 
 	if (!SELF_REGISTERABLE_ROLES.includes(role)) {
 		throw new Error("Invalid role");
+	}
+
+	if (!name || !name.trim()) {
+		throw new Error("Name is required");
 	}
 
 	// Only a length floor, not a complexity rule (no forced uppercase/
@@ -73,7 +102,20 @@ export async function register_user(input: RegisterInput) {
 
 		const role_record = await create_role(client, user.id, role);
 
-		const profile = await create_profile(client, user.id, user_name, artists_type);
+		const profile = await create_profile(client, user.id, user_name, name.trim(), artists_type);
+
+		// Every new account starts unverified; issue the first email
+		// verification token in the same transaction so the flow works
+		// even before any mail provider exists (the raw token is returned
+		// to the caller, which only exposes it in non-production).
+		const { raw, hash } = generate_token_pair();
+		await create_auth_token(
+			client,
+			user.id,
+			"email_verification",
+			hash,
+			new Date(Date.now() + EMAIL_VERIFICATION_TOKEN_TTL_MS),
+		);
 
 		await client.query("COMMIT");
 
@@ -81,6 +123,7 @@ export async function register_user(input: RegisterInput) {
 			user,
 			role: role_record,
 			profile,
+			email_verification_token: raw,
 		};
 	} catch (error) {
 		await client.query("ROLLBACK");
@@ -184,4 +227,158 @@ export async function refresh_tokens(refresh_token: string) {
 		access_token: new_access_token,
 		refresh_token: new_refresh_token,
 	};
+}
+
+// --- Account recovery -------------------------------------------------------
+//
+// change_password  (auth): verify the current password, store the new hash.
+// Note the same caveat as logout: access tokens are stateless JWTs with no
+// server-side session list, so an already-issued token lives out its 15
+// minutes even after a password change.
+export async function change_password(
+	userId: string,
+	currentPassword: string,
+	newPassword: string,
+) {
+	if (!currentPassword || !newPassword) {
+		throw new Error("currentPassword and newPassword are required");
+	}
+
+	const MIN_PASSWORD_LENGTH = 8;
+	if (newPassword.length < MIN_PASSWORD_LENGTH) {
+		throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+	}
+
+	const user = await find_user_by_id(userId);
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	const current_matches = await bcrypt.compare(currentPassword, user.password_hash);
+	if (!current_matches) {
+		throw new Error("Current password is incorrect");
+	}
+
+	const new_hash = await bcrypt.hash(newPassword, 12);
+	await update_user_password(userId, new_hash);
+}
+
+// request_password_reset (public): always resolves the same way whether or
+// not the email exists - a response that says "unknown email" would let
+// anyone probe for registered addresses. When the account exists, any
+// previous reset token is invalidated and a fresh one is issued and
+// "emailed" (currently the mailer stub - see mailer.service.ts).
+export async function request_password_reset(email: string) {
+	if (!email) {
+		throw new Error("email is required");
+	}
+
+	const user = await find_user_by_email(email);
+
+	if (!user) {
+		return { delivered: false as const, dev_token: null as string | null };
+	}
+
+	const { raw, hash } = generate_token_pair();
+
+	const client = await pool.connect();
+	try {
+		await client.query("BEGIN");
+		await create_auth_token(
+			client,
+			user.id,
+			"password_reset",
+			hash,
+			new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS),
+		);
+		await client.query("COMMIT");
+	} catch (error) {
+		await client.query("ROLLBACK");
+		throw error;
+	} finally {
+		client.release();
+	}
+
+	await send_email({
+		to: user.email,
+		subject: "Reset your Mezzo password",
+		text: `A password reset was requested for your account.\n\nReset token (valid for 1 hour): ${raw}\n\nIf this wasn't you, ignore this message.`,
+	});
+
+	return { delivered: true as const, dev_token: raw };
+}
+
+export async function reset_password(token: string, newPassword: string) {
+	if (!token || !newPassword) {
+		throw new Error("token and newPassword are required");
+	}
+
+	const MIN_PASSWORD_LENGTH = 8;
+	if (newPassword.length < MIN_PASSWORD_LENGTH) {
+		throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+	}
+
+	const hash = crypto.createHash("sha256").update(token).digest("hex");
+	const record = await find_valid_auth_token("password_reset", hash);
+
+	if (!record) {
+		throw new Error("Invalid or expired reset token");
+	}
+
+	const new_hash = await bcrypt.hash(newPassword, 12);
+	await update_user_password(record.user_id, new_hash);
+	await mark_auth_token_used(record.id);
+}
+
+// verify_email (public): token possession proves control of the inbox, so
+// no auth is required - same model as reset_password.
+export async function verify_email(token: string) {
+	if (!token) {
+		throw new Error("token is required");
+	}
+
+	const hash = crypto.createHash("sha256").update(token).digest("hex");
+	const record = await find_valid_auth_token("email_verification", hash);
+
+	if (!record) {
+		throw new Error("Invalid or expired verification token");
+	}
+
+	await mark_user_email_verified(record.user_id);
+	await mark_auth_token_used(record.id);
+}
+
+export async function resend_email_verification(userId: string) {
+	const user = await find_user_by_id(userId);
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	const { raw, hash } = generate_token_pair();
+
+	const client = await pool.connect();
+	try {
+		await client.query("BEGIN");
+		await create_auth_token(
+			client,
+			userId,
+			"email_verification",
+			hash,
+			new Date(Date.now() + EMAIL_VERIFICATION_TOKEN_TTL_MS),
+		);
+		await client.query("COMMIT");
+	} catch (error) {
+		await client.query("ROLLBACK");
+		throw error;
+	} finally {
+		client.release();
+	}
+
+	await send_email({
+		to: user.email,
+		subject: "Verify your Mezzo email",
+		text: `Verify your email address with this token (valid for 24 hours): ${raw}`,
+	});
+
+	return { dev_token: raw };
 }

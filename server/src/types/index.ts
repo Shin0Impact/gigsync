@@ -49,6 +49,7 @@ export interface DbProfile {
 	created_at: Date;
 	user_name: string;
 	user_id: string;
+	name: string | null;
 	avatar_url: string | null;
 	followers_number: number;
 	artists_type: string | null;
@@ -185,12 +186,31 @@ export interface RegisterInput {
 	password: string;
 	role: UserRole;
 	user_name: string;
+	name: string;
 	artists_type?: ArtistCategory | null;
 }
 
 export interface LoginInput {
 	identifier: string;
 	password: string;
+}
+
+export interface ChangePasswordInput {
+	currentPassword: string;
+	newPassword: string;
+}
+
+export interface ForgotPasswordInput {
+	email: string;
+}
+
+export interface ResetPasswordInput {
+	token: string;
+	newPassword: string;
+}
+
+export interface VerifyEmailInput {
+	token: string;
 }
 
 export interface UpdateEmergencyStatusInput {
@@ -371,6 +391,9 @@ export interface RegisterResponse {
 	user: Omit<DbUser, "password_hash">;
 	role: DbRole;
 	profile: DbProfile;
+	// Only present in non-production builds (no mail provider yet) - lets
+	// the email-verification flow be exercised end to end without SMTP.
+	dev_email_verification_token?: string;
 }
 
 export interface LoginResponse {
@@ -382,8 +405,42 @@ export interface RefreshResponse {
 	message: string;
 }
 
+// auth.controller.ts - account recovery (change/forgot/reset password,
+// verify/resend verification). devResetToken / devVerificationToken are
+// only set in non-production builds - they stand in for the email link
+// until a real mail provider is wired into mailer.service.ts.
+export interface MessageResponse {
+	message: string;
+	devResetToken?: string;
+	devVerificationToken?: string;
+}
+
 export interface MeResponse {
-	user: AuthTokenPayload | null;
+	user: MyProfile | null;
+}
+
+// users.controller.ts - GET /api/users/:identifier (public profile page)
+export interface PublicProfile {
+	userId: string;
+	userName: string;
+	name: string | null;
+	role: UserRole;
+	artistsType: string | null;
+	avatarUrl: string | null;
+	isVerified: boolean;
+	followersNumber: number;
+	createdAt: Date | string;
+}
+
+// auth.controller.ts GET /me - the public profile fields plus the owner's
+// own email (never exposed on the public :identifier endpoint).
+export interface MyProfile extends PublicProfile {
+	email: string;
+	emailVerified: boolean;
+}
+
+export interface GetUserProfileResponse {
+	profile: PublicProfile;
 }
 
 // artists.controller.ts

@@ -5,9 +5,9 @@ import {
   add_work_update_handler,
   create_work_handler,
   delete_update_media_handler,
+  get_work_or_user_works_handler,
   list_update_media_handler,
   list_work_updates_handler,
-  list_works_handler,
 } from '../controllers/works.controller';
 
 const router = Router();
@@ -19,7 +19,11 @@ const router = Router();
 // server/src/db/social.queries.ts for the read-only scaffolding Kareem
 // already has for those.
 router.post('/', requireAuth, requireRole('artist'), create_work_handler);
-router.get('/:userId', list_works_handler);
+
+// GET /:identifier - one route, two reads: a user UUID returns that user's
+// works list; a numeric work id returns the single work with updates and
+// media embedded (work detail page). See the controller for the contract.
+router.get('/:identifier', get_work_or_user_works_handler);
 
 router.post('/:workId/updates', requireAuth, requireRole('artist'), add_work_update_handler);
 router.get('/:workId/updates', list_work_updates_handler);
