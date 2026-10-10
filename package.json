@@ -17,5 +17,8 @@
   },
   "dependencies": {
     "uninstall": "^0.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
