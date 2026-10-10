@@ -1,14 +1,10 @@
-import { useState } from "react";
 import styles from "./MyPortfolio.module.css";
 import { useMeQuery } from "../../features/auth";
-import { FormAddToPortfolio } from "../../features/portfolio/components/FormAddToPortfolio";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../../features/portfolio";
 import { ButtonLink } from "@components";
 import { ROUTES } from "../../routes/routePaths";
 
 export function MyPortfolio() {
-	const [isAdding, setIsAdding] = useState(false); // Controls form visibility
-
 	const { data: meData } = useMeQuery();
 	const userId = meData?.user?.userId;
 
