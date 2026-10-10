@@ -17,7 +17,7 @@ export function Navbar({ role }: NavbarProps) {
 		<nav className={styles.navbar}>
 			{role === "supporter" && (
 				<ButtonLink
-					to={ROUTES.FOLLOWING}
+					to={ROUTES.HOME}
 					variant="logo"
 					className={styles.logoLink}
 					aria-label="Home">
@@ -31,14 +31,14 @@ export function Navbar({ role }: NavbarProps) {
 			<ul className={styles.links}>
 				<li>
 					<ButtonLink
-						to={ROUTES.FOLLOWING}
+						to={ROUTES.TIMELINE}
 						variant="ghost">
 						Following
 					</ButtonLink>
 				</li>
 				<li>
 					<ButtonLink
-						to={ROUTES.EXPLORE}
+						to={ROUTES.DISCOVERY}
 						variant="ghost">
 						Explore
 					</ButtonLink>

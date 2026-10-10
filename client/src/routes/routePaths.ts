@@ -3,12 +3,12 @@ export const ROUTES = {
 	LOGIN: "/login",
 	SIGNUP: "/signup",
 	ONBOARDING: "/onboarding",
-	FOLLOWING: "/following",
-	FOLLOWING_PIECES: "/following/pieces",
-	FOLLOWING_EVENTS: "/following/events",
-	EXPLORE: "/explore",
-	EXPLORE_PIECES: "/explore/pieces",
-	EXPLORE_EVENTS: "/explore/events",
+	TIMELINE: "/timeline",
+	TIMELINE_PIECES: "/timeline/pieces",
+	TIMELINE_EVENTS: "/timeline/events",
+	DISCOVERY: "/discovery",
+	DISCOVERY_PIECES: "/discovery/pieces",
+	DISCOVERY_EVENTS: "/discovery/events",
 
 	STUDIO: "/studio",
 	DASHBOARD: "/dashboard",
@@ -17,13 +17,18 @@ export const ROUTES = {
 	EVENTS: "/events",
 	VERIFICATION: "/verification",
 
-	SINGLE_PIECE: (id: string) => `/pieces/${id}`,
+	SINGLE_PIECE_PATTERN: "/pieces/:id",
+	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
 
 	PROFILE: (username: string) => `/${username}`,
-	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
+
+	USER_PORTFOLIO_PATTERN: "/:userId/portfolio",
+	USER_PORTFOLIO: (userId: string) => `/${userId}/portfolio`,
+
 	USER_PIECES: (username: string) => `/${username}/pieces`,
 	USER_EVENTS: (username: string) => `/${username}/events`,
 
 	CREATE_PIECE: "/pieces/new",
-	CREATE_INTERMEZZO: "/intermezze/new",
+	CREATE_INTERMEZZO: "/intermezzi/new",
+	CREATE_PORTFOLIO_SECTION: "/portfolio/new",
 } as const;

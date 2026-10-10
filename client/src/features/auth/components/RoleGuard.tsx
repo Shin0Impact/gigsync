@@ -34,7 +34,7 @@ export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 		}
 		return (
 			<Navigate
-				to={ROUTES.FOLLOWING}
+				to={ROUTES.HOME}
 				replace
 			/>
 		);

@@ -22,7 +22,7 @@ export function RootRedirect() {
 		}
 		return (
 			<Navigate
-				to={ROUTES.FOLLOWING}
+				to={ROUTES.HOME}
 				replace
 			/>
 		);
