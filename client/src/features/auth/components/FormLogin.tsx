@@ -23,7 +23,7 @@ export function FormLogin() {
 	}
 
 	function handleLoginSuccess() {
-		navigate(ROUTES.DASHBOARD, { replace: true });
+		navigate(ROUTES.HOME, { replace: true });
 	}
 
 	return (

@@ -6,6 +6,6 @@ export const api = createApi({
 		baseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000",
 		credentials: "include",
 	}),
-	tagTypes: ["Auth", "Piece", "Intermezzo", "Vignette", "Composition"],
+	tagTypes: ["Auth", "Piece", "Intermezzo", "Vignette", "Composition", "Portfolio"],
 	endpoints: () => ({}),
 });

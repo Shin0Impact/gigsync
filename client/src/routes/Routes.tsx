@@ -6,10 +6,12 @@ import OnboardingPage from "../pages/OnboardingPage";
 import { RoleGuard } from "../features/auth/components/RoleGuard";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import Layout from "../layouts/Layout";
-import { FormLogin, FormSignup } from "../features/auth";
+import { FormLogin, FormSignup, RequireGuest } from "../features/auth";
 import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
 import { MyPieces } from "../pages/creative/MyPieces";
 import { PieceDetails } from "../pages/creative/PieceDetails";
+import { MyPortfolio } from "../pages/creative/MyPortfolio";
+import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
 
 export function AppRoutes() {
 	return (
@@ -18,21 +20,23 @@ export function AppRoutes() {
 				path={ROUTES.HOME}
 				element={<RootRedirect />}
 			/>
-			<Route
-				element={
-					<Layout
-						type="form"
-						role="guest"
+			<Route element={<RequireGuest />}>
+				<Route
+					element={
+						<Layout
+							type="form"
+							role="guest"
+						/>
+					}>
+					<Route
+						path={ROUTES.LOGIN}
+						element={<FormLogin />}
 					/>
-				}>
-				<Route
-					path={ROUTES.LOGIN}
-					element={<FormLogin />}
-				/>
-				<Route
-					path={ROUTES.SIGNUP}
-					element={<FormSignup />}
-				/>
+					<Route
+						path={ROUTES.SIGNUP}
+						element={<FormSignup />}
+					/>
+				</Route>
 			</Route>
 
 			<Route
@@ -46,8 +50,12 @@ export function AppRoutes() {
 
 			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
 				<Route
-					path="/pieces/:id"
+					path={ROUTES.SINGLE_PIECE_PATTERN}
 					element={<PieceDetails />}
+				/>
+				<Route
+					path={ROUTES.USER_PORTFOLIO_PATTERN}
+					element={<MyPortfolio />}
 				/>
 			</Route>
 
@@ -67,6 +75,10 @@ export function AppRoutes() {
 						path={ROUTES.PIECES}
 						element={<MyPieces />}
 					/>
+					<Route
+						path={ROUTES.PORTFOLIO}
+						element={<MyPortfolio />}
+					/>
 				</Route>
 				<Route
 					element={
@@ -82,6 +94,10 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.CREATE_INTERMEZZO}
 						element={<FormIntermezzoCreate />}
+					/>
+					<Route
+						path={ROUTES.CREATE_PORTFOLIO_SECTION}
+						element={<FormAddToPortfolio />}
 					/>
 				</Route>
 			</Route>
