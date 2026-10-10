@@ -30,6 +30,7 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 client/vite.config.js
+client/.tsc-out/
 client/vite.config.d.ts
 
 # Testing / coverage
@@ -38,6 +39,7 @@ coverage/
 # tsc -b emits these next to vite.config.ts since tsconfig.node.json is a
 # composite project (can't set noEmit) - harmless, just don't commit them
 client/vite.config.js
+client/.tsc-out/
 client/vite.config.d.ts
 
 bun.lock
