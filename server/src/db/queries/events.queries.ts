@@ -1,6 +1,6 @@
 import { PoolClient } from "pg";
 import { pool } from "../../config/db";
-import { ApplicationStatus, ArtistCategory, EventStatus } from "../../types";
+import { ApplicationStatus, ArtistCategory, DbEventApplicationWithEvent, EventStatus } from "../../types";
 
 // Card #23 - Event CRUD + application endpoints.
 //
@@ -431,4 +431,34 @@ export async function update_application_status(
 	);
 
 	return result.rows[0] ?? null;
+}
+
+// An artist's own application history across every event they've applied
+// to - joined with the event so the artist-facing "my gigs" page can show
+// title/date/status without a second round trip per row. Unlike
+// list_applications_for_event (organizer-only, one event), this is
+// artist-scoped and spans events - different access pattern, so it's a
+// separate query rather than a filter bolted onto that one.
+
+export async function list_applications_for_artist(
+	artistId: string,
+): Promise<DbEventApplicationWithEvent[]> {
+	const result = await pool.query<DbEventApplicationWithEvent>(
+		`
+      SELECT
+        ea.id, ea.event_id, ea.artist_id, ea.status, ea.cover_note,
+        ea.applied_at, ea.updated_at,
+        e.title AS event_title,
+        e.start_at AS event_start_at,
+        e.venue_name AS event_venue_name,
+        e.status AS event_status
+      FROM event_applications ea
+      JOIN event e ON e.id = ea.event_id
+      WHERE ea.artist_id = $1
+      ORDER BY ea.applied_at DESC
+    `,
+		[artistId],
+	);
+
+	return result.rows;
 }

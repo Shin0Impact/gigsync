@@ -1,14 +1,22 @@
 import {
 	createUpdateMedia,
 	createWork,
+	createWorkComment,
+	createWorkLike,
 	createWorkUpdate,
 	deleteUpdateMedia,
+	deleteWorkComment,
+	deleteWorkLike,
+	getFollowedUserIds,
+	getLikeCountForWork,
 	getMediaForUpdate,
 	getUpdateMediaById,
 	getWorkById,
+	getWorkCommentById,
 	getWorkUpdateById,
 	getWorkUpdates,
 	getWorksByUser,
+	listWorksFeed,
 } from "../db/social.queries";
 import { delete_object } from "./media.service";
 
@@ -18,9 +26,11 @@ const VALID_MEDIA_TYPES = ["image", "video"];
 
 // "Works" are an artist's portfolio: a Work is a project, each Work has
 // versioned Updates (progress posts), and each Update can carry R2-backed
-// media. This is the "artist uploads" half of card #78's follow-up - the
-// social bits (likes/comments/follows) stay out of scope here, matching
-// Kareem's read-only scaffolding in social.queries.ts/social.ts.
+// media. This is the "artist uploads" half of card #78's follow-up.
+//
+// Likes/comments/feed listing (2026-10-11): previously out of scope, now
+// implemented below on top of Kareem's read-only scaffolding in
+// social.queries.ts - see that file for the write-path query helpers.
 
 export async function create_work(userId: string, description: string | null) {
 	return createWork(userId, description ?? null);
@@ -137,4 +147,88 @@ export async function remove_update_media(userId: string, updateId: number, medi
 			err,
 		);
 	}
+}
+
+const FEED_PAGE_SIZE = 20;
+const MAX_FEED_PAGE_SIZE = 50;
+
+function clamp_limit(requested: number | undefined): number {
+	if (!requested || !Number.isFinite(requested) || requested <= 0) {
+		return FEED_PAGE_SIZE;
+	}
+	return Math.min(requested, MAX_FEED_PAGE_SIZE);
+}
+
+export interface ListWorksFeedParams {
+	limit?: number;
+	offset?: number;
+	// "following" restricts to the works of whoever `viewerId` follows -
+	// requires a viewer (enforced by the route, see works.routes.ts).
+	scope?: "explore" | "following";
+	viewerId?: string | null;
+}
+
+export async function list_works_feed(params: ListWorksFeedParams) {
+	const limit = clamp_limit(params.limit);
+	const offset = Math.max(0, params.offset ?? 0);
+
+	let authorIds: string[] | undefined;
+	if (params.scope === "following") {
+		if (!params.viewerId) {
+			throw new Error("Must be signed in to view the following feed");
+		}
+		authorIds = await getFollowedUserIds(params.viewerId);
+	}
+
+	return listWorksFeed({ limit, offset, authorIds, viewerId: params.viewerId ?? null });
+}
+
+export async function like_work(userId: string, workId: number) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	await createWorkLike(workId, userId);
+	const count = await getLikeCount(workId);
+	return { liked: true, likeCount: count };
+}
+
+export async function unlike_work(userId: string, workId: number) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	await deleteWorkLike(workId, userId);
+	const count = await getLikeCount(workId);
+	return { liked: false, likeCount: count };
+}
+
+async function getLikeCount(workId: number): Promise<number> {
+	return getLikeCountForWork(workId);
+}
+
+export async function add_comment(userId: string, workId: number, content: string) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	const trimmed = content?.trim();
+	if (!trimmed) {
+		throw new Error("content is required");
+	}
+	if (trimmed.length > 2000) {
+		throw new Error("content must be 2000 characters or fewer");
+	}
+	return createWorkComment(workId, userId, trimmed);
+}
+
+export async function remove_comment(userId: string, commentId: number) {
+	const comment = await getWorkCommentById(commentId);
+	if (!comment) {
+		throw new Error("Comment not found");
+	}
+	if (comment.userId !== userId) {
+		throw new Error("You do not own this comment");
+	}
+	await deleteWorkComment(commentId);
 }

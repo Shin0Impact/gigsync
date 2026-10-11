@@ -6,6 +6,7 @@ import {
 	get_event,
 	list_applications_for_organizer,
 	list_events_for_discovery,
+	list_my_applications,
 	update_application_status_for_organizer,
 	update_event_for_organizer,
 } from "../services/events.service";
@@ -21,6 +22,7 @@ import {
 	UpdateApplicationResponse,
 	ErrorResponse,
 	ApplicationStatus,
+	ListMyApplicationsResponse,
 } from "../types";
 
 // Small helper: every :id / :appId param on these routes is either a
@@ -221,5 +223,17 @@ export async function update_application(
 		return res.status(200).json({ application });
 	} catch (error) {
 		return handle_known_error(error, res, "Failed to update application");
+	}
+}
+
+export async function list_my_applications_handler(
+	req: Request,
+	res: Response<ListMyApplicationsResponse | ErrorResponse>,
+): Promise<Response> {
+	try {
+		const applications = await list_my_applications(req.user!.userId);
+		return res.status(200).json({ applications });
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to list your applications");
 	}
 }

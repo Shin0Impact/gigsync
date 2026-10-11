@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { login_user, refresh_tokens, register_user } from "../services/auth.service";
+import { getProfileByUserId } from "../db/social.queries";
 import {
 	RegisterInput,
 	LoginInput,
@@ -185,5 +186,22 @@ export async function logout(_req: Request, res: Response<void>) {
 }
 
 export async function me(req: Request, res: Response<MeResponse>) {
-	res.json({ user: req.user ?? null });
+	if (!req.user) {
+		return res.json({ user: null, profile: null });
+	}
+
+	// Resolved alongside the JWT payload so the client always has its own
+	// username/avatar without a second round trip - the Navbar profile
+	// link, the global post composer, etc. all need this. Best-effort: a
+	// missing profile row shouldn't fail /me, just come back as null.
+	const profileRow = await getProfileByUserId(req.user.userId);
+	const profile = profileRow
+		? {
+				userName: profileRow.userName,
+				avatarUrl: profileRow.avatarUrl,
+				artistsType: profileRow.artistsType,
+			}
+		: null;
+
+	res.json({ user: req.user, profile });
 }

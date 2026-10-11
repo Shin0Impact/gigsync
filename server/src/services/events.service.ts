@@ -6,6 +6,7 @@ import {
 	delete_event,
 	find_application_by_id,
 	find_event_by_id,
+	list_applications_for_artist,
 	list_applications_for_event,
 	list_events,
 	ListEventsFilters,
@@ -319,4 +320,11 @@ export async function update_application_status_for_organizer(
 	}
 
 	return update_application_status(applicationId, status);
+}
+
+// Artist-facing: everything *they've* applied to, across events, with
+// status - no ownership check needed, artistId comes straight from the
+// JWT (see requireRole("artist") on the route).
+export async function list_my_applications(artistId: string) {
+	return list_applications_for_artist(artistId);
 }
