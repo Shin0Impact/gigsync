@@ -21,6 +21,7 @@ export const ROUTES = {
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
 
 	PROFILE: (username: string) => `/${username}`,
+	PROFILE_PATTERN: "/:username",
 
 	USER_PORTFOLIO_PATTERN: "/:userId/portfolio",
 	USER_PORTFOLIO: (userId: string) => `/${userId}/portfolio`,

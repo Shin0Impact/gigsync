@@ -1,0 +1,173 @@
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.profileHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding-bottom: 2rem;
+    border-bottom: 0.125rem solid var(--color-accent);
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 220px;
+}
+
+.nameRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.name {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 2rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.verifiedBadge {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-primary);
+    background-color: var(--color-accent);
+    padding: 0.3rem 0.6rem;
+}
+
+.userName {
+    font-family: var(--font-serif, serif);
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--color-accent);
+    margin: 0;
+    opacity: 0.75;
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.artistType {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-accent);
+    border: 0.125rem solid var(--color-accent);
+    padding: 0.25rem 0.6rem;
+}
+
+.followersCount {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    color: var(--color-accent);
+}
+
+.socialLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.socialLink {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    border-bottom: 0.0625rem solid var(--color-accent);
+    opacity: 0.85;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.followButton {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background-color: var(--color-yellow);
+        color: var(--color-accent);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.followButton[data-following="true"] {
+    background-color: transparent;
+    color: var(--color-accent);
+}
+
+.piecesSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sectionTitle {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.emptyText {
+    font-family: var(--font-serif, serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.75;
+    margin: 0;
+}
+
+.loading,
+.error {
+    font-family: var(--font-serif, serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-accent);
+}

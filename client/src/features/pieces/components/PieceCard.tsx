@@ -9,9 +9,12 @@ import styles from "./PieceCard.module.css";
 
 interface PieceCardProps {
 	piece: Piece;
+	// Hides the "+ Intermezzo" action - set this when rendering someone
+	// else's piece (see ProfilePage.tsx), since only the owner can add to it.
+	readOnly?: boolean;
 }
 
-export function PieceCard({ piece }: PieceCardProps) {
+export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	const navigate = useNavigate();
 	const { openPost } = usePostQuickView();
 
@@ -95,14 +98,16 @@ export function PieceCard({ piece }: PieceCardProps) {
 				{intermezzosCount === 1 ? "1 Intermezzo posted" : `${intermezzosCount} Intermezzi posted`}
 			</div>
 
-			<div className={styles.actions}>
-				<button
-					type="button"
-					className={`${styles.actionButton} ${styles.addIntermezzoBtn}`}
-					onClick={handleAddIntermezzo}>
-					+ Intermezzo
-				</button>
-			</div>
+			{!readOnly && (
+				<div className={styles.actions}>
+					<button
+						type="button"
+						className={`${styles.actionButton} ${styles.addIntermezzoBtn}`}
+						onClick={handleAddIntermezzo}>
+						+ Intermezzo
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }

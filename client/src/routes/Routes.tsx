@@ -15,6 +15,7 @@ import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPo
 import { Events } from "../pages/creative/Events";
 import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
 import { FollowingPage } from "../features/explore/FollowingPage";
+import ProfilePage from "../pages/ProfilePage";
 
 export function AppRoutes() {
 	return (
@@ -93,6 +94,10 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.TIMELINE}
 						element={<FollowingPage />}
+					/>
+					<Route
+						path={ROUTES.PROFILE_PATTERN}
+						element={<ProfilePage />}
 					/>
 				</Route>
 				<Route
