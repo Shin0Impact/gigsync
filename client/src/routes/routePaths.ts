@@ -10,20 +10,19 @@ export const ROUTES = {
 	DISCOVERY_PIECES: "/discovery/pieces",
 	DISCOVERY_EVENTS: "/discovery/events",
 
-	STUDIO: "/studio",
-	DASHBOARD: "/dashboard",
-	PIECES: "/pieces",
-	PORTFOLIO: "/portfolio",
 	EVENTS: "/events",
 	VERIFICATION: "/verification",
+	NOTIFICATIONS: "/notifications",
 
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
 
+	// Profile is the single hub for a user's own (or anyone else's) pieces
+	// and portfolio - see ProfilePage.tsx. Studio (/dashboard), /pieces,
+	// /portfolio and /:userId/portfolio used to be separate pages/routes
+	// for slices of this same data; they're gone now.
 	PROFILE: (username: string) => `/${username}`,
-
-	USER_PORTFOLIO_PATTERN: "/:userId/portfolio",
-	USER_PORTFOLIO: (userId: string) => `/${userId}/portfolio`,
+	PROFILE_PATTERN: "/:username",
 
 	USER_PIECES: (username: string) => `/${username}/pieces`,
 	USER_EVENTS: (username: string) => `/${username}/events`,

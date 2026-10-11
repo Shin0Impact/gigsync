@@ -1,0 +1,147 @@
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 1000;
+}
+
+.modal {
+    width: 100%;
+    max-width: 32rem;
+    max-height: 85vh;
+    overflow-y: auto;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.title {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--color-accent);
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+
+    &:hover:not(:disabled) {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.5rem 1.5rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-family: var(--font-serif, serif);
+    font-size: 1rem;
+    color: var(--color-accent);
+}
+
+.textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1rem;
+    color: var(--color-accent);
+    box-sizing: border-box;
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--color-blue);
+    }
+
+    &::placeholder {
+        color: rgba(0, 0, 0, 0.4);
+    }
+}
+
+.errorMessage {
+    font-family: var(--font-serif, serif);
+    font-size: 0.9rem;
+    color: #d32f2f;
+    margin: 0;
+    font-style: italic;
+}
+
+.submitButton {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.125rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    box-sizing: border-box;
+
+    &:hover:not(:disabled) {
+        background-color: var(--color-yellow);
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.successState {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.5rem 1.5rem;
+}
+
+.successMessage {
+    font-family: var(--font-serif, serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--color-accent);
+    margin: 0;
+}

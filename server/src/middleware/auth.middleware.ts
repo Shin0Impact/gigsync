@@ -35,3 +35,25 @@ export function requireRole(...roles: UserRole[]) {
     next();
   };
 }
+
+// Like requireAuth, but never rejects - attaches req.user when a valid
+// cookie is present, otherwise leaves it undefined and continues. Public
+// GET endpoints that still want to personalize the response when the
+// caller happens to be signed in (e.g. "isFollowedByMe"/"likedByMe" on a
+// profile or feed) use this instead of requireAuth.
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token = req.cookies?.access_token;
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    req.user = jwt.verify(token, env.jwt.accessSecret) as AuthTokenPayload;
+  } catch {
+    // Invalid/expired token on an optional-auth route - treat as
+    // anonymous rather than failing the request.
+  }
+
+  next();
+}

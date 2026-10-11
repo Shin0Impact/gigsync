@@ -40,27 +40,13 @@
     opacity: 0.8;
 }
 
-.createButton {
-    padding: 0.875rem 1.5rem;
-    background-color: var(--color-accent);
-    color: var(--color-primary);
-    border: 0.125rem solid var(--color-accent);
-    font-family: var(--font-sans, sans-serif);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background-color: var(--color-yellow);
-        color: var(--color-accent);
-    }
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+.feed {
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .emptyState {
@@ -97,4 +83,15 @@
     text-align: center;
     padding: 3rem;
     color: var(--color-accent);
+}
+
+@media (max-width: 36rem) {
+    .container {
+        padding: 1.5rem 1rem;
+        gap: 1.75rem;
+    }
+
+    .title {
+        font-size: 1.85rem;
+    }
 }

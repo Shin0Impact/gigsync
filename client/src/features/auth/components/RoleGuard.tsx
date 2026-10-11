@@ -13,6 +13,7 @@ export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 	if (isLoading) return <p>Loading…</p>;
 
 	const user = data?.user;
+	const profile = data?.profile;
 
 	if (!user) {
 		return (
@@ -24,10 +25,13 @@ export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 	}
 
 	if (!allowedRoles.includes(user.role)) {
-		if (user.role === "artist" || user.role === "organizer") {
+		// Same reasoning as RootRedirect - Studio (/dashboard) is gone, so
+		// an artist/organizer landing here on a page they can't access gets
+		// sent to their own profile instead.
+		if ((user.role === "artist" || user.role === "organizer") && profile) {
 			return (
 				<Navigate
-					to={ROUTES.DASHBOARD}
+					to={ROUTES.PROFILE(profile.userName)}
 					replace
 				/>
 			);

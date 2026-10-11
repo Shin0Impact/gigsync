@@ -222,3 +222,24 @@
         }
     }
 }
+
+@media (max-width: 36rem) {
+    .formWrapper {
+        .formBody {
+            gap: 1.75rem;
+            padding: 1.5rem 1rem;
+
+            .title {
+                font-size: 2.25rem;
+            }
+
+            .form {
+                max-width: 100%;
+
+                .field .buttonRow {
+                    flex-wrap: wrap;
+                }
+            }
+        }
+    }
+}

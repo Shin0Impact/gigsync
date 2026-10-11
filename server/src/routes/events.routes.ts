@@ -7,6 +7,7 @@ import {
   get_event_by_id,
   list_applications,
   list_events,
+  list_my_applications_handler,
   update_application,
   update_event_by_id,
 } from '../controllers/events.controller';
@@ -24,6 +25,11 @@ router.delete('/:id', requireAuth, requireRole('organizer'), delete_event_by_id)
 router.post('/:id/apply', requireAuth, requireRole('artist'), apply);
 router.get('/:id/applications', requireAuth, requireRole('organizer'), list_applications);
 router.patch('/:id/applications/:appId', requireAuth, requireRole('organizer'), update_application);
+
+// Artist-facing - everything *they've* applied to, across events. Has to
+// be its own route (not a query param on GET /:id/applications, which is
+// organizer-only and scoped to one event) since it spans events.
+router.get('/applications/mine', requireAuth, requireRole('artist'), list_my_applications_handler);
 
 // Event media - flyer/photos/video attached to an event. Uploading the
 // actual file happens against R2 directly (see POST /api/media/upload-url);
