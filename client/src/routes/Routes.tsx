@@ -12,6 +12,7 @@ import { MyPieces } from "../pages/creative/MyPieces";
 import { PieceDetails } from "../pages/creative/PieceDetails";
 import { MyPortfolio } from "../pages/creative/MyPortfolio";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
+import { Events } from "../pages/creative/Events";
 
 export function AppRoutes() {
 	return (
@@ -78,6 +79,10 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.PORTFOLIO}
 						element={<MyPortfolio />}
+					/>
+					<Route
+						path={ROUTES.EVENTS}
+						element={<Events />}
 					/>
 				</Route>
 				<Route

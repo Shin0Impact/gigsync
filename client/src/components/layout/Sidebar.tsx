@@ -69,6 +69,11 @@ const creativeSidebar = (
 					color="invert">
 					Portfolio
 				</LinkNav>
+				<LinkNav
+					to={ROUTES.EVENTS}
+					color="invert">
+					Events
+				</LinkNav>
 			</aside>
 			{/* <span className={styles.sidebarWordmark}>Mezzo</span> */}
 		</div>
