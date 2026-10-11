@@ -32,3 +32,16 @@
         transform: scale(1.05);
     }
 }
+
+/* Clears the bottom nav bar the Sidebar becomes below 48rem (see
+   SplitView.module.css/Sidebar.module.css) - 2rem alone would sit the FAB
+   right on top of it. */
+@media (max-width: 48rem) {
+    .fab {
+        bottom: 5.5rem;
+        right: 1.25rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.5rem;
+    }
+}

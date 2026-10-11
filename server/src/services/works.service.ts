@@ -5,11 +5,14 @@ import {
 	createWorkLike,
 	createWorkUpdate,
 	deleteUpdateMedia,
+	deleteWork,
 	deleteWorkComment,
 	deleteWorkLike,
+	getAllMediaForWork,
 	getFollowedUserIds,
 	getLikeCountForWork,
 	getMediaForUpdate,
+	getWorkLikesByUser,
 	getUpdateMediaById,
 	getWorkById,
 	getWorkCommentById,
@@ -149,6 +152,38 @@ export async function remove_update_media(userId: string, updateId: number, medi
 	}
 }
 
+// Deletes a work and everything hanging off it: work_updates, their
+// update_media (plus the backing R2 objects, best-effort, same pattern
+// as remove_update_media above), and work_likes/work_comments. Reads the
+// r2Key list before the rows are deleted since deleteWork() removes the
+// update_media rows along with everything else.
+export async function remove_work(userId: string, workId: number) {
+	const work = await getWorkById(workId);
+
+	if (!work) {
+		throw new Error("Work not found");
+	}
+
+	if (work.userId !== userId) {
+		throw new Error("You do not own this work");
+	}
+
+	const media = await getAllMediaForWork(workId);
+
+	await deleteWork(workId);
+
+	for (const item of media) {
+		try {
+			await delete_object(item.r2Key);
+		} catch (err) {
+			console.warn(
+				`Failed to delete R2 object ${item.r2Key} after removing work ${workId}:`,
+				err,
+			);
+		}
+	}
+}
+
 const FEED_PAGE_SIZE = 20;
 const MAX_FEED_PAGE_SIZE = 50;
 
@@ -181,6 +216,18 @@ export async function list_works_feed(params: ListWorksFeedParams) {
 	}
 
 	return listWorksFeed({ limit, offset, authorIds, viewerId: params.viewerId ?? null });
+}
+
+export async function get_like_status(workId: number, viewerId: string | null) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	const [likeCount, likedByMe] = await Promise.all([
+		getLikeCountForWork(workId),
+		viewerId ? getWorkLikesByUser(workId, viewerId).then((row) => row !== null) : Promise.resolve(false),
+	]);
+	return { liked: likedByMe, likeCount };
 }
 
 export async function like_work(userId: string, workId: number) {

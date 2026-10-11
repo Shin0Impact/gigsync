@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../middleware/auth.middleware";
+import { optionalAuth, requireAuth, requireRole } from "../middleware/auth.middleware";
 import {
 	add_comment_handler,
 	add_update_media_handler,
@@ -7,6 +7,8 @@ import {
 	create_work_handler,
 	delete_comment_handler,
 	delete_update_media_handler,
+	delete_work_handler,
+	get_like_status_handler,
 	like_work_handler,
 	list_comments_handler,
 	list_update_media_handler,
@@ -27,6 +29,7 @@ const router = Router();
 // read-only scaffolding in server/src/db/social.queries.ts.
 router.post("/", requireAuth, requireRole("artist"), create_work_handler);
 router.get("/:userId", list_works_handler);
+router.delete("/:workId", requireAuth, requireRole("artist"), delete_work_handler);
 
 router.post("/:workId/updates", requireAuth, requireRole("artist"), add_work_update_handler);
 router.get("/:workId/updates", list_work_updates_handler);
@@ -43,6 +46,7 @@ router.get("/", list_works_feed_handler);
 
 // Likes - toggle via POST/DELETE rather than a single PATCH, matching the
 // showcase add/delete and event apply patterns already used elsewhere.
+router.get("/:workId/like", optionalAuth, get_like_status_handler);
 router.post("/:workId/like", requireAuth, like_work_handler);
 router.delete("/:workId/like", requireAuth, unlike_work_handler);
 

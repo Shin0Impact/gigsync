@@ -6,11 +6,13 @@ import {
 	create_work,
 	get_media_for_update,
 	get_updates_for_work,
+	get_like_status,
 	get_works_for_user,
 	like_work,
 	list_works_feed,
 	remove_comment,
 	remove_update_media,
+	remove_work,
 	unlike_work,
 } from "../services/works.service";
 import { ErrorResponse } from "../types";
@@ -161,6 +163,22 @@ export async function delete_update_media_handler(
 	}
 }
 
+export async function delete_work_handler(
+	req: Request<{ workId: string }>,
+	res: Response<void | ErrorResponse>,
+) {
+	const workId = parse_id(req.params.workId);
+	if (workId === null) {
+		return res.status(400).json({ error: "Invalid id" });
+	}
+	try {
+		await remove_work(req.user!.userId, workId);
+		return res.status(204).send();
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to delete work");
+	}
+}
+
 export async function list_works_feed_handler(
 	req: Request<
 		Record<string, never>,
@@ -181,6 +199,22 @@ export async function list_works_feed_handler(
 		return res.status(200).json({ works });
 	} catch (error) {
 		return handle_known_error(error, res, "Failed to list works feed");
+	}
+}
+
+export async function get_like_status_handler(
+	req: Request<{ workId: string }>,
+	res: Response<ToggleWorkLikeResponse | ErrorResponse>,
+) {
+	const workId = parse_id(req.params.workId);
+	if (workId === null) {
+		return res.status(400).json({ error: "Invalid work id" });
+	}
+	try {
+		const result = await get_like_status(workId, req.user?.userId ?? null);
+		return res.status(200).json(result);
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to load like status");
 	}
 }
 

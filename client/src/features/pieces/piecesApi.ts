@@ -38,6 +38,18 @@ export const worksApi = api.injectEndpoints({
 					: [{ type: "Piece", id: `USER_${userId}` }],
 		}),
 
+		deletePiece: builder.mutation<void, { pieceId: number | string; ownerId?: string }>({
+			query: ({ pieceId }) => ({
+				url: `/api/works/${pieceId}`,
+				method: "DELETE",
+			}),
+			invalidatesTags: (_result, _error, { pieceId, ownerId }) => [
+				{ type: "Piece", id: pieceId },
+				...(ownerId ? [{ type: "Piece" as const, id: `USER_${ownerId}` }] : []),
+				{ type: "Feed", id: "LIST" },
+			],
+		}),
+
 		addIntermezzo: builder.mutation<
 			AddWorkUpdateResponse,
 			{ pieceId: number | string; body: CreateWorkUpdateInput }
@@ -164,6 +176,7 @@ export const worksApi = api.injectEndpoints({
 export const {
 	useCreatePieceMutation,
 	useListPiecesQuery,
+	useDeletePieceMutation,
 	useAddIntermezzoMutation,
 	useListIntermezzosQuery,
 	useAddVignetteMutation,

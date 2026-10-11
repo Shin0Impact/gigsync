@@ -21,6 +21,7 @@ import {
   IWorkComment,
   IPostEvent,
   WorkFeedItem,
+  WorkCommentWithAuthor,
 } from '../types/social';
 
 interface ProfileRow {
@@ -182,7 +183,7 @@ export async function getWorkLikesByUser(workId: number, userId: string): Promis
     : null;
 }
 
-export async function getCommentsForWork(workId: number): Promise<IWorkComment[]> {
+export async function getCommentsForWork(workId: number): Promise<WorkCommentWithAuthor[]> {
   interface WorkCommentRow {
     id: number;
     work_id: number;
@@ -190,9 +191,18 @@ export async function getCommentsForWork(workId: number): Promise<IWorkComment[]
     content: string;
     created_at: string;
     updated_at: string;
+    user_name: string;
+    avatar_url: string | null;
   }
+  // Joined with profiles (2026-10-11) so the client can show who said
+  // what, rather than a bare user_id - the original read-only
+  // scaffolding returned IWorkComment alone, with no author.
   const result = await query<WorkCommentRow>(
-    'select * from work_comments where work_id = $1 order by created_at asc',
+    `select wc.*, p.user_name, p.avatar_url
+     from work_comments wc
+     join profiles p on p.user_id = wc.user_id
+     where wc.work_id = $1
+     order by wc.created_at asc`,
     [workId]
   );
   return result.rows.map((row) => ({
@@ -202,6 +212,8 @@ export async function getCommentsForWork(workId: number): Promise<IWorkComment[]
     content: row.content,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    userName: row.user_name,
+    avatarUrl: row.avatar_url,
   }));
 }
 
@@ -693,4 +705,55 @@ export async function getRecentNewFollowers(userId: string, limit: number): Prom
     [userId, limit]
   );
   return result.rows;
+}
+
+// --- Writes: delete a work and everything hanging off it (2026-10-11) --
+// A work owns work_updates, which own update_media, plus work_likes/
+// work_comments keyed directly on work_id. The live schema lives in
+// Supabase rather than this repo (see header comment at top of file), so
+// cascade behaviour there isn't something this codebase can verify -
+// delete child rows explicitly in dependency order instead of assuming
+// ON DELETE CASCADE is set up. R2 cleanup for update_media happens in
+// works.service.ts's remove_work, which needs the r2Key list before the
+// rows are gone - hence the separate getAllMediaForWork read below.
+
+export async function getAllMediaForWork(workId: number): Promise<IUpdateMedia[]> {
+  interface UpdateMediaRow {
+    id: number;
+    update_id: number;
+    media_type: string;
+    r2_key: string;
+    mime_type: string;
+    file_size: number;
+    sort_order: number;
+    created_at: string;
+  }
+  const result = await query<UpdateMediaRow>(
+    `select um.* from update_media um
+     join work_updates wu on wu.id = um.update_id
+     where wu.work_id = $1`,
+    [workId]
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    updateId: row.update_id,
+    mediaType: row.media_type,
+    r2Key: row.r2_key,
+    mimeType: row.mime_type,
+    fileSizeBytes: row.file_size,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function deleteWork(workId: number): Promise<boolean> {
+  await query(
+    'delete from update_media where update_id in (select id from work_updates where work_id = $1)',
+    [workId]
+  );
+  await query('delete from work_updates where work_id = $1', [workId]);
+  await query('delete from work_likes where work_id = $1', [workId]);
+  await query('delete from work_comments where work_id = $1', [workId]);
+  const result = await query('delete from works where id = $1', [workId]);
+  return (result.rowCount ?? 0) > 0;
 }

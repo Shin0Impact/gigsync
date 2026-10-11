@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { MouseEvent } from "react";
 import type { IWork as Piece } from "@shared/types/social";
-import { useListIntermezzosQuery, useListVignettesQuery } from "../piecesApi";
+import { useListIntermezzosQuery, useListVignettesQuery, useDeletePieceMutation } from "../piecesApi";
 import { ROUTES } from "../../../routes/routePaths";
 import { getMediaUrl } from "../../../shared/mediaUrl";
 import { usePostQuickView } from "../PostQuickViewProvider";
+import { ConfirmDialog } from "../../../components/ui";
 import styles from "./PieceCard.module.css";
 
 interface PieceCardProps {
@@ -17,6 +19,8 @@ interface PieceCardProps {
 export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	const navigate = useNavigate();
 	const { openPost } = usePostQuickView();
+	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+	const [deletePiece, { isLoading: isDeleting, error: deleteError }] = useDeletePieceMutation();
 
 	const { data: intermezzosData } = useListIntermezzosQuery(piece.id);
 	const intermezzosCount = 1 + (intermezzosData?.updates?.length ?? 0);
@@ -46,7 +50,24 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 		navigate(`${ROUTES.CREATE_INTERMEZZO}?pieceId=${piece.id}`);
 	};
 
+	const handleDeleteClick = (e: MouseEvent) => {
+		// Same reason as handleAddIntermezzo above - stop this from also
+		// opening the quick-view popup underneath the confirm dialog.
+		e.stopPropagation();
+		setIsConfirmingDelete(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		try {
+			await deletePiece({ pieceId: piece.id, ownerId: piece.userId }).unwrap();
+			setIsConfirmingDelete(false);
+		} catch (err) {
+			console.error("Failed to delete piece:", err);
+		}
+	};
+
 	return (
+		<>
 		<div
 			className={styles.card}
 			role="button"
@@ -106,8 +127,25 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 						onClick={handleAddIntermezzo}>
 						+ Intermezzo
 					</button>
+					<button
+						type="button"
+						className={`${styles.actionButton} ${styles.deleteBtn}`}
+						onClick={handleDeleteClick}>
+						Delete
+					</button>
 				</div>
 			)}
 		</div>
+		<ConfirmDialog
+			isOpen={isConfirmingDelete}
+			title="Delete this piece?"
+			message="This removes the piece and all of its Intermezzi, media, likes, and comments. This can't be undone."
+			confirmLabel="Delete piece"
+			isConfirming={isDeleting}
+			errorMessage={deleteError ? "Failed to delete piece. Please try again." : null}
+			onConfirm={handleConfirmDelete}
+			onCancel={() => setIsConfirmingDelete(false)}
+		/>
+		</>
 	);
 }

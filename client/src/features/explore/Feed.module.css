@@ -84,3 +84,14 @@
     padding: 3rem;
     color: var(--color-accent);
 }
+
+@media (max-width: 36rem) {
+    .container {
+        padding: 1.5rem 1rem;
+        gap: 1.75rem;
+    }
+
+    .title {
+        font-size: 1.85rem;
+    }
+}

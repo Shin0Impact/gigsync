@@ -34,7 +34,7 @@ export default function Layout({ type, role }: LayoutProps) {
 	return (
 		<SplitView
 			role={role}
-			contentDecoration={type === "form"}>
+			contentDecoration>
 			{role !== "guest" && type === "page" && <Navbar role={role} />}
 
 			{showCreativeChrome ? (

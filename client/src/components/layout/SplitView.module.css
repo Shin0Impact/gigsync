@@ -57,3 +57,21 @@
     }
 
 }
+/* Below this width the fixed 12rem-wide left Sidebar would eat most of a
+   phone screen - stack it as a bottom bar instead (column-reverse so the
+   Sidebar, first in the DOM, lands visually last/at the bottom without
+   touching Layout.tsx's render order). See Sidebar.module.css for the
+   matching bottom-bar layout. */
+@media (max-width: 48rem) {
+    .view {
+        flex-direction: column-reverse;
+        padding: 0;
+        gap: 0;
+
+        .content {
+            width: 100%;
+            border-width: 0.125rem 0 0 0;
+            box-shadow: none;
+        }
+    }
+}

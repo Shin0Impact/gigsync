@@ -28,42 +28,32 @@ export function Navbar({ role }: NavbarProps) {
 				</ButtonLink>
 			)}
 
-			<ul className={styles.links}>
-				<li>
-					<ButtonLink
-						to={ROUTES.TIMELINE}
-						variant="ghost">
-						Following
-					</ButtonLink>
-				</li>
-				<li>
-					<ButtonLink
-						to={ROUTES.DISCOVERY}
-						variant="ghost">
-						Explore
-					</ButtonLink>
-				</li>
-			</ul>
+			{/* Following/Explore moved into the Sidebar nav list - see
+			   Sidebar.tsx - so all navigation lives in one place. */}
 
 			{/* Previously linked by userId, but ROUTES.PROFILE takes a username -
 			   visiting your own nav avatar 404'd. profile.userName now comes back
 			   on /api/auth/me (see MeResponse), so this is the one place that
 			   actually needs it. Skip rendering the link until it's loaded rather
 			   than guessing at a URL. */}
-			{profile ? (
-				<ButtonLink to={ROUTES.PROFILE(profile.userName)}>
+			<div className={styles.profileArea}>
+				{profile ? (
+					<ButtonLink to={ROUTES.PROFILE(profile.userName)}>
+						<ProfilePicture
+							avatarUrl={profile.avatarUrl}
+							userName={profile.userName}
+							variant="profile"
+							className={styles.navAvatar}
+						/>
+					</ButtonLink>
+				) : (
 					<ProfilePicture
-						avatarUrl={profile.avatarUrl}
-						userName={profile.userName}
+						isLoading={isLoading}
 						variant="profile"
+						className={styles.navAvatar}
 					/>
-				</ButtonLink>
-			) : (
-				<ProfilePicture
-					isLoading={isLoading}
-					variant="profile"
-				/>
-			)}
+				)}
+			</div>
 		</nav>
 	);
 }

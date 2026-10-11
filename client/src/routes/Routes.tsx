@@ -8,9 +8,7 @@ import { NotFoundPage } from "../pages/NotFoundPage";
 import Layout from "../layouts/Layout";
 import { FormLogin, FormSignup, RequireGuest } from "../features/auth";
 import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
-import { MyPieces } from "../pages/creative/MyPieces";
 import { PieceDetails } from "../pages/creative/PieceDetails";
-import { MyPortfolio } from "../pages/creative/MyPortfolio";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
 import { Events } from "../pages/creative/Events";
 import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
@@ -58,10 +56,6 @@ export function AppRoutes() {
 					path={ROUTES.SINGLE_PIECE_PATTERN}
 					element={<PieceDetails />}
 				/>
-				<Route
-					path={ROUTES.USER_PORTFOLIO_PATTERN}
-					element={<MyPortfolio />}
-				/>
 			</Route>
 
 			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
@@ -72,18 +66,6 @@ export function AppRoutes() {
 							role="creative"
 						/>
 					}>
-					<Route
-						path={ROUTES.DASHBOARD}
-						element={<MyPieces />}
-					/>
-					<Route
-						path={ROUTES.PIECES}
-						element={<MyPieces />}
-					/>
-					<Route
-						path={ROUTES.PORTFOLIO}
-						element={<MyPortfolio />}
-					/>
 					<Route
 						path={ROUTES.EVENTS}
 						element={<Events />}

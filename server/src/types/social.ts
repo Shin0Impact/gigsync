@@ -150,8 +150,13 @@ export interface AddWorkCommentResponse {
 	comment: IWorkComment;
 }
 
+export interface WorkCommentWithAuthor extends IWorkComment {
+	userName: string;
+	avatarUrl: string | null;
+}
+
 export interface ListWorkCommentsResponse {
-	comments: IWorkComment[];
+	comments: WorkCommentWithAuthor[];
 }
 
 export interface ToggleWorkLikeResponse {
