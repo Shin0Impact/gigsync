@@ -1,12 +1,21 @@
+import { useParams } from "react-router-dom";
 import styles from "./MyPortfolio.module.css";
 import { useMeQuery } from "../../features/auth";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../../features/portfolio";
 import { ButtonLink } from "@components";
 import { ROUTES } from "../../routes/routePaths";
 
+// Reused both at /portfolio (own, via ROUTES.PORTFOLIO) and at
+// /:userId/portfolio (someone else's, via ROUTES.USER_PORTFOLIO_PATTERN) -
+// previously this ignored the route param entirely and always showed the
+// logged-in user's own portfolio, so visiting another artist's link just
+// redisplayed your own pinned items.
 export function MyPortfolio() {
+	const { userId: routeUserId } = useParams<{ userId: string }>();
 	const { data: meData } = useMeQuery();
-	const userId = meData?.user?.userId;
+	const ownUserId = meData?.user?.userId;
+	const userId = routeUserId ?? ownUserId;
+	const isOwnProfile = !routeUserId || routeUserId === ownUserId;
 
 	const { data, isLoading, isError } = useGetPortfolioQuery(userId!, {
 		skip: !userId,
@@ -32,10 +41,10 @@ export function MyPortfolio() {
 		<div className={styles.container}>
 			<header className={styles.header}>
 				<div>
-					<h1>My Portfolio</h1>
+					<h1>{isOwnProfile ? "My Portfolio" : "Portfolio"}</h1>
 					<p>Pinned works and events</p>
 				</div>
-				<ButtonLink to={ROUTES.CREATE_PORTFOLIO_SECTION}>Add a Piece or Event</ButtonLink>
+				{isOwnProfile && <ButtonLink to={ROUTES.CREATE_PORTFOLIO_SECTION}>Add a Piece or Event</ButtonLink>}
 			</header>
 
 			{items.length === 0 ? (
@@ -53,13 +62,15 @@ export function MyPortfolio() {
 								className={styles.card}>
 								<div className={styles.cardHeader}>
 									<span className={styles.badge}>{item.sourceType}</span>
-									<button
-										onClick={() => handleDelete(item.id)}
-										disabled={isDeleting}
-										className={styles.deleteButton}
-										aria-label="Unpin item">
-										&times;
-									</button>
+									{isOwnProfile && (
+										<button
+											onClick={() => handleDelete(item.id)}
+											disabled={isDeleting}
+											className={styles.deleteButton}
+											aria-label="Unpin item">
+											&times;
+										</button>
+									)}
 								</div>
 
 								<div className={styles.cardBody}>

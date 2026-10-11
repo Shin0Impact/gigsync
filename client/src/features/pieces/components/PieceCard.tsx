@@ -1,8 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import type { MouseEvent } from "react";
 import type { IWork as Piece } from "@shared/types/social";
 import { useListIntermezzosQuery, useListVignettesQuery } from "../piecesApi";
 import { ROUTES } from "../../../routes/routePaths";
 import { getMediaUrl } from "../../../shared/mediaUrl";
+import { usePostQuickView } from "../PostQuickViewProvider";
 import styles from "./PieceCard.module.css";
 
 interface PieceCardProps {
@@ -11,6 +13,7 @@ interface PieceCardProps {
 
 export function PieceCard({ piece }: PieceCardProps) {
 	const navigate = useNavigate();
+	const { openPost } = usePostQuickView();
 
 	const { data: intermezzosData } = useListIntermezzosQuery(piece.id);
 	const intermezzosCount = 1 + (intermezzosData?.updates?.length ?? 0);
@@ -32,14 +35,27 @@ export function PieceCard({ piece }: PieceCardProps) {
 			})
 		: null;
 
-	const handleAddIntermezzo = () => {
+	const handleAddIntermezzo = (e: MouseEvent) => {
+		// This button lives inside the card's click target (see the onClick on
+		// .card below, which opens the quick-view popup) - without this it used
+		// to bubble up and open the popup AND navigate at the same time.
+		e.stopPropagation();
 		navigate(`${ROUTES.CREATE_INTERMEZZO}?pieceId=${piece.id}`);
 	};
 
 	return (
-		<Link
-			to={ROUTES.SINGLE_PIECE(`${piece.id}`)}
-			className={styles.card}>
+		<div
+			className={styles.card}
+			role="button"
+			tabIndex={0}
+			onClick={() => openPost(piece.id)}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					openPost(piece.id);
+				}
+			}}
+			aria-label={`Open piece #${piece.id}`}>
 			{coverVignette && (
 				<div className={styles.cover}>
 					{coverVignette.mediaType === "video" ? (
@@ -87,6 +103,6 @@ export function PieceCard({ piece }: PieceCardProps) {
 					+ Intermezzo
 				</button>
 			</div>
-		</Link>
+		</div>
 	);
 }

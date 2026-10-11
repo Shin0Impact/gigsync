@@ -11,7 +11,7 @@ interface NavbarProps {
 
 export function Navbar({ role }: NavbarProps) {
 	const { data, isLoading } = useMeQuery();
-	const user = data?.user;
+	const profile = data?.profile;
 
 	return (
 		<nav className={styles.navbar}>
@@ -45,12 +45,25 @@ export function Navbar({ role }: NavbarProps) {
 				</li>
 			</ul>
 
-			<ButtonLink to={ROUTES.PROFILE(user!.userId)}>
+			{/* Previously linked by userId, but ROUTES.PROFILE takes a username -
+			   visiting your own nav avatar 404'd. profile.userName now comes back
+			   on /api/auth/me (see MeResponse), so this is the one place that
+			   actually needs it. Skip rendering the link until it's loaded rather
+			   than guessing at a URL. */}
+			{profile ? (
+				<ButtonLink to={ROUTES.PROFILE(profile.userName)}>
+					<ProfilePicture
+						avatarUrl={profile.avatarUrl}
+						userName={profile.userName}
+						variant="profile"
+					/>
+				</ButtonLink>
+			) : (
 				<ProfilePicture
 					isLoading={isLoading}
 					variant="profile"
 				/>
-			</ButtonLink>
+			)}
 		</nav>
 	);
 }

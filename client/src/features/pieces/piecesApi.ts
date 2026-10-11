@@ -2,12 +2,17 @@ import {
 	CreateWorkInput,
 	CreateWorkUpdateInput,
 	AddUpdateMediaInput,
+	AddWorkCommentInput,
 	CreateWorkResponse,
 	ListWorksResponse,
 	AddWorkUpdateResponse,
 	ListWorkUpdatesResponse,
 	AddUpdateMediaResponse,
 	ListUpdateMediaResponse,
+	ListWorksFeedResponse,
+	AddWorkCommentResponse,
+	ListWorkCommentsResponse,
+	ToggleWorkLikeResponse,
 } from "@shared/types/social";
 import { api } from "../../shared/api";
 
@@ -85,6 +90,74 @@ export const worksApi = api.injectEndpoints({
 				{ type: "Vignette", id: intermezzoId },
 			],
 		}),
+		listWorksFeed: builder.query<
+			ListWorksFeedResponse,
+			{ scope?: "explore" | "following"; limit?: number; offset?: number } | void
+		>({
+			query: (params) => {
+				const search = new URLSearchParams();
+				if (params?.scope) search.set("scope", params.scope);
+				if (params?.limit) search.set("limit", String(params.limit));
+				if (params?.offset) search.set("offset", String(params.offset));
+				const qs = search.toString();
+				return `/api/works${qs ? `?${qs}` : ""}`;
+			},
+			providesTags: [{ type: "Feed", id: "LIST" }],
+		}),
+
+		getLikeStatus: builder.query<ToggleWorkLikeResponse, number | string>({
+			query: (workId) => `/api/works/${workId}/like`,
+			providesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
+		}),
+		likeWork: builder.mutation<ToggleWorkLikeResponse, number | string>({
+			query: (workId) => ({
+				url: `/api/works/${workId}/like`,
+				method: "POST",
+			}),
+			invalidatesTags: (_result, _error, workId) => [
+				{ type: "Like", id: workId },
+				{ type: "Feed", id: "LIST" },
+			],
+		}),
+
+		unlikeWork: builder.mutation<ToggleWorkLikeResponse, number | string>({
+			query: (workId) => ({
+				url: `/api/works/${workId}/like`,
+				method: "DELETE",
+			}),
+			invalidatesTags: (_result, _error, workId) => [
+				{ type: "Like", id: workId },
+				{ type: "Feed", id: "LIST" },
+			],
+		}),
+
+		listComments: builder.query<ListWorkCommentsResponse, number | string>({
+			query: (workId) => `/api/works/${workId}/comments`,
+			providesTags: (_result, _error, workId) => [{ type: "Comment", id: workId }],
+		}),
+
+		addComment: builder.mutation<
+			AddWorkCommentResponse,
+			{ workId: number | string; body: AddWorkCommentInput }
+		>({
+			query: ({ workId, body }) => ({
+				url: `/api/works/${workId}/comments`,
+				method: "POST",
+				body,
+			}),
+			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
+		}),
+
+		deleteComment: builder.mutation<
+			void,
+			{ workId: number | string; commentId: number | string }
+		>({
+			query: ({ commentId }) => ({
+				url: `/api/works/comments/${commentId}`,
+				method: "DELETE",
+			}),
+			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
+		}),
 	}),
 });
 
@@ -96,4 +169,11 @@ export const {
 	useAddVignetteMutation,
 	useListVignettesQuery,
 	useDeleteVignetteMutation,
+	useListWorksFeedQuery,
+	useGetLikeStatusQuery,
+	useLikeWorkMutation,
+	useUnlikeWorkMutation,
+	useListCommentsQuery,
+	useAddCommentMutation,
+	useDeleteCommentMutation,
 } = worksApi;

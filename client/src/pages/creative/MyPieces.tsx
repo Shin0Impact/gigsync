@@ -1,12 +1,11 @@
-import { useState } from "react";
 import styles from "./MyPieces.module.css";
 import { PieceCard } from "../../features/pieces/components/PieceCard";
-import { CreatePieceModal } from "../../features/pieces/components/CreatePieceModal";
+import { useComposer } from "../../features/pieces";
 import { useMeQuery } from "../../features/auth";
 import { useListPiecesQuery } from "../../features/pieces";
 
 export function MyPieces() {
-	const [isComposerOpen, setIsComposerOpen] = useState(false);
+	const { openComposer } = useComposer();
 
 	const { data: meData, isLoading: isLoadingMe } = useMeQuery();
 	const userId = meData?.user?.userId;
@@ -42,7 +41,7 @@ export function MyPieces() {
 					<button
 						type="button"
 						className={styles.createButton}
-						onClick={() => setIsComposerOpen(true)}>
+						onClick={openComposer}>
 						Create Your First Piece
 					</button>
 				</div>
@@ -58,19 +57,6 @@ export function MyPieces() {
 					))}
 				</section>
 			)}
-
-			<button
-				type="button"
-				className={styles.fab}
-				onClick={() => setIsComposerOpen(true)}
-				aria-label="Create new piece">
-				+
-			</button>
-
-			<CreatePieceModal
-				isOpen={isComposerOpen}
-				onClose={() => setIsComposerOpen(false)}
-			/>
 		</main>
 	);
 }

@@ -1,0 +1,41 @@
+.picture {
+	border-radius: 50%;
+	border: 0.125rem solid var(--color-accent);
+	background-color: var(--color-accent);
+	color: var(--color-primary);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--font-sans, sans-serif);
+	text-transform: uppercase;
+	object-fit: cover;
+	flex-shrink: 0;
+	transition: opacity var(--transition-base);
+}
+
+.picture[data-variant="nav"] {
+	width: 2.25rem;
+	height: 2.25rem;
+	font-size: 0.75rem;
+}
+
+.picture[data-variant="profile"] {
+	width: 6rem;
+	height: 6rem;
+	font-size: 1.75rem;
+}
+
+.picture[data-state="loading"] {
+	background-color: var(--color-gray);
+	animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 0.6;
+	}
+	50% {
+		opacity: 1;
+	}
+}
