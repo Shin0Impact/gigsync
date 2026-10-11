@@ -74,6 +74,11 @@ const creativeSidebar = (
 					color="invert">
 					Events
 				</LinkNav>
+				<LinkNav
+					to={ROUTES.NOTIFICATIONS}
+					color="invert">
+					Notifications
+				</LinkNav>
 			</aside>
 			{/* <span className={styles.sidebarWordmark}>Mezzo</span> */}
 		</div>

@@ -16,6 +16,7 @@ export const ROUTES = {
 	PORTFOLIO: "/portfolio",
 	EVENTS: "/events",
 	VERIFICATION: "/verification",
+	NOTIFICATIONS: "/notifications",
 
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
