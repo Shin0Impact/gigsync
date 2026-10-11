@@ -13,6 +13,8 @@ import { PieceDetails } from "../pages/creative/PieceDetails";
 import { MyPortfolio } from "../pages/creative/MyPortfolio";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
 import { Events } from "../pages/creative/Events";
+import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
+import { FollowingPage } from "../features/explore/FollowingPage";
 
 export function AppRoutes() {
 	return (
@@ -83,6 +85,14 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.EVENTS}
 						element={<Events />}
+					/>
+					<Route
+						path={ROUTES.DISCOVERY}
+						element={<ExplorePiecesPage />}
+					/>
+					<Route
+						path={ROUTES.TIMELINE}
+						element={<FollowingPage />}
 					/>
 				</Route>
 				<Route
