@@ -1,0 +1,43 @@
+.fab {
+    position: fixed;
+    right: calc(3vh + 1.5rem);
+    bottom: calc(3vh + 1.5rem);
+    z-index: 920;
+    height: 3.5rem;
+    min-width: 3.5rem;
+    padding: 0 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    background-color: var(--color-black);
+    color: var(--color-white);
+    border: 0.125rem solid transparent;
+    border-radius: 0;
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.fab:hover:not(:disabled) {
+    background-color: var(--color-yellow);
+    color: var(--color-black);
+    border-color: var(--color-black);
+}
+
+.fab:focus-visible {
+    outline: 0.125rem solid var(--color-blue);
+    outline-offset: 0.25rem;
+}
+
+.fab:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Open state: the "+" becomes a labelled action, anchored at the same corner. */
+.submit {
+    font-size: 1.125rem;
+}

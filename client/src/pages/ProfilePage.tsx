@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation } from "../features/profiles";
-import { useListPiecesQuery, useComposer } from "../features/pieces";
+import { useListPiecesQuery, useDrawer } from "../features/pieces";
 import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { ButtonLink } from "@components";
@@ -11,13 +11,6 @@ import styles from "./ProfilePage.module.css";
 
 type ProfileTab = "posts" | "portfolio";
 
-// Previously Studio (My Pieces) and Profile were two separate pages
-// showing almost the same "your own pieces" grid - one with a profile
-// header and one without. They're merged here: Profile is now the single
-// hub for a user's own (or anyone else's) pieces and portfolio, split
-// into tabs rather than separate routes. See routePaths.ts/Routes.tsx -
-// /dashboard, /pieces, /portfolio and /:userId/portfolio are gone;
-// RootRedirect/RoleGuard send artists here (their own profile) instead.
 export function ProfilePage() {
 	const { username } = useParams<{ username: string }>();
 	const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
@@ -30,15 +23,15 @@ export function ProfilePage() {
 	});
 	const pieces = piecesData?.works ?? [];
 
-	// Only fetched once the Portfolio tab is actually opened - no point
-	// paying for it on every profile view when Posts is the default tab.
 	const { data: portfolioData, isLoading: isLoadingPortfolio } = useGetPortfolioQuery(profile?.userId ?? "", {
 		skip: !profile || activeTab !== "portfolio",
 	});
 	const portfolioItems = portfolioData?.items ?? [];
 
 	const [removeFromPortfolio, { isLoading: isRemovingFromPortfolio }] = useRemoveFromPortfolioMutation();
-	const { openComposer } = useComposer();
+
+	// Updated to use the new typed drawer payload structure
+	const { openDrawer } = useDrawer();
 
 	const [followProfile, { isLoading: isSendingFollow }] = useFollowProfileMutation();
 	const [unfollowProfile, { isLoading: isSendingUnfollow }] = useUnfollowProfileMutation();
@@ -153,13 +146,15 @@ export function ProfilePage() {
 						{!isLoadingPieces && pieces.length === 0 && (
 							<div className={styles.emptyState}>
 								<p className={styles.emptyText}>
-									{profile.isOwnProfile ? "You haven't shared any posts yet." : `${profile.userName} hasn't shared any posts yet.`}
+									{profile.isOwnProfile
+										? "You haven't shared any posts yet."
+										: `${profile.userName} hasn't shared any posts yet.`}
 								</p>
 								{profile.isOwnProfile && (
 									<button
 										type="button"
 										className={styles.createButton}
-										onClick={openComposer}>
+										onClick={() => openDrawer({ type: "create-intermezzo" })}>
 										Create Your First Post
 									</button>
 								)}
@@ -239,7 +234,9 @@ export function ProfilePage() {
 												{!isEvent && workPost && (
 													<>
 														<h3 className={styles.portfolioCardTitle}>Work #{workPost.id}</h3>
-														<p className={styles.portfolioCardText}>{workPost.description || "No description provided."}</p>
+														<p className={styles.portfolioCardText}>
+															{workPost.description || "No description provided."}
+														</p>
 														<span className={styles.portfolioCardMeta}>
 															{workPost.updates?.length || 0} updates recorded
 														</span>

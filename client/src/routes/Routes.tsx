@@ -67,7 +67,7 @@ export function AppRoutes() {
 						/>
 					}>
 					<Route
-						path={ROUTES.EVENTS}
+						path={ROUTES.MY_HAPPENINGS}
 						element={<Events />}
 					/>
 					<Route
