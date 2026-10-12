@@ -35,6 +35,7 @@ export interface IFollowing {
 export interface IWork {
 	id: number;
 	userId: string;
+	title: string | null;
 	description: string | null;
 	createdAt: string;
 	updatedAt: string;
@@ -93,6 +94,7 @@ export interface IPostEvent {
 // -----------------------------------------------------------------------------
 
 export interface CreateWorkInput {
+	title?: string | null;
 	description?: string | null;
 }
 
@@ -186,4 +188,62 @@ export interface WorkFeedItem extends IWork {
 
 export interface ListWorksFeedResponse {
 	works: WorkFeedItem[];
+}
+
+// Mixed feed (2026-10-12): the homepage Timeline + Discovery endpoints
+// (GET /api/feed/timeline, GET /api/feed/discovery). Items are a
+// discriminated union of the two publishable thing types - a versioned
+// work update (with its parent work, author and attached media) and an
+// event (with its organizer) - so one chronological list renders both.
+export interface FeedAuthor {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+}
+
+export interface FeedWorkSummary {
+	id: number;
+	title: string | null;
+	description: string | null;
+}
+
+export interface FeedEventSummary {
+	id: number;
+	title: string | null;
+	description: string | null;
+	venueName: string | null;
+	startAt: string | null;
+	endAt: string | null;
+	status: string | null;
+	categoriesNeeded: string[] | null;
+}
+
+export type FeedItem =
+	| {
+			type: "work_update";
+			// The work_update id - unique only within the type, so the client
+			// list key should be `${type}:${id}`.
+			id: number;
+			createdAt: string;
+			author: FeedAuthor;
+			work: FeedWorkSummary;
+			update: {
+				id: number;
+				versionNumber: number | null;
+				description: string | null;
+			};
+			// All media attached to this update, ordered by sort_order.
+			media: IUpdateMedia[];
+	  }
+	| {
+			type: "event";
+			id: number;
+			createdAt: string;
+			// The organizer, so the card can show who posted the event.
+			author: FeedAuthor;
+			event: FeedEventSummary;
+	  };
+
+export interface ListFeedResponse {
+	items: FeedItem[];
 }

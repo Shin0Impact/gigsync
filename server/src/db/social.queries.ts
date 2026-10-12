@@ -91,6 +91,7 @@ export async function getWorksByUser(userId: string): Promise<IWork[]> {
   interface WorkRow {
     id: number;
     user_id: string;
+    title: string | null;
     description: string | null;
     created_at: string;
     updated_at: string;
@@ -102,6 +103,7 @@ export async function getWorksByUser(userId: string): Promise<IWork[]> {
   return result.rows.map((row) => ({
     id: row.id,
     userId: row.user_id,
+    title: row.title,
     description: row.description,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -241,22 +243,24 @@ export async function getPostEvent(postId: number): Promise<IPostEvent | null> {
 // actually be mounted. Likes/comments/follows are read-only scaffolding
 // still - no write path for those yet, out of scope here.
 
-export async function createWork(userId: string, description: string | null): Promise<IWork> {
+export async function createWork(userId: string, title: string | null, description: string | null): Promise<IWork> {
   interface WorkRow {
     id: number;
     user_id: string;
+    title: string | null;
     description: string | null;
     created_at: string;
     updated_at: string;
   }
   const result = await query<WorkRow>(
-    'insert into works (user_id, description) values ($1, $2) returning *',
-    [userId, description]
+    'insert into works (user_id, title, description) values ($1, $2, $3) returning *',
+    [userId, title, description]
   );
   const row = result.rows[0];
   return {
     id: row.id,
     userId: row.user_id,
+    title: row.title,
     description: row.description,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -267,6 +271,7 @@ export async function getWorkById(workId: number): Promise<IWork | null> {
   interface WorkRow {
     id: number;
     user_id: string;
+    title: string | null;
     description: string | null;
     created_at: string;
     updated_at: string;
@@ -274,7 +279,14 @@ export async function getWorkById(workId: number): Promise<IWork | null> {
   const result = await query<WorkRow>('select * from works where id = $1 limit 1', [workId]);
   const row = result.rows[0];
   return row
-    ? { id: row.id, userId: row.user_id, description: row.description, createdAt: row.created_at, updatedAt: row.updated_at }
+    ? {
+        id: row.id,
+        userId: row.user_id,
+        title: row.title,
+        description: row.description,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }
     : null;
 }
 
@@ -507,6 +519,7 @@ export async function deleteWorkComment(commentId: number): Promise<boolean> {
 interface FeedRow {
   id: number;
   user_id: string;
+  title: string | null;
   description: string | null;
   created_at: string;
   updated_at: string;
@@ -529,6 +542,7 @@ function mapFeedRow(row: FeedRow, likedWorkIds: Set<number>): WorkFeedItem {
   return {
     id: row.id,
     userId: row.user_id,
+    title: row.title,
     description: row.description,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -558,7 +572,7 @@ function mapFeedRow(row: FeedRow, likedWorkIds: Set<number>): WorkFeedItem {
 
 const FEED_SELECT = `
   select
-    w.id, w.user_id, w.description, w.created_at, w.updated_at,
+    w.id, w.user_id, w.title, w.description, w.created_at, w.updated_at,
     p.user_name, p.avatar_url, p.artists_type,
     coalesce(lc.like_count, 0) as like_count,
     coalesce(cc.comment_count, 0) as comment_count,

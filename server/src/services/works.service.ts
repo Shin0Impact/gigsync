@@ -35,8 +35,8 @@ const VALID_MEDIA_TYPES = ["image", "video"];
 // implemented below on top of Kareem's read-only scaffolding in
 // social.queries.ts - see that file for the write-path query helpers.
 
-export async function create_work(userId: string, description: string | null) {
-	return createWork(userId, description ?? null);
+export async function create_work(userId: string, title: string | null, description: string | null) {
+	return createWork(userId, title, description ?? null);
 }
 
 export async function get_works_for_user(userId: string) {

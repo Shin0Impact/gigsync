@@ -63,7 +63,7 @@ export async function create_work_handler(
 	res: Response<CreateWorkResponse | ErrorResponse>,
 ) {
 	try {
-		const work = await create_work(req.user!.userId, req.body?.description ?? null);
+		const work = await create_work(req.user!.userId, req.body?.title ?? null, req.body?.description ?? null);
 		return res.status(201).json({ work });
 	} catch (error) {
 		return handle_known_error(error, res, "Failed to create work");

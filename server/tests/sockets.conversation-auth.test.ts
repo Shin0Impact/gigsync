@@ -48,14 +48,25 @@ async function registerAndGetCookie(email: string, userName: string): Promise<{ 
       password: 'Test1234!',
       role: 'artist',
       user_name: userName,
+      name: userName,
       artists_type: 'musician',
     }),
   });
-  const setCookies = res.headers.getSetCookie?.() ?? [];
-  const cookie = setCookies.map((c) => c.split(';')[0]).join('; ');
   const body = (await res.json()) as { user?: { id: string } };
   if (res.status !== 201 || !body.user?.id) {
     throw new Error(`Failed to register fixture user ${email}: ${res.status} ${JSON.stringify(body)}`);
+  }
+  // Register doesn't issue a session cookie - only login does - so log in
+  // once to obtain the access_token cookie the socket handshake requires.
+  const loginRes = await fetch(`${BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: email, password: 'Test1234!' }),
+  });
+  const loginCookies = loginRes.headers.getSetCookie?.() ?? [];
+  const cookie = loginCookies.map((c) => c.split(';')[0]).join('; ');
+  if (loginRes.status !== 200 || !cookie) {
+    throw new Error(`Failed to log in fixture user ${email}: ${loginRes.status}`);
   }
   return { cookie, userId: body.user.id };
 }
@@ -182,9 +193,15 @@ async function main() {
 
     // Clean up every fixture row this run created, in FK-safe order, so
     // the shared Supabase DB doesn't accumulate test data across runs.
+    // register_user creates profiles + roles rows too, and both of those
+    // FKs are NO ACTION - they must be removed before the users rows.
     await query('DELETE FROM messages WHERE conversation_id = $1', [conversationId]);
     await query('DELETE FROM conversation_participants WHERE conversation_id = $1', [conversationId]);
     await query('DELETE FROM conversations WHERE id = $1', [conversationId]);
+    await query('DELETE FROM profiles WHERE user_id = $1', [member.userId]);
+    await query('DELETE FROM profiles WHERE user_id = $1', [outsider.userId]);
+    await query('DELETE FROM roles WHERE user_id = $1', [member.userId]);
+    await query('DELETE FROM roles WHERE user_id = $1', [outsider.userId]);
     await query('DELETE FROM users WHERE id = $1', [member.userId]);
     await query('DELETE FROM users WHERE id = $1', [outsider.userId]);
 
