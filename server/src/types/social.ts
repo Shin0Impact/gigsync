@@ -135,3 +135,55 @@ export interface AddUpdateMediaResponse {
 export interface ListUpdateMediaResponse {
 	media: IUpdateMedia[];
 }
+
+// -----------------------------------------------------------------------------
+// Likes / comments / follow write paths (2026-10-11) - previously read-only
+// scaffolding only (see social.queries.ts), now wired to real routes for
+// the artist-facing pages (profile, explore feed, post detail).
+// -----------------------------------------------------------------------------
+
+export interface AddWorkCommentInput {
+	content: string;
+}
+
+export interface AddWorkCommentResponse {
+	comment: IWorkComment;
+}
+
+export interface WorkCommentWithAuthor extends IWorkComment {
+	userName: string;
+	avatarUrl: string | null;
+}
+
+export interface ListWorkCommentsResponse {
+	comments: WorkCommentWithAuthor[];
+}
+
+export interface ToggleWorkLikeResponse {
+	liked: boolean;
+	likeCount: number;
+}
+
+// A work as it appears in a feed (explore / following / profile), with the
+// author resolved (so the feed doesn't need a second request per card) and
+// the engagement counts/viewer state pre-computed server-side.
+export interface WorkFeedAuthor {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+	artistsType: ArtistType | null;
+}
+
+export interface WorkFeedItem extends IWork {
+	author: WorkFeedAuthor;
+	likeCount: number;
+	commentCount: number;
+	likedByMe: boolean;
+	// First media file of the latest update, if any - same "cover" rule the
+	// client already uses for PieceCard (see getWorkUpdates: newest-first).
+	coverMedia: IUpdateMedia | null;
+}
+
+export interface ListWorksFeedResponse {
+	works: WorkFeedItem[];
+}

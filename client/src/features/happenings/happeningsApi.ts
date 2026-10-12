@@ -39,8 +39,6 @@ export interface DeleteHappeningMediaParams {
 
 export const happeningsApi = api.injectEndpoints({
 	endpoints: (builder) => ({
-		// --- HAPPENING CRUD ---
-
 		createHappening: builder.mutation<CreateEventResponse, CreateEventInput>({
 			query: (body) => ({
 				url: "/api/events",

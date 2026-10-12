@@ -17,6 +17,11 @@ export const api = createApi({
 		"Application",
 		"HappeningApplication",
 		"HappeningMedia",
+		"Profile",
+		"Activity",
+		"PieceFeed",
+		"Nod",
+		"Echo",
 	],
 	endpoints: () => ({}),
 });

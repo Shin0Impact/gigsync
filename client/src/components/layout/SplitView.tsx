@@ -30,7 +30,7 @@ export function SplitView({ role, children, contentDecoration = false, className
 		<div
 			className={`${styles.view} ${className}`.trim()}
 			data-role={role}>
-			<Sidebar role={role} />
+			<Sidebar />
 			<div className={styles.content}>
 				{contentDecoration && <div className={styles.contentDecoration}>{defaultDecoration}</div>}
 				<div className={styles.children}>{children}</div>
