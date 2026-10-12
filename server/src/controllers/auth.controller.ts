@@ -32,7 +32,7 @@ export async function register(
 			artists_type,
 		});
 
-		const { password_hash, ...safe_user } = result.user;
+		const { password_hash: _password_hash, ...safe_user } = result.user;
 
 		return res.status(201).json({
 			user: safe_user,
@@ -102,7 +102,7 @@ export async function login(
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 		});
 
-		const { password_hash, ...safe_user } = result.user;
+		const { password_hash: _password_hash, ...safe_user } = result.user;
 
 		return res.status(200).json({
 			user: safe_user,

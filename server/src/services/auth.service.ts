@@ -11,7 +11,7 @@ import { create_profile, find_profile_by_user_name } from "../db/queries/profile
 import { create_role, find_role_by_user_id } from "../db/queries/roles.queries";
 
 import { env } from "../config/env";
-import { AuthTokenPayload, UserRole, ArtistCategory, RegisterInput, LoginInput } from "../types";
+import { AuthTokenPayload, UserRole, RegisterInput, LoginInput } from "../types";
 
 // Roles a person can self-assign through public registration. `admin` and
 // `moderator` are deliberately excluded - those accounts review/approve

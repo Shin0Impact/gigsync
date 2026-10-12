@@ -1,12 +1,12 @@
 import { query } from '../../config/db';
 
-// No REST layer for conversations exists yet (POST /api/conversations is
-// still a 501 stub), but the Socket.IO gateway is live and needs this now:
-// join_conversation/send_message must only work for a conversation the
-// connected user actually belongs to, per the conversation_participants
-// join table in schema.sql (composite PK on (conversation_id, user_id) -
-// there's no participantIds array column on the row itself, that's just
-// the denormalized shape IConversation exposes in types/index.ts).
+// Card #34 - the REST layer now exists too (see below); this was
+// originally written just for the Socket.IO gateway's own membership
+// check (join_conversation/send_message in sockets/index.ts must only
+// work for a conversation the connected user actually belongs to), per
+// the conversation_participants join table (composite PK on
+// (conversation_id, user_id) - there's no participantIds array column on
+// the conversations row itself).
 export async function isConversationParticipant(
   conversationId: string,
   userId: string

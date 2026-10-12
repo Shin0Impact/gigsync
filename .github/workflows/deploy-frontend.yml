@@ -43,10 +43,16 @@ jobs:
       - run: npm run build
 
       - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        # cloudflare/pages-action was retired (the workflow started failing
+        # at "Set up job" with "Unable to resolve action
+        # 'cloudflare/pages-action'") - wrangler-action is the replacement.
+        # It takes a wrangler CLI command string instead of separate
+        # projectName/directory inputs; workingDirectory is passed
+        # explicitly because `defaults.run.working-directory: client`
+        # above only applies to `run:` steps, not `uses:` action steps.
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: gigsync
-          directory: client/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          workingDirectory: client
+          command: pages deploy dist --project-name=gigsync

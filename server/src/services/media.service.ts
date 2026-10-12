@@ -127,11 +127,28 @@ export async function delete_object(objectKey: string): Promise<void> {
 const ID_DOCUMENT_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const ID_DOCUMENT_VIEW_URL_EXPIRY_SECONDS = 5 * 60;
 
-export async function request_id_document_upload_url(input: RequestIdDocumentUploadUrlInput) {
-	const { fileName, contentType } = input;
+// Same gap request_upload_url (above) used to have, fixed here too: without
+// this, presigning never looks at how many bytes actually get PUT, so a
+// caller could request a URL for a "photo" and upload something far larger
+// into the private ID-documents bucket. 15MB comfortably covers a phone
+// photo or scanned PDF of an ID document, the only content types this
+// accepts (see ID_DOCUMENT_CONTENT_TYPES) - smaller than the 50MB media
+// cap on purpose, since nothing here is ever a video clip.
+const ID_DOCUMENT_MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024;
 
-	if (!fileName || !contentType) {
-		throw new Error("fileName and contentType are required");
+export async function request_id_document_upload_url(input: RequestIdDocumentUploadUrlInput) {
+	const { fileName, contentType, fileSizeBytes } = input;
+
+	if (!fileName || !contentType || !fileSizeBytes) {
+		throw new Error("fileName, contentType, and fileSizeBytes are required");
+	}
+
+	if (!Number.isFinite(fileSizeBytes) || fileSizeBytes <= 0) {
+		throw new Error("fileSizeBytes must be a positive number");
+	}
+
+	if (fileSizeBytes > ID_DOCUMENT_MAX_UPLOAD_SIZE_BYTES) {
+		throw new Error(`fileSizeBytes exceeds the ${ID_DOCUMENT_MAX_UPLOAD_SIZE_BYTES} byte limit`);
 	}
 
 	if (!ID_DOCUMENT_CONTENT_TYPES.includes(contentType)) {
@@ -150,6 +167,7 @@ export async function request_id_document_upload_url(input: RequestIdDocumentUpl
 		Bucket: env.r2.idDocumentsBucketName,
 		Key: object_key,
 		ContentType: contentType,
+		ContentLength: fileSizeBytes,
 	});
 
 	const upload_url = await getSignedUrl(r2Client, command, {

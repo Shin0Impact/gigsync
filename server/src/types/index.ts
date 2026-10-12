@@ -125,48 +125,13 @@ export interface DbVerificationRequest {
 // Core Domain / Application Models
 // -----------------------------------------------------------------------------
 
-export interface IArtistProfile {
-	id: string;
-	userId: string;
-	bio: string | null;
-	hourlyRate: number | null;
-	isEmergencyAvailable: boolean;
-	emergencyUntil: string | null;
-	ratingAvg: number;
-	reviewCount: number;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface IExtendedArtistProfile extends IArtistProfile {
-	name: string;
-	avatarUrl: string | null;
-	categories: string[];
-}
-
-export interface IEvent {
-	id: string;
-	organizerId: string;
-	title: string;
-	description: string;
-	venueName: string;
-	location: GeoPoint;
-	eventDate: string;
-	status: EventStatus;
-	isRecurring: boolean;
-	recurringRule: string | null;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface IConversation {
-	id: string;
-	eventId: string | null;
-	participantIds: string[];
-	createdAt: Date;
-	updatedAt: Date;
-}
-
+// IArtistProfile, IExtendedArtistProfile, IEvent and IConversation used to
+// live here - dead weight, never imported anywhere (the actual
+// artist/event/conversation domain types are the Db*/*Response/*Summary
+// interfaces used by the real queries/services/controllers below and in
+// types/social.ts). IMessage is the one survivor of this group - it's live,
+// used by the socket gateway, chatSlice, and MessageThread's live-tail merge
+// (see card #34).
 export interface IMessage {
 	id: string;
 	conversationId: string;
@@ -223,6 +188,7 @@ export interface RequestUploadUrlInput {
 export interface RequestIdDocumentUploadUrlInput {
 	fileName: string;
 	contentType: string;
+	fileSizeBytes: number;
 }
 
 export interface CreateEventInput {
@@ -474,7 +440,7 @@ export interface ListApplicationsResponse {
 }
 
 export interface UpdateApplicationResponse {
-	application: DbEventApplication | null;
+	application: DbEventApplication;
 }
 
 // showcase.controller.ts

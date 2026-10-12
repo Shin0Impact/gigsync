@@ -319,7 +319,18 @@ export async function update_application_status_for_organizer(
 		throw new Error(`Application has already been ${application.status}`);
 	}
 
-	return update_application_status(applicationId, status);
+	const updated = await update_application_status(applicationId, status);
+
+	// Vanishingly unlikely (the application row would have to be deleted
+	// between the find_application_by_id check above and this UPDATE), but
+	// update_application_status returns DbEventApplication | null, same as
+	// update_event above - guard it the same way rather than silently
+	// returning { application: null } from a 200 response.
+	if (!updated) {
+		throw new Error("Application not found");
+	}
+
+	return updated;
 }
 
 // Artist-facing: everything *they've* applied to, across events, with
