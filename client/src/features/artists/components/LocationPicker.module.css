@@ -1,0 +1,17 @@
+.mapWrapper {
+    width: 100%;
+    height: 22rem;
+    border: 0.125rem solid var(--color-accent);
+    overflow: hidden;
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 36rem) {
+    .mapWrapper {
+        height: 16rem;
+    }
+}

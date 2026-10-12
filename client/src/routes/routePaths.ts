@@ -11,6 +11,7 @@ export const ROUTES = {
 	DISCOVERY_EVENTS: "/discovery/events",
 
 	EVENTS: "/events",
+	SEARCH: "/search",
 	VERIFICATION: "/verification",
 	NOTIFICATIONS: "/notifications",
 

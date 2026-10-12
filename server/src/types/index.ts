@@ -206,6 +206,13 @@ export interface SearchEmergencyAvailableInput {
 	radiusKm: number;
 }
 
+export interface SearchArtistsInput {
+	lat: number;
+	lng: number;
+	radiusKm: number;
+	artistsType?: ArtistCategory | null;
+}
+
 export interface RequestUploadUrlInput {
 	fileName: string;
 	contentType: string;
@@ -287,6 +294,15 @@ export interface EmergencyAvailableArtist {
 	avatarUrl: string | null;
 	artistsType: string | null;
 	emergencyUntil: Date | string | null;
+	location: GeoPoint | null;
+	distanceKm: number;
+}
+
+export interface ArtistSearchResult {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+	artistsType: string | null;
 	location: GeoPoint | null;
 	distanceKm: number;
 }
@@ -403,6 +419,10 @@ export interface EmergencyStatusHandlerResponse {
 
 export interface ListEmergencyAvailableResponse {
 	artists: EmergencyAvailableArtist[];
+}
+
+export interface ListArtistsSearchResponse {
+	artists: ArtistSearchResult[];
 }
 
 // event_media.controller.ts

@@ -11,6 +11,7 @@ import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/compon
 import { PieceDetails } from "../pages/creative/PieceDetails";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
 import { Events } from "../pages/creative/Events";
+import { ArtistSearchPage } from "../pages/ArtistSearchPage";
 import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
 import { FollowingPage } from "../features/explore/FollowingPage";
 import ProfilePage from "../pages/ProfilePage";
@@ -69,6 +70,10 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.EVENTS}
 						element={<Events />}
+					/>
+					<Route
+						path={ROUTES.SEARCH}
+						element={<ArtistSearchPage />}
 					/>
 					<Route
 						path={ROUTES.DISCOVERY}

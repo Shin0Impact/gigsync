@@ -9,14 +9,18 @@
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 3.5rem;
-    height: 3.5rem;
+    /* Bumped up from 3.5rem - a bigger target is a lot easier to hit on
+       desktop, where this is the only way in to the composer on every
+       creative page. The @media block below keeps its own smaller size
+       for the mobile bottom-bar layout. */
+    width: 4.25rem;
+    height: 4.25rem;
     border-radius: 50%;
     background-color: var(--color-accent);
     color: var(--color-primary);
     border: 0.125rem solid var(--color-accent);
     font-family: var(--font-sans, sans-serif);
-    font-size: 1.75rem;
+    font-size: 2.1rem;
     line-height: 1;
     display: flex;
     align-items: center;
