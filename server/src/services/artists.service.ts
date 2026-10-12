@@ -188,6 +188,8 @@ function to_artist_search_result(row: DbArtistSearchResult) {
 				? { lat: row.location_lat, lng: row.location_lng }
 				: null,
 		distanceKm: Math.round(row.distance_km * 10) / 10,
+		followersNumber: row.followers_number,
+		isEmergencyAvailable: row.is_emergency_available,
 	};
 }
 

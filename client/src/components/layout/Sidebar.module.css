@@ -15,15 +15,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem 0;
+    padding: 0.85rem 0;
     position: relative;
     z-index: 1;
 }
 
 /* Logo.module.css hardcodes the glyph to --color-black; it needs to read
-   as the light mark on this dark panel instead. */
+   as the light mark on this dark panel instead. Only used for guests now -
+   everyone else gets SidebarGlyph's small profile picture below. */
 .glyphIcon {
     color: var(--color-primary) !important;
+}
+
+/* The small profile-picture glyph that replaced the logo mark for
+   signed-in roles - white border so a photo avatar still reads as a
+   round cutout against the dark panel instead of blending flush into it. */
+.glyphAvatar {
+    border-color: var(--color-primary) !important;
 }
 
 .navList {

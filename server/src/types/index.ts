@@ -305,6 +305,8 @@ export interface ArtistSearchResult {
 	artistsType: string | null;
 	location: GeoPoint | null;
 	distanceKm: number;
+	followersNumber: number;
+	isEmergencyAvailable: boolean;
 }
 
 export interface UploadUrlResult {

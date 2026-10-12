@@ -2,10 +2,10 @@
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
-    padding: 2.5rem 1.5rem;
+    padding: 1.5rem 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.75rem;
+    gap: 1.25rem;
 }
 
 .header {
@@ -13,8 +13,8 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1.5rem;
-    padding-bottom: 1.5rem;
+    gap: 1rem;
+    padding-bottom: 1rem;
     border-bottom: 0.125rem solid var(--color-accent);
 }
 
@@ -26,7 +26,7 @@
 
 .title {
     font-family: var(--font-sans, sans-serif);
-    font-size: 2.5rem;
+    font-size: 1.85rem;
     color: var(--color-accent);
     margin: 0;
 }
@@ -64,6 +64,70 @@
     font-style: italic;
     color: #d32f2f;
     margin: 0;
+}
+
+.placeSearchForm {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.placeInput {
+    flex: 1;
+    min-width: 14rem;
+    padding: 0.625rem 0.75rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    color: var(--color-accent);
+    box-sizing: border-box;
+}
+
+.placeInput::placeholder {
+    color: var(--color-accent);
+    opacity: 0.5;
+}
+
+.placeSearchButton {
+    padding: 0.625rem 1.25rem;
+    background-color: transparent;
+    border: 0.125rem solid var(--color-accent);
+    color: var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.resultBadge {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background-color: var(--color-accent);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.resultMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .controls {
@@ -187,6 +251,127 @@
     text-align: center;
     padding: 2rem;
     color: var(--color-accent);
+}
+
+
+.locationSummary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+}
+
+.locationSummaryText {
+    font-family: var(--font-serif, serif);
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.85;
+}
+
+.mapToggleButton {
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    border: 0.125rem solid var(--color-accent);
+    color: var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+}
+
+.mapModalBackdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 1100;
+}
+
+.mapModal {
+    width: 100%;
+    max-width: 40rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    box-sizing: border-box;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mapModalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mapModalTitle {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.25rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.mapModalClose {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: 0.125rem solid var(--color-accent);
+    color: var(--color-accent);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+}
+
+.mapModalRadius {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mapModalDone {
+    padding: 0.75rem 1.25rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-yellow);
+        color: var(--color-accent);
+    }
 }
 
 @media (max-width: 36rem) {

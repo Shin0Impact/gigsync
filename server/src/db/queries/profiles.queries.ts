@@ -211,6 +211,8 @@ export interface DbArtistSearchResult {
   location_lat: number | null;
   location_lng: number | null;
   distance_km: number;
+  followers_number: number;
+  is_emergency_available: boolean;
 }
 
 export async function find_artists_near(
@@ -226,6 +228,8 @@ export async function find_artists_near(
         p.user_name,
         p.avatar_url,
         p.artists_type,
+        p.followers_number,
+        p.is_emergency_available,
         ST_Y(p.location::geometry) AS location_lat,
         ST_X(p.location::geometry) AS location_lng,
         ST_Distance(p.location, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography) / 1000 AS distance_km
