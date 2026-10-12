@@ -12,6 +12,7 @@ import { MyPieces } from "../pages/creative/MyPieces";
 import { PieceDetails } from "../pages/creative/PieceDetails";
 import { MyPortfolio } from "../pages/creative/MyPortfolio";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
+import MyEvents from "../pages/organizer/MyEvents";
 
 export function AppRoutes() {
 	return (
@@ -47,17 +48,6 @@ export function AppRoutes() {
 					</RequireAuth>
 				}
 			/>
-
-			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
-				<Route
-					path={ROUTES.SINGLE_PIECE_PATTERN}
-					element={<PieceDetails />}
-				/>
-				<Route
-					path={ROUTES.USER_PORTFOLIO_PATTERN}
-					element={<MyPortfolio />}
-				/>
-			</Route>
 
 			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
 				<Route
@@ -100,6 +90,32 @@ export function AppRoutes() {
 						element={<FormAddToPortfolio />}
 					/>
 				</Route>
+			</Route>
+
+			<Route element={<RoleGuard allowedRoles={["organizer"]} />}>
+				<Route
+					element={
+						<Layout
+							type="page"
+							role="organizer"
+						/>
+					}>
+					<Route
+						path={ROUTES.EVENTS}
+						element={<MyEvents />}
+					/>
+				</Route>
+			</Route>
+
+			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
+				<Route
+					path={ROUTES.SINGLE_PIECE_PATTERN}
+					element={<PieceDetails />}
+				/>
+				<Route
+					path={ROUTES.USER_PORTFOLIO_PATTERN}
+					element={<MyPortfolio />}
+				/>
 			</Route>
 
 			<Route
