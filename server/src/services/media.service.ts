@@ -23,6 +23,12 @@ const ALLOWED_CONTENT_TYPES = [
 	"image/gif",
 	"video/mp4",
 	"video/quicktime",
+	// Card #125 - audio support for work updates.
+	"audio/mpeg",
+	"audio/mp4",
+	"audio/wav",
+	"audio/ogg",
+	"audio/webm",
 ];
 
 const UPLOAD_URL_EXPIRY_SECONDS = 5 * 60;

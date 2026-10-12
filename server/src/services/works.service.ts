@@ -25,7 +25,7 @@ import { delete_object } from "./media.service";
 
 import { AddUpdateMediaInput } from "../types/social";
 
-const VALID_MEDIA_TYPES = ["image", "video"];
+const VALID_MEDIA_TYPES = ["image", "video", "audio"];
 
 // "Works" are an artist's portfolio: a Work is a project, each Work has
 // versioned Updates (progress posts), and each Update can carry R2-backed
