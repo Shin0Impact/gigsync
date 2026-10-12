@@ -9,6 +9,7 @@ export interface DbProfile {
   avatar_url: string | null;
   followers_number: number;
   artists_type: string | null;
+  name: string | null;
 }
 
 export async function find_profile_by_user_name(
@@ -23,7 +24,8 @@ export async function find_profile_by_user_name(
         user_id,
         avatar_url,
         followers_number,
-        artists_type
+        artists_type,
+        name
       FROM profiles
       WHERE user_name = $1
       LIMIT 1
@@ -55,7 +57,8 @@ export async function create_profile(
         user_id,
         avatar_url,
         followers_number,
-        artists_type
+        artists_type,
+        name
     `,
     [user_id, user_name, artists_type],
   );
