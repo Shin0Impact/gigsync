@@ -239,7 +239,7 @@ export async function find_artists_near(
           ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
           $3 * 1000
         )
-        AND ($4::text IS NULL OR p.artists_type = $4)
+        AND ($4::text IS NULL OR p.artists_type::text = $4)
       ORDER BY distance_km ASC
       LIMIT 50
     `,
