@@ -583,3 +583,54 @@ export interface DbEventApplicationWithEvent extends DbEventApplication {
 export interface ListMyApplicationsResponse {
 	applications: DbEventApplicationWithEvent[];
 }
+// Card #34 - direct messaging (conversation list + message thread).
+// Conversations/messages are DB-backed (see schema.sql); live delivery
+// goes over the socket gateway (sockets/index.ts) - REST here covers
+// discovering conversations and loading history, IMessage events over
+// receive_message cover the live tail once a thread is open.
+export interface ConversationParticipantSummary {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+}
+
+export interface ConversationLastMessage {
+	content: string;
+	senderId: string;
+	createdAt: string;
+}
+
+export interface ConversationSummary {
+	id: string;
+	// null only if the other participant row is somehow missing (should
+	// not happen for a DM - see createDirectConversation) - kept nullable
+	// rather than asserted so a data inconsistency renders as "Unknown"
+	// instead of crashing the conversations list.
+	otherParticipant: ConversationParticipantSummary | null;
+	lastMessage: ConversationLastMessage | null;
+	updatedAt: string;
+}
+
+export interface ListConversationsResponse {
+	conversations: ConversationSummary[];
+}
+
+export interface StartConversationResponse {
+	conversation: {
+		id: string;
+		createdAt: string;
+	};
+}
+
+export interface MessageDto {
+	id: string;
+	conversationId: string;
+	senderId: string;
+	content: string;
+	isRead: boolean;
+	createdAt: string;
+}
+
+export interface ListMessagesResponse {
+	messages: MessageDto[];
+}

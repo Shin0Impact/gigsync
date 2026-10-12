@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation } from "../features/profiles";
 import { useListPiecesQuery, useComposer } from "../features/pieces";
 import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { AvailabilityCalendar } from "../features/artists";
+import { useStartConversationMutation } from "../features/chat";
 import { ButtonLink } from "@components";
 import { ROUTES } from "../routes/routePaths";
 import ProfilePicture from "../components/user/ProfilePicture";
@@ -44,8 +45,20 @@ export function ProfilePage() {
 	const [followProfile, { isLoading: isSendingFollow }] = useFollowProfileMutation();
 	const [unfollowProfile, { isLoading: isSendingUnfollow }] = useUnfollowProfileMutation();
 
+	const navigate = useNavigate();
+	const [startConversation, { isLoading: isStartingConversation }] = useStartConversationMutation();
+
 	if (isLoading) return <div className={styles.loading}>Loading profile…</div>;
 	if (error || !profile) return <div className={styles.error}>This profile could not be found.</div>;
+
+	const handleMessage = async () => {
+		try {
+			const { conversation } = await startConversation({ otherUserId: profile.userId }).unwrap();
+			navigate(ROUTES.MESSAGE_THREAD(conversation.id));
+		} catch (err) {
+			console.error("Failed to start conversation:", err);
+		}
+	};
 
 	const handleToggleFollow = () => {
 		if (!username) return;
@@ -111,14 +124,23 @@ export function ProfilePage() {
 					)}
 
 					{!profile.isOwnProfile && (
-						<button
-							type="button"
-							className={styles.followButton}
-							data-following={profile.isFollowedByMe}
-							disabled={isSendingFollow || isSendingUnfollow}
-							onClick={handleToggleFollow}>
-							{profile.isFollowedByMe ? "Following" : "Follow"}
-						</button>
+						<div className={styles.actionButtons}>
+							<button
+								type="button"
+								className={styles.followButton}
+								data-following={profile.isFollowedByMe}
+								disabled={isSendingFollow || isSendingUnfollow}
+								onClick={handleToggleFollow}>
+								{profile.isFollowedByMe ? "Following" : "Follow"}
+							</button>
+							<button
+								type="button"
+								className={styles.messageButton}
+								disabled={isStartingConversation}
+								onClick={handleMessage}>
+								Message
+							</button>
+						</div>
 					)}
 				</div>
 			</header>

@@ -31,6 +31,7 @@ const NAV_ITEMS: Partial<Record<SidebarProps["role"], NavItem[]>> = {
 		{ to: ROUTES.DISCOVERY, label: "Explore" },
 		{ to: ROUTES.EVENTS, label: "Events" },
 		{ to: ROUTES.SEARCH, label: "Find Artists" },
+		{ to: ROUTES.MESSAGES, label: "Messages" },
 		{ to: ROUTES.NOTIFICATIONS, label: "Notifications" },
 	],
 };

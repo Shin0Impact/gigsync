@@ -1,0 +1,33 @@
+// vite.config.ts
+import react from "file:///sessions/rcw-01jynteb6vj93omepmw4fett/mnt/FinalProject/gigsync/client/node_modules/@vitejs/plugin-react/dist/index.js";
+import { defineConfig } from "file:///sessions/rcw-01jynteb6vj93omepmw4fett/mnt/FinalProject/gigsync/client/node_modules/vite/dist/node/index.js";
+import path from "path";
+var __vite_injected_original_dirname = "/sessions/rcw-01jynteb6vj93omepmw4fett/mnt/FinalProject/gigsync/client";
+var vite_config_default = defineConfig({
+  // Env vars live in the repo-root .env, not client/.env (merged 2026-10-11) -
+  // only VITE_-prefixed vars are exposed to client code; everything else
+  // (DB creds, JWT secrets, R2 secret key) stays invisible to the frontend
+  // bundle regardless of envDir, per Vite's default envPrefix behavior.
+  envDir: path.resolve(__vite_injected_original_dirname, ".."),
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@shared/types": path.resolve(__vite_injected_original_dirname, "../server/src/types"),
+      "@shared/services": path.resolve(__vite_injected_original_dirname, "../server/src/services"),
+      "@components": path.resolve(__vite_injected_original_dirname, "./src/components")
+    }
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": {
+        target: "http://localhost:4000",
+        changeOrigin: true
+      }
+    }
+  }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcudHMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvc2Vzc2lvbnMvcmN3LTAxanludGViNnZqOTNvbWVwbXc0ZmV0dC9tbnQvRmluYWxQcm9qZWN0L2dpZ3N5bmMvY2xpZW50XCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ZpbGVuYW1lID0gXCIvc2Vzc2lvbnMvcmN3LTAxanludGViNnZqOTNvbWVwbXc0ZmV0dC9tbnQvRmluYWxQcm9qZWN0L2dpZ3N5bmMvY2xpZW50L3ZpdGUuY29uZmlnLnRzXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ltcG9ydF9tZXRhX3VybCA9IFwiZmlsZTovLy9zZXNzaW9ucy9yY3ctMDFqeW50ZWI2dmo5M29tZXBtdzRmZXR0L21udC9GaW5hbFByb2plY3QvZ2lnc3luYy9jbGllbnQvdml0ZS5jb25maWcudHNcIjtpbXBvcnQgcmVhY3QgZnJvbSBcIkB2aXRlanMvcGx1Z2luLXJlYWN0XCI7XHJcbmltcG9ydCB7IGRlZmluZUNvbmZpZyB9IGZyb20gXCJ2aXRlXCI7XHJcbmltcG9ydCBwYXRoIGZyb20gXCJwYXRoXCI7XHJcblxyXG5leHBvcnQgZGVmYXVsdCBkZWZpbmVDb25maWcoe1xyXG5cdC8vIEVudiB2YXJzIGxpdmUgaW4gdGhlIHJlcG8tcm9vdCAuZW52LCBub3QgY2xpZW50Ly5lbnYgKG1lcmdlZCAyMDI2LTEwLTExKSAtXHJcblx0Ly8gb25seSBWSVRFXy1wcmVmaXhlZCB2YXJzIGFyZSBleHBvc2VkIHRvIGNsaWVudCBjb2RlOyBldmVyeXRoaW5nIGVsc2VcclxuXHQvLyAoREIgY3JlZHMsIEpXVCBzZWNyZXRzLCBSMiBzZWNyZXQga2V5KSBzdGF5cyBpbnZpc2libGUgdG8gdGhlIGZyb250ZW5kXHJcblx0Ly8gYnVuZGxlIHJlZ2FyZGxlc3Mgb2YgZW52RGlyLCBwZXIgVml0ZSdzIGRlZmF1bHQgZW52UHJlZml4IGJlaGF2aW9yLlxyXG5cdGVudkRpcjogcGF0aC5yZXNvbHZlKF9fZGlybmFtZSwgXCIuLlwiKSxcclxuXHRwbHVnaW5zOiBbcmVhY3QoKV0sXHJcblx0cmVzb2x2ZToge1xyXG5cdFx0YWxpYXM6IHtcclxuXHRcdFx0XCJAc2hhcmVkL3R5cGVzXCI6IHBhdGgucmVzb2x2ZShfX2Rpcm5hbWUsIFwiLi4vc2VydmVyL3NyYy90eXBlc1wiKSxcclxuXHRcdFx0XCJAc2hhcmVkL3NlcnZpY2VzXCI6IHBhdGgucmVzb2x2ZShfX2Rpcm5hbWUsIFwiLi4vc2VydmVyL3NyYy9zZXJ2aWNlc1wiKSxcclxuXHRcdFx0XCJAY29tcG9uZW50c1wiOiBwYXRoLnJlc29sdmUoX19kaXJuYW1lLCBcIi4vc3JjL2NvbXBvbmVudHNcIiksXHJcblx0XHR9LFxyXG5cdH0sXHJcblx0c2VydmVyOiB7XHJcblx0XHRwb3J0OiA1MTczLFxyXG5cdFx0cHJveHk6IHtcclxuXHRcdFx0XCIvYXBpXCI6IHtcclxuXHRcdFx0XHR0YXJnZXQ6IFwiaHR0cDovL2xvY2FsaG9zdDo0MDAwXCIsXHJcblx0XHRcdFx0Y2hhbmdlT3JpZ2luOiB0cnVlLFxyXG5cdFx0XHR9LFxyXG5cdFx0fSxcclxuXHR9LFxyXG59KTtcclxuIl0sCiAgIm1hcHBpbmdzIjogIjtBQUFvWSxPQUFPLFdBQVc7QUFDdFosU0FBUyxvQkFBb0I7QUFDN0IsT0FBTyxVQUFVO0FBRmpCLElBQU0sbUNBQW1DO0FBSXpDLElBQU8sc0JBQVEsYUFBYTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsRUFLM0IsUUFBUSxLQUFLLFFBQVEsa0NBQVcsSUFBSTtBQUFBLEVBQ3BDLFNBQVMsQ0FBQyxNQUFNLENBQUM7QUFBQSxFQUNqQixTQUFTO0FBQUEsSUFDUixPQUFPO0FBQUEsTUFDTixpQkFBaUIsS0FBSyxRQUFRLGtDQUFXLHFCQUFxQjtBQUFBLE1BQzlELG9CQUFvQixLQUFLLFFBQVEsa0NBQVcsd0JBQXdCO0FBQUEsTUFDcEUsZUFBZSxLQUFLLFFBQVEsa0NBQVcsa0JBQWtCO0FBQUEsSUFDMUQ7QUFBQSxFQUNEO0FBQUEsRUFDQSxRQUFRO0FBQUEsSUFDUCxNQUFNO0FBQUEsSUFDTixPQUFPO0FBQUEsTUFDTixRQUFRO0FBQUEsUUFDUCxRQUFRO0FBQUEsUUFDUixjQUFjO0FBQUEsTUFDZjtBQUFBLElBQ0Q7QUFBQSxFQUNEO0FBQ0QsQ0FBQzsiLAogICJuYW1lcyI6IFtdCn0K

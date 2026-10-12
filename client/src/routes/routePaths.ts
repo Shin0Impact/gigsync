@@ -15,6 +15,10 @@ export const ROUTES = {
 	VERIFICATION: "/verification",
 	NOTIFICATIONS: "/notifications",
 
+	MESSAGES: "/messages",
+	MESSAGE_THREAD_PATTERN: "/messages/:conversationId",
+	MESSAGE_THREAD: (conversationId: string) => `/messages/${conversationId}`,
+
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
 

@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { useSocketConnection } from "../hooks/useSocketConnection";
 import { SplitView } from "../components/layout/SplitView";
 import { Navbar } from "../components/layout/Navbar";
 import { PostQuickViewProvider } from "../features/pieces/PostQuickViewProvider";
@@ -29,6 +30,10 @@ function ComposerFab() {
 // available on every creative page, and any PieceCard anywhere can open
 // the same quick-view popup.
 export default function Layout({ type, role }: LayoutProps) {
+	// No-ops until useMeQuery resolves a signed-in user - safe to mount
+	// unconditionally even on guest/form layouts.
+	useSocketConnection();
+
 	const showCreativeChrome = role === "creative" && type === "page";
 
 	return (

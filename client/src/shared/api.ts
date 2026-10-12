@@ -22,6 +22,7 @@ export const api = createApi({
 		"Application",
 		"Activity",
 		"Availability",
+		"Chat",
 	],
 	endpoints: () => ({}),
 });
