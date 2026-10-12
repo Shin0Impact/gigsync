@@ -309,6 +309,18 @@ export interface ArtistSearchResult {
 	isEmergencyAvailable: boolean;
 }
 
+// Card #26 - artist availability calendar. Dates are plain
+// "YYYY-MM-DD" strings on the wire, never Date objects - that format is
+// what <input type="date">/react-day-picker naturally produce and consume,
+// and it sidesteps timezone-shift bugs a serialized Date would introduce.
+export interface ListAvailabilityResponse {
+	dates: string[];
+}
+
+export interface AddAvailabilityResponse {
+	date: string;
+}
+
 export interface UploadUrlResult {
 	uploadUrl: string;
 	objectKey: string;

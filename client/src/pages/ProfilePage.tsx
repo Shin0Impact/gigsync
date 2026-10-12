@@ -4,12 +4,13 @@ import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutatio
 import { useListPiecesQuery, useComposer } from "../features/pieces";
 import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
+import { AvailabilityCalendar } from "../features/artists";
 import { ButtonLink } from "@components";
 import { ROUTES } from "../routes/routePaths";
 import ProfilePicture from "../components/user/ProfilePicture";
 import styles from "./ProfilePage.module.css";
 
-type ProfileTab = "posts" | "portfolio";
+type ProfileTab = "posts" | "portfolio" | "availability";
 
 // Previously Studio (My Pieces) and Profile were two separate pages
 // showing almost the same "your own pieces" grid - one with a profile
@@ -144,6 +145,17 @@ export function ProfilePage() {
 						onClick={() => setActiveTab("portfolio")}>
 						Portfolio
 					</button>
+					{profile.role === "artist" && (
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === "availability"}
+							className={styles.tabButton}
+							data-active={activeTab === "availability"}
+							onClick={() => setActiveTab("availability")}>
+							Availability
+						</button>
+					)}
 				</div>
 
 				{activeTab === "posts" && (
@@ -251,6 +263,15 @@ export function ProfilePage() {
 								})}
 							</div>
 						)}
+					</div>
+				)}
+
+				{activeTab === "availability" && profile.role === "artist" && (
+					<div className={styles.tabPanel}>
+						<AvailabilityCalendar
+							userId={profile.userId}
+							isOwnProfile={profile.isOwnProfile}
+						/>
 					</div>
 				)}
 			</section>

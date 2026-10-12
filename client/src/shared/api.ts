@@ -21,6 +21,7 @@ export const api = createApi({
 		"Event",
 		"Application",
 		"Activity",
+		"Availability",
 	],
 	endpoints: () => ({}),
 });
