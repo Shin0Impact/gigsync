@@ -12,17 +12,24 @@ export function RootRedirect() {
 	const user = data?.user;
 
 	if (user) {
-		if (user.role === "artist" || user.role === "organizer") {
+		if (user.role === "artist") {
 			return (
 				<Navigate
-					to={ROUTES.DASHBOARD}
+					to={ROUTES.MY_PIECES}
+					replace
+				/>
+			);
+		} else if (user.role === "organizer") {
+			return (
+				<Navigate
+					to={ROUTES.MY_HAPPENINGS}
 					replace
 				/>
 			);
 		}
 		return (
 			<Navigate
-				to={ROUTES.HOME}
+				to={ROUTES.TIMELINE}
 				replace
 			/>
 		);

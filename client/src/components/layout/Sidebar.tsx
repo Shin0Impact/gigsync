@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styles from "./Sidebar.module.css";
 import { ROUTES } from "../../routes/routePaths";
 import { Logo } from "@components/Logo";
@@ -53,10 +53,13 @@ const defaultSidebar = (
 
 export function Sidebar() {
 	const { data, isLoading } = useMeQuery();
+	const location = useLocation();
+
+	const path = location.pathname;
 
 	if (isLoading || !data) return defaultSidebar;
 
-	console.log(data);
+	console.log(path);
 
 	const role = data.user?.role;
 	const username = data.profile?.userName;
@@ -90,7 +93,8 @@ export function Sidebar() {
 						<LinkNav
 							key={item.label}
 							to={resolvePath(item.to)}
-							color="invert">
+							color="invert"
+							active={resolvePath(item.to) === path}>
 							{item.label}
 						</LinkNav>
 					))}
@@ -103,7 +107,8 @@ export function Sidebar() {
 								<LinkNav
 									key={item.label}
 									to={resolvePath(item.to)}
-									color="invert">
+									color="invert"
+									active={resolvePath(item.to) === path}>
 									{item.label}
 								</LinkNav>
 							))}
@@ -114,7 +119,8 @@ export function Sidebar() {
 						<LinkNav
 							key={item.label}
 							to={resolvePath(item.to)}
-							color="invert">
+							color="invert"
+							active={resolvePath(item.to) === path}>
 							{item.label}
 						</LinkNav>
 					))}

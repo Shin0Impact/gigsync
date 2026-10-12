@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 import { Voronoi } from "@paper-design/shaders-react";
 import { Sidebar } from "./Sidebar";
 import styles from "./SplitView.module.css";
+import { useMeQuery } from "../../features/auth";
 
 interface SplitViewProps {
-	role: "creative" | "supporter" | "organizer" | "guest";
+	// role: "creative" | "supporter" | "organizer" | "guest";
 	children: ReactNode;
 	contentDecoration?: boolean;
 	className?: string;
@@ -25,7 +26,11 @@ const defaultDecoration = (
 	/>
 );
 
-export function SplitView({ role, children, contentDecoration = false, className = "" }: SplitViewProps) {
+export function SplitView({ children, contentDecoration = false, className = "" }: SplitViewProps) {
+	const { data } = useMeQuery();
+
+	const role = data?.user?.role ?? "guest";
+
 	return (
 		<div
 			className={`${styles.view} ${className}`.trim()}

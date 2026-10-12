@@ -8,12 +8,12 @@
     box-sizing: border-box;
     overflow: hidden;
 
-    &[data-role="creative"] {
+    &[data-role="artist"] {
         --color-role: var(--color-yellow);
         background-color: var(--color-role);
     }
 
-    &[data-role="supporter"] {
+    &[data-role="fan"] {
         --color-role: var(--color-blue);
         background-color: var(--color-background);
     }
