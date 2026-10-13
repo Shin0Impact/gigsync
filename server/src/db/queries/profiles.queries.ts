@@ -10,7 +10,6 @@ export interface DbProfile {
 	avatar_url: string | null;
 	followers_number: number;
 	artists_type: string | null;
-	name: string | null;
 }
 
 export async function find_profile_by_user_name(user_name: string): Promise<DbProfile | null> {

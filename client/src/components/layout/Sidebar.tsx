@@ -35,7 +35,7 @@ const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
 
 const BOTTOM_NAV_ITEMS: NavItem[] = [
 	{ to: ROUTES.SETTINGS, label: "Settings" },
-	{ to: (username: string) => ROUTES.PROFILE(username.toLowerCase()), label: "Profile" },
+	{ to: (username: string) => ROUTES.PROFILE(username), label: "Profile" },
 ];
 
 export function Sidebar() {
@@ -66,7 +66,7 @@ export function Sidebar() {
 	console.log(path);
 
 	const role = data.user?.role;
-	const username = data.profile?.userName;
+	const username = data.user?.userName;
 
 	const resolvePath = (to: string | ((username: string) => string)): string => {
 		return typeof to === "function" ? to(username!) : to;

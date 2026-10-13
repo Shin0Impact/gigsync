@@ -1,6 +1,12 @@
 .container {
     width: 100%;
 
+    .emptyState {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
     .userPieces {
         width: 100%;

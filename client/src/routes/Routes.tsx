@@ -56,6 +56,7 @@ export function AppRoutes() {
 						path={ROUTES.SETTINGS}
 						element={<SettingsPage />}
 					/>
+
 					<Route
 						path={ROUTES.SINGLE_PIECE_PATTERN}
 						element={<PieceDetails />}
@@ -78,7 +79,7 @@ export function AppRoutes() {
 						element={<Events />}
 					/>
 					<Route
-						path={ROUTES.SEARCH}
+						path={ROUTES.ON_AIR}
 						element={<ArtistSearchPage />}
 					/>
 					<Route

@@ -4,6 +4,9 @@ import { ButtonLink } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { PieceCard } from "./PieceCard";
 import { IWork } from "@shared/types/social";
+import { Voronoi } from "@paper-design/shaders-react";
+import { EmptyState } from "@components/ui/EmptyState/EmptyState";
+import { useNavigate } from "react-router-dom";
 
 interface UserPiecesProps {
 	userId: string;
@@ -29,13 +32,16 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 
 			{!isLoading && !error && pieces.length === 0 && (
 				<div className={styles.emptyState}>
-					<h2 className={styles.emptyTitle}>No Pieces yet.</h2>
-					<p className={styles.emptyText}>
-						{mine
-							? "Share your creative journey by starting your first Piece."
-							: "Check back soon to see their Pieces."}
-					</p>
-					{mine && <ButtonLink to={ROUTES.CREATE_PIECE}>Start your First Piece</ButtonLink>}
+					<EmptyState
+						title="No Pieces yet."
+						subtitle={
+							mine
+								? "Share your creative journey by starting your first Piece."
+								: "Check back soon to see their Pieces."
+						}
+						actionLabel="Start your First Piece"
+						to={ROUTES.CREATE_PIECE}
+					/>
 				</div>
 			)}
 

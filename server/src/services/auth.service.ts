@@ -13,11 +13,7 @@ import {
 } from "../db/queries/users.queries";
 import { create_profile, find_profile_by_user_name } from "../db/queries/profiles.queries";
 import { create_role, find_role_by_user_id } from "../db/queries/roles.queries";
-import {
-	create_auth_token,
-	find_valid_auth_token,
-	mark_auth_token_used,
-} from "../db/queries/auth-tokens.queries";
+import { create_auth_token, find_valid_auth_token, mark_auth_token_used } from "../db/queries/auth-tokens.queries";
 import { send_email } from "./mailer.service";
 
 import { env } from "../config/env";
@@ -90,9 +86,9 @@ export async function register_user(input: RegisterInput) {
 		throw new Error("Username is already taken");
 	}
 
-	if (role === "artist" && !artists_type) {
-		throw new Error("Artist type is required for artists");
-	}
+	// if (role === "artist" && !artists_type) {
+	// 	throw new Error("Artist type is required for artists");
+	// }
 
 	if (role !== "artist" && artists_type) {
 		throw new Error("Only artists can have an artist type");
@@ -165,10 +161,7 @@ export async function login_user(input: LoginInput) {
 	// "no such account" apart from "wrong password" and enumerate valid
 	// emails - even though the error message itself was already the same
 	// generic "Invalid credentials" either way.
-	const password_matches = await bcrypt.compare(
-		password,
-		user?.password_hash ?? DUMMY_PASSWORD_HASH,
-	);
+	const password_matches = await bcrypt.compare(password, user?.password_hash ?? DUMMY_PASSWORD_HASH);
 
 	if (!user || !password_matches) {
 		throw new Error("Invalid credentials");
@@ -196,9 +189,7 @@ export async function login_user(input: LoginInput) {
 	const refresh_payload: RefreshTokenPayload = { ...payload, remember: rememberMe };
 
 	const refresh_token_options: SignOptions = {
-		expiresIn: (rememberMe
-			? env.jwt.refreshExpiresIn
-			: NOT_REMEMBERED_REFRESH_EXPIRES_IN) as SignOptions["expiresIn"],
+		expiresIn: (rememberMe ? env.jwt.refreshExpiresIn : NOT_REMEMBERED_REFRESH_EXPIRES_IN) as SignOptions["expiresIn"],
 	};
 
 	const access_token = jwt.sign(payload, env.jwt.accessSecret, access_token_options);
@@ -247,9 +238,7 @@ export async function refresh_tokens(refresh_token: string) {
 	};
 
 	const refresh_token_options: SignOptions = {
-		expiresIn: (remember
-			? env.jwt.refreshExpiresIn
-			: NOT_REMEMBERED_REFRESH_EXPIRES_IN) as SignOptions["expiresIn"],
+		expiresIn: (remember ? env.jwt.refreshExpiresIn : NOT_REMEMBERED_REFRESH_EXPIRES_IN) as SignOptions["expiresIn"],
 	};
 
 	const new_access_token = jwt.sign(new_payload, env.jwt.accessSecret, access_token_options);
@@ -269,11 +258,7 @@ export async function refresh_tokens(refresh_token: string) {
 // Note the same caveat as logout: access tokens are stateless JWTs with no
 // server-side session list, so an already-issued token lives out its 15
 // minutes even after a password change.
-export async function change_password(
-	userId: string,
-	currentPassword: string,
-	newPassword: string,
-) {
+export async function change_password(userId: string, currentPassword: string, newPassword: string) {
 	if (!currentPassword || !newPassword) {
 		throw new Error("currentPassword and newPassword are required");
 	}
@@ -318,13 +303,7 @@ export async function request_password_reset(email: string) {
 	const client = await pool.connect();
 	try {
 		await client.query("BEGIN");
-		await create_auth_token(
-			client,
-			user.id,
-			"password_reset",
-			hash,
-			new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS),
-		);
+		await create_auth_token(client, user.id, "password_reset", hash, new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS));
 		await client.query("COMMIT");
 	} catch (error) {
 		await client.query("ROLLBACK");

@@ -7,7 +7,7 @@ import {
 	create_work_handler,
 	delete_comment_handler,
 	delete_update_media_handler,
-	get_work_or_user_works_handler
+	get_work_or_user_works_handler,
 	delete_work_handler,
 	get_like_status_handler,
 	like_work_handler,
@@ -27,12 +27,12 @@ const router = Router();
 // and showcases). Likes/comments/follows stay out of scope for now - see
 // server/src/db/social.queries.ts for the read-only scaffolding Kareem
 // already has for those.
-router.post('/', requireAuth, requireRole('artist'), create_work_handler);
+router.post("/", requireAuth, requireRole("artist"), create_work_handler);
 
 // GET /:identifier - one route, two reads: a user UUID returns that user's
 // works list; a numeric work id returns the single work with updates and
 // media embedded (work detail page). See the controller for the contract.
-router.get('/:identifier', get_work_or_user_works_handler);
+router.get("/:identifier", get_work_or_user_works_handler);
 // and showcases).
 //
 // Likes/comments (2026-10-11): implemented below on top of Kareem's
