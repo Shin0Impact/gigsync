@@ -61,7 +61,7 @@ export async function getRolesForUser(userId: string): Promise<IUserRole[]> {
     created_at: string;
   }
   const result = await query<RoleRow>('select * from roles where user_id = $1', [userId]);
-  return result.rows.map((row) => ({
+  return result.rows.map((row: RoleRow) => ({
     userId: row.user_id,
     role: row.role as Role,
     createdAt: row.created_at,
@@ -79,7 +79,7 @@ export async function getFollowersOfUser(followedId: string): Promise<IFollowing
     'select * from followings where followed_id = $1 order by created_at desc',
     [followedId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: FollowingRow) => ({
     id: row.id,
     userId: row.user_id,
     followedId: row.followed_id,
@@ -91,6 +91,7 @@ export async function getWorksByUser(userId: string): Promise<IWork[]> {
   interface WorkRow {
     id: number;
     user_id: string;
+    title: string | null;
     description: string | null;
     created_at: string;
     updated_at: string;
@@ -99,9 +100,10 @@ export async function getWorksByUser(userId: string): Promise<IWork[]> {
     'select * from works where user_id = $1 order by created_at desc',
     [userId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: WorkRow) => ({
     id: row.id,
     userId: row.user_id,
+    title: row.title,
     description: row.description,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -121,7 +123,7 @@ export async function getWorkUpdates(workId: number): Promise<IWorkUpdate[]> {
     'select * from work_updates where work_id = $1 order by version_number desc',
     [workId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: WorkUpdateRow) => ({
     id: row.id,
     workId: row.work_id,
     versionNumber: row.version_number,
@@ -146,7 +148,7 @@ export async function getMediaForUpdate(updateId: number): Promise<IUpdateMedia[
     'select * from update_media where update_id = $1 order by sort_order asc',
     [updateId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: UpdateMediaRow) => ({
     id: row.id,
     updateId: row.update_id,
     mediaType: row.media_type,
@@ -205,7 +207,7 @@ export async function getCommentsForWork(workId: number): Promise<WorkCommentWit
      order by wc.created_at asc`,
     [workId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: WorkCommentRow) => ({
     id: row.id,
     workId: row.work_id,
     userId: row.user_id,
@@ -241,22 +243,24 @@ export async function getPostEvent(postId: number): Promise<IPostEvent | null> {
 // actually be mounted. Likes/comments/follows are read-only scaffolding
 // still - no write path for those yet, out of scope here.
 
-export async function createWork(userId: string, description: string | null): Promise<IWork> {
+export async function createWork(userId: string, description: string | null, title: string | null): Promise<IWork> {
   interface WorkRow {
     id: number;
     user_id: string;
+    title: string | null;
     description: string | null;
     created_at: string;
     updated_at: string;
   }
   const result = await query<WorkRow>(
-    'insert into works (user_id, description) values ($1, $2) returning *',
-    [userId, description]
+    'insert into works (user_id, description, title) values ($1, $2, $3) returning *',
+    [userId, description, title]
   );
   const row = result.rows[0];
   return {
     id: row.id,
     userId: row.user_id,
+    title: row.title,
     description: row.description,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -267,6 +271,7 @@ export async function getWorkById(workId: number): Promise<IWork | null> {
   interface WorkRow {
     id: number;
     user_id: string;
+    title: string | null;
     description: string | null;
     created_at: string;
     updated_at: string;
@@ -274,7 +279,7 @@ export async function getWorkById(workId: number): Promise<IWork | null> {
   const result = await query<WorkRow>('select * from works where id = $1 limit 1', [workId]);
   const row = result.rows[0];
   return row
-    ? { id: row.id, userId: row.user_id, description: row.description, createdAt: row.created_at, updatedAt: row.updated_at }
+    ? { id: row.id, userId: row.user_id, title: row.title, description: row.description, createdAt: row.created_at, updatedAt: row.updated_at }
     : null;
 }
 
@@ -396,7 +401,7 @@ export async function getFollowedUserIds(followerId: string): Promise<string[]> 
     'select followed_id from followings where user_id = $1',
     [followerId]
   );
-  return result.rows.map((row) => row.followed_id);
+  return result.rows.map((row: { followed_id: string }) => row.followed_id);
 }
 
 export async function isFollowing(followerId: string, followedId: string): Promise<boolean> {
@@ -447,7 +452,7 @@ export async function getLikedWorkIds(userId: string, workIds: number[]): Promis
     'select work_id from work_likes where user_id = $1 and work_id = any($2::bigint[])',
     [userId, workIds]
   );
-  return result.rows.map((row) => Number(row.work_id));
+  return result.rows.map((row: { work_id: number }) => Number(row.work_id));
 }
 
 export async function createWorkComment(
@@ -621,10 +626,10 @@ export async function listWorksFeed(options: ListWorksFeedOptions): Promise<Work
   );
 
   const likedWorkIds = viewerId
-    ? new Set(await getLikedWorkIds(viewerId, result.rows.map((row) => row.id)))
+    ? new Set(await getLikedWorkIds(viewerId, result.rows.map((row: FeedRow) => row.id)))
     : new Set<number>();
 
-  return result.rows.map((row) => mapFeedRow(row, likedWorkIds));
+  return result.rows.map((row: FeedRow) => mapFeedRow(row, likedWorkIds));
 }
 
 // --- Derived activity feed (2026-10-11) -----------------------------------
@@ -734,7 +739,7 @@ export async function getAllMediaForWork(workId: number): Promise<IUpdateMedia[]
      where wu.work_id = $1`,
     [workId]
   );
-  return result.rows.map((row) => ({
+  return result.rows.map((row: UpdateMediaRow) => ({
     id: row.id,
     updateId: row.update_id,
     mediaType: row.media_type,
