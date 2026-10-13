@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation } from "../features/profiles";
 import { useListPiecesQuery, useComposer } from "../features/pieces";
-import { PieceCard } from "../features/pieces/components";
+import { PieceCard, FilmReel } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { AvailabilityCalendar } from "../features/artists";
 import { useStartConversationMutation } from "../features/chat";
@@ -203,11 +203,24 @@ export function ProfilePage() {
 						{!isLoadingPieces && pieces.length > 0 && (
 							<div className={styles.feed}>
 								{pieces.map((piece) => (
-									<PieceCard
+									<div
 										key={piece.id}
-										piece={piece}
-										readOnly={!profile.isOwnProfile}
-									/>
+										className={styles.pieceRow}>
+										<PieceCard
+											piece={piece}
+											readOnly={!profile.isOwnProfile}
+										/>
+										{/* History reel for this one piece's own updates -
+										   profile-view only, by design (not inside PieceCard
+										   itself), so it doesn't show up in the Explore/
+										   Following feeds or the quick-view popup. Positioned
+										   out in the page's side margin (.reelSlot) so it never
+										   squeezes the card's own width, and renders nothing
+										   when this piece has no update history. */}
+										<div className={styles.reelSlot}>
+											<FilmReel pieceId={piece.id} />
+										</div>
+									</div>
 								))}
 							</div>
 						)}

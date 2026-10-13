@@ -219,6 +219,20 @@
     margin: 0 auto;
 }
 
+.pieceRow {
+    position: relative;
+}
+
+/* Absolutely positioned so the reel never affects the card's own
+   width - it sits in the page's side margin outside the centered
+   640px .feed column, rather than squeezing the card to make room. */
+.reelSlot {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 1rem;
+}
+
 .emptyState {
     text-align: center;
     padding: 3rem 2rem;
