@@ -10,6 +10,7 @@ export interface DbProfile {
   avatar_url: string | null;
   followers_number: number;
   artists_type: string | null;
+  name: string | null;
 }
 
 export async function find_profile_by_user_name(
@@ -25,7 +26,8 @@ export async function find_profile_by_user_name(
         name,
         avatar_url,
         followers_number,
-        artists_type
+        artists_type,
+        name
       FROM profiles
       WHERE user_name = $1
       LIMIT 1
@@ -122,7 +124,8 @@ export async function create_profile(
         name,
         avatar_url,
         followers_number,
-        artists_type
+        artists_type,
+        name
     `,
     [user_id, user_name, name, artists_type],
   );
@@ -252,6 +255,66 @@ export async function find_emergency_available_near(
       ORDER BY distance_km ASC
     `,
     [lat, lng, radius_km],
+  );
+
+  return result.rows;
+}
+
+// --- Card #24 - artist directory search by location --------------------
+//
+// Same ST_DWithin/ST_Distance shape as find_emergency_available_near
+// above, minus the emergency-only filter, plus two differences: this
+// only returns rows that actually have the `artist` role (a `profiles`
+// row exists for every signed-up user, not just artists - see the
+// `roles` table, card #1's many-roles-per-user design), and it takes an
+// optional `artists_type` to narrow the category (painter/photographer/
+// etc. - see the ArtistCategory union in types/index.ts). Capped at 50
+// results since an unfiltered 200km-radius search has no other bound.
+export interface DbArtistSearchResult {
+  user_id: string;
+  user_name: string;
+  avatar_url: string | null;
+  artists_type: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  distance_km: number;
+  followers_number: number;
+  is_emergency_available: boolean;
+}
+
+export async function find_artists_near(
+  lat: number,
+  lng: number,
+  radius_km: number,
+  artists_type: string | null,
+): Promise<DbArtistSearchResult[]> {
+  const result = await pool.query<DbArtistSearchResult>(
+    `
+      SELECT
+        p.user_id,
+        p.user_name,
+        p.avatar_url,
+        p.artists_type,
+        p.followers_number,
+        p.is_emergency_available,
+        ST_Y(p.location::geometry) AS location_lat,
+        ST_X(p.location::geometry) AS location_lng,
+        ST_Distance(p.location, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography) / 1000 AS distance_km
+      FROM profiles p
+      INNER JOIN roles r
+        ON r.user_id = p.user_id
+       AND r.role = 'artist'
+      WHERE p.location IS NOT NULL
+        AND ST_DWithin(
+          p.location,
+          ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
+          $3 * 1000
+        )
+        AND ($4::text IS NULL OR p.artists_type::text = $4)
+      ORDER BY distance_km ASC
+      LIMIT 50
+    `,
+    [lat, lng, radius_km, artists_type],
   );
 
   return result.rows;

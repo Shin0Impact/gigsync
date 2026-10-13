@@ -21,7 +21,14 @@ import {
 import { send_email } from "./mailer.service";
 
 import { env } from "../config/env";
-import { AuthTokenPayload, UserRole, ArtistCategory, RegisterInput, LoginInput } from "../types";
+import { AuthTokenPayload, UserRole, RegisterInput, LoginInput } from "../types";
+
+// Only the refresh token carries this - the access token is always
+// short-lived (env.jwt.accessExpiresIn) regardless of "remember me", so
+// it has no need to know about it.
+interface RefreshTokenPayload extends AuthTokenPayload {
+	remember: boolean;
+}
 
 // --- Account-recovery token constants ------------------------------------
 //
@@ -138,8 +145,15 @@ export async function register_user(input: RegisterInput) {
 // against, even when the account doesn't exist.
 const DUMMY_PASSWORD_HASH = bcrypt.hashSync("dummy-password-for-constant-time-login", 12);
 
+// "Remember me" unchecked: the refresh token backing a session should
+// not outlive the browser session it was issued in. The cookie itself
+// (set in auth.controller.ts) is what actually enforces that - this is
+// just a short JWT expiry as a backstop, in case the browser restores
+// the session cookie anyway (e.g. "continue where you left off").
+const NOT_REMEMBERED_REFRESH_EXPIRES_IN = "1d";
+
 export async function login_user(input: LoginInput) {
-	const { identifier, password } = input;
+	const { identifier, password, rememberMe = true } = input;
 
 	const user = await find_user_by_identifier(identifier);
 
@@ -175,30 +189,45 @@ export async function login_user(input: LoginInput) {
 		expiresIn: env.jwt.accessExpiresIn as SignOptions["expiresIn"],
 	};
 
+	// The refresh token payload carries `remember` so refresh_tokens below
+	// can re-apply the same choice on every silent refresh, instead of a
+	// "remember me" unchecked session quietly becoming persistent again
+	// the first time its access token expires and gets refreshed.
+	const refresh_payload: RefreshTokenPayload = { ...payload, remember: rememberMe };
+
 	const refresh_token_options: SignOptions = {
-		expiresIn: env.jwt.refreshExpiresIn as SignOptions["expiresIn"],
+		expiresIn: (rememberMe
+			? env.jwt.refreshExpiresIn
+			: NOT_REMEMBERED_REFRESH_EXPIRES_IN) as SignOptions["expiresIn"],
 	};
 
 	const access_token = jwt.sign(payload, env.jwt.accessSecret, access_token_options);
 
-	const refresh_token = jwt.sign(payload, env.jwt.refreshSecret, refresh_token_options);
+	const refresh_token = jwt.sign(refresh_payload, env.jwt.refreshSecret, refresh_token_options);
 
 	return {
 		user,
 		role: role_record,
 		access_token,
 		refresh_token,
+		remember: rememberMe,
 	};
 }
 
 export async function refresh_tokens(refresh_token: string) {
-	let payload: AuthTokenPayload;
+	let payload: RefreshTokenPayload;
 
 	try {
-		payload = jwt.verify(refresh_token, env.jwt.refreshSecret) as AuthTokenPayload;
+		payload = jwt.verify(refresh_token, env.jwt.refreshSecret) as RefreshTokenPayload;
 	} catch {
 		throw new Error("Invalid or expired refresh token");
 	}
+
+	// Refresh tokens issued before "remember me" existed have no `remember`
+	// claim at all - default those to true so an already-logged-in session
+	// keeps its existing (always-persistent) behavior instead of silently
+	// downgrading to a 1-day session on its next refresh.
+	const remember = payload.remember ?? true;
 
 	const role_record = await find_role_by_user_id(payload.userId);
 
@@ -211,21 +240,26 @@ export async function refresh_tokens(refresh_token: string) {
 		role: role_record.role,
 	};
 
+	const new_refresh_payload: RefreshTokenPayload = { ...new_payload, remember };
+
 	const access_token_options: SignOptions = {
 		expiresIn: env.jwt.accessExpiresIn as SignOptions["expiresIn"],
 	};
 
 	const refresh_token_options: SignOptions = {
-		expiresIn: env.jwt.refreshExpiresIn as SignOptions["expiresIn"],
+		expiresIn: (remember
+			? env.jwt.refreshExpiresIn
+			: NOT_REMEMBERED_REFRESH_EXPIRES_IN) as SignOptions["expiresIn"],
 	};
 
 	const new_access_token = jwt.sign(new_payload, env.jwt.accessSecret, access_token_options);
 
-	const new_refresh_token = jwt.sign(new_payload, env.jwt.refreshSecret, refresh_token_options);
+	const new_refresh_token = jwt.sign(new_refresh_payload, env.jwt.refreshSecret, refresh_token_options);
 
 	return {
 		access_token: new_access_token,
 		refresh_token: new_refresh_token,
+		remember,
 	};
 }
 

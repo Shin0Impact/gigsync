@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
 	get_emergency_status,
+	search_artists,
 	search_emergency_available,
 	set_emergency_status,
 } from "../services/artists.service";
@@ -8,6 +9,8 @@ import {
 	UpdateEmergencyStatusInput,
 	EmergencyStatusHandlerResponse,
 	ListEmergencyAvailableResponse,
+	ListArtistsSearchResponse,
+	SearchArtistsInput,
 	ErrorResponse,
 } from "../types";
 
@@ -76,5 +79,30 @@ export async function list_emergency_available_handler(
 		return res.status(200).json({ artists });
 	} catch (error) {
 		return handle_known_error(error, res, "Failed to search emergency-available artists");
+	}
+}
+
+export async function search_artists_handler(
+	req: Request<
+		Record<string, never>,
+		unknown,
+		unknown,
+		{ lat?: string; lng?: string; radius_km?: string; artists_type?: string }
+	>,
+	res: Response<ListArtistsSearchResponse | ErrorResponse>,
+) {
+	try {
+		const { lat, lng, radius_km, artists_type } = req.query;
+
+		const artists = await search_artists({
+			lat: Number(lat),
+			lng: Number(lng),
+			radiusKm: Number(radius_km),
+			artistsType: artists_type ? (artists_type as SearchArtistsInput["artistsType"]) : null,
+		});
+
+		return res.status(200).json({ artists });
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to search artists");
 	}
 }

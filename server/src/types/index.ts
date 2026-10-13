@@ -126,48 +126,13 @@ export interface DbVerificationRequest {
 // Core Domain / Application Models
 // -----------------------------------------------------------------------------
 
-export interface IArtistProfile {
-	id: string;
-	userId: string;
-	bio: string | null;
-	hourlyRate: number | null;
-	isEmergencyAvailable: boolean;
-	emergencyUntil: string | null;
-	ratingAvg: number;
-	reviewCount: number;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface IExtendedArtistProfile extends IArtistProfile {
-	name: string;
-	avatarUrl: string | null;
-	categories: string[];
-}
-
-export interface IEvent {
-	id: string;
-	organizerId: string;
-	title: string;
-	description: string;
-	venueName: string;
-	location: GeoPoint;
-	eventDate: string;
-	status: EventStatus;
-	isRecurring: boolean;
-	recurringRule: string | null;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface IConversation {
-	id: string;
-	eventId: string | null;
-	participantIds: string[];
-	createdAt: Date;
-	updatedAt: Date;
-}
-
+// IArtistProfile, IExtendedArtistProfile, IEvent and IConversation used to
+// live here - dead weight, never imported anywhere (the actual
+// artist/event/conversation domain types are the Db*/*Response/*Summary
+// interfaces used by the real queries/services/controllers below and in
+// types/social.ts). IMessage is the one survivor of this group - it's live,
+// used by the socket gateway, chatSlice, and MessageThread's live-tail merge
+// (see card #34).
 export interface IMessage {
 	id: string;
 	conversationId: string;
@@ -193,6 +158,14 @@ export interface RegisterInput {
 export interface LoginInput {
 	identifier: string;
 	password: string;
+	// Defaults to true (see login_user in auth.service.ts) when omitted,
+	// so old clients that predate this field keep today's always-persistent
+	// behavior. true = refresh token persists for env.jwt.refreshExpiresIn
+	// (7d by default) across browser restarts; false = refresh token is a
+	// session cookie (cleared when the browser closes) backed by a short
+	// JWT expiry as a backstop, in case the browser doesn't actually clear
+	// it (mobile "continue where you left off" session restore).
+	rememberMe?: boolean;
 }
 
 export interface ChangePasswordInput {
@@ -226,6 +199,13 @@ export interface SearchEmergencyAvailableInput {
 	radiusKm: number;
 }
 
+export interface SearchArtistsInput {
+	lat: number;
+	lng: number;
+	radiusKm: number;
+	artistsType?: ArtistCategory | null;
+}
+
 export interface RequestUploadUrlInput {
 	fileName: string;
 	contentType: string;
@@ -236,6 +216,7 @@ export interface RequestUploadUrlInput {
 export interface RequestIdDocumentUploadUrlInput {
 	fileName: string;
 	contentType: string;
+	fileSizeBytes: number;
 }
 
 export interface CreateEventInput {
@@ -309,6 +290,29 @@ export interface EmergencyAvailableArtist {
 	emergencyUntil: Date | string | null;
 	location: GeoPoint | null;
 	distanceKm: number;
+}
+
+export interface ArtistSearchResult {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+	artistsType: string | null;
+	location: GeoPoint | null;
+	distanceKm: number;
+	followersNumber: number;
+	isEmergencyAvailable: boolean;
+}
+
+// Card #26 - artist availability calendar. Dates are plain
+// "YYYY-MM-DD" strings on the wire, never Date objects - that format is
+// what <input type="date">/react-day-picker naturally produce and consume,
+// and it sidesteps timezone-shift bugs a serialized Date would introduce.
+export interface ListAvailabilityResponse {
+	dates: string[];
+}
+
+export interface AddAvailabilityResponse {
+	date: string;
 }
 
 export interface UploadUrlResult {
@@ -452,6 +456,10 @@ export interface ListEmergencyAvailableResponse {
 	artists: EmergencyAvailableArtist[];
 }
 
+export interface ListArtistsSearchResponse {
+	artists: ArtistSearchResult[];
+}
+
 // event_media.controller.ts
 export interface AddEventMediaResponse {
 	media: DbEventMedia;
@@ -487,7 +495,7 @@ export interface ListApplicationsResponse {
 }
 
 export interface UpdateApplicationResponse {
-	application: DbEventApplication | null;
+	application: DbEventApplication;
 }
 
 // showcase.controller.ts
@@ -523,4 +531,122 @@ export interface GetIdDocumentViewUrlResponse {
 
 export interface ReviewVerificationRequestResponse {
 	request: DbVerificationRequest;
+}
+
+// -----------------------------------------------------------------------------
+// Profiles, follow, and derived activity feed (2026-10-11)
+// -----------------------------------------------------------------------------
+
+export interface ProfileSummary {
+	userId: string;
+	userName: string;
+	name: string | null;
+	avatarUrl: string | null;
+	artistsType: string | null;
+	role: UserRole | null;
+	followersCount: number;
+	isVerified: boolean;
+	isFollowedByMe: boolean;
+	isOwnProfile: boolean;
+	socialLinks: DbSocialLink[];
+	createdAt: Date | string;
+}
+
+export interface GetProfileResponse {
+	profile: ProfileSummary;
+}
+
+export interface FollowResponse {
+	following: boolean;
+	followersCount: number;
+}
+
+export type ActivityItemType = "like" | "comment" | "follow" | "application_accepted" | "application_rejected";
+
+export interface ActivityActor {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+}
+
+// Synthesized from existing tables (work_likes, work_comments, followings,
+// event_applications) - there's no dedicated notifications table, so this
+// is assembled on read rather than stored. See profiles.service.ts.
+export interface ActivityItem {
+	id: string;
+	type: ActivityItemType;
+	createdAt: string;
+	actor: ActivityActor | null;
+	workId?: number;
+	commentContent?: string;
+	eventId?: number;
+	eventTitle?: string;
+}
+
+export interface ListMyActivityResponse {
+	activity: ActivityItem[];
+}
+
+// An artist's own application, joined with the event it's for - see
+// list_applications_for_artist in db/queries/events.queries.ts.
+export interface DbEventApplicationWithEvent extends DbEventApplication {
+	event_title: string;
+	event_start_at: Date;
+	event_venue_name: string | null;
+	event_status: EventStatus;
+}
+
+export interface ListMyApplicationsResponse {
+	applications: DbEventApplicationWithEvent[];
+}
+// Card #34 - direct messaging (conversation list + message thread).
+// Conversations/messages are DB-backed (see schema.sql); live delivery
+// goes over the socket gateway (sockets/index.ts) - REST here covers
+// discovering conversations and loading history, IMessage events over
+// receive_message cover the live tail once a thread is open.
+export interface ConversationParticipantSummary {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+}
+
+export interface ConversationLastMessage {
+	content: string;
+	senderId: string;
+	createdAt: string;
+}
+
+export interface ConversationSummary {
+	id: string;
+	// null only if the other participant row is somehow missing (should
+	// not happen for a DM - see createDirectConversation) - kept nullable
+	// rather than asserted so a data inconsistency renders as "Unknown"
+	// instead of crashing the conversations list.
+	otherParticipant: ConversationParticipantSummary | null;
+	lastMessage: ConversationLastMessage | null;
+	updatedAt: string;
+}
+
+export interface ListConversationsResponse {
+	conversations: ConversationSummary[];
+}
+
+export interface StartConversationResponse {
+	conversation: {
+		id: string;
+		createdAt: string;
+	};
+}
+
+export interface MessageDto {
+	id: string;
+	conversationId: string;
+	senderId: string;
+	content: string;
+	isRead: boolean;
+	createdAt: string;
+}
+
+export interface ListMessagesResponse {
+	messages: MessageDto[];
 }
