@@ -27,6 +27,18 @@ export const ROUTES = {
 
 	ON_AIR: "/on-air",
 
+	// ======== PROFILE ========
+
+	PROFILE: (username: string) => `/${username}`,
+	PROFILE_PATTERN: "/:username",
+
+	USER_PIECES: (username: string) => `/${username}/pieces`,
+	USER_PIECES_PATTERN: "/:username/pieces",
+	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
+	USER_PORTFOLIO_PATTERN: "/:username/portfolio",
+	USER_HAPPENINGS: (username: string) => `/${username}/happenings`,
+	USER_HAPPENINGS_PATTERN: "/:username/happenings",
+
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
 
