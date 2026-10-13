@@ -36,3 +36,5 @@ services:
         value: gigsync-media
       - key: R2_PUBLIC_URL
         sync: false
+      - key: R2_ID_DOCUMENTS_BUCKET_NAME
+        sync: false
