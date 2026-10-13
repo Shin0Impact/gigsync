@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMeQuery } from "../../auth/authApi";
-import { useListPiecesQuery, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
+import { useListUserPiecesQuery, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
 import { uploadFileToR2 } from "../../../shared/uploadClient";
 import { Form } from "@components";
+import { IWork } from "@shared/types/social";
 
 // const mediaTypeOptions = [
 // 	{ label: "Image", value: "image" },
@@ -26,7 +27,7 @@ export function FormIntermezzoCreate() {
 	const [mediaType, setMediaType] = useState<"image" | "video" | "audio">("image");
 	const [isUploadingFile, setIsUploadingFile] = useState(false);
 
-	const { data: userPiecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
+	const { data: userPiecesData, isLoading: isLoadingPieces } = useListUserPiecesQuery(userId!, {
 		skip: !userId,
 	});
 
@@ -40,9 +41,9 @@ export function FormIntermezzoCreate() {
 	const [addIntermezzo, { isLoading: isAddingIntermezzo, error: intermezzoError }] = useAddIntermezzoMutation();
 	const [addVignette, { isLoading: isAddingVignette }] = useAddVignetteMutation();
 
-	const handleClose = () => {
-		navigate(-1);
-	};
+	// const handleClose = () => {
+	// 	navigate(-1);
+	// };
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files[0]) {
@@ -105,17 +106,19 @@ export function FormIntermezzoCreate() {
 		<Form
 			title="New Intermezzo"
 			onSubmit={handleSubmit}
-			header={
-				<Form.Header
-					right={
-						<Form.ToggleButton
-							onClick={handleClose}
-							disabled={isLoading}>
-							Cancel
-						</Form.ToggleButton>
-					}
-				/>
-			}>
+			isDrawer={true}
+			// header={
+			// 	<Form.Header
+			// 		right={
+			// 			<Form.ToggleButton
+			// 				onClick={handleClose}
+			// 				disabled={isLoading}>
+			// 				Cancel
+			// 			</Form.ToggleButton>
+			// 		}
+			// 	/>
+			// }
+		>
 			{intermezzoError && (
 				<Form.ErrorMessage>Failed to create intermezzo. Please check your inputs and try again.</Form.ErrorMessage>
 			)}
@@ -129,7 +132,7 @@ export function FormIntermezzoCreate() {
 					required
 					disabled={isLoading || Boolean(initialPieceId)}>
 					{isLoadingPieces && <option value="">Loading your Pieces...</option>}
-					{userPiecesData?.works?.map((piece) => (
+					{userPiecesData?.works?.map((piece: IWork) => (
 						<option
 							key={piece.id}
 							value={piece.id}>

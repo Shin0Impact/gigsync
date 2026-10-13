@@ -4,6 +4,7 @@ import { ROUTES } from "../../routes/routePaths";
 import { Logo } from "@components/Logo";
 import { LinkNav } from "@components/ui/Link";
 import { useMeQuery } from "../../features/auth";
+import { useMediaQuery } from "../../hooks";
 
 interface NavItem {
 	to: string | ((username: string) => string);
@@ -33,31 +34,30 @@ const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
 
 const BOTTOM_NAV_ITEMS: NavItem[] = [{ to: (username: string) => ROUTES.PROFILE(username), label: "Profile" }];
 
-const defaultSidebar = (
-	<div className={styles.sidebar}>
-		<div className={styles.glyphContainer}>
-			<Link
-				to={ROUTES.HOME}
-				className={styles.glyphArea}
-				aria-label="Home">
-				<Logo
-					variant="mark"
-					orientation="vertical"
-					size="fill"
-					className={styles.verticalGlyph}
-				/>
-			</Link>
-		</div>
-	</div>
-);
-
 export function Sidebar() {
 	const { data, isLoading } = useMeQuery();
+	const isMobile = useMediaQuery("(max-width: 768px)");
 	const location = useLocation();
-
 	const path = location.pathname;
 
-	if (isLoading || !data) return defaultSidebar;
+	if (isLoading || !data)
+		return (
+			<div className={styles.sidebar}>
+				<div className={styles.glyphContainer}>
+					<Link
+						to={ROUTES.HOME}
+						className={styles.glyphArea}
+						aria-label="Home">
+						<Logo
+							variant="mark"
+							orientation={isMobile ? "horizontal" : "vertical"}
+							size="fill"
+							className={styles.verticalGlyph}
+						/>
+					</Link>
+				</div>
+			</div>
+		);
 
 	console.log(path);
 
@@ -79,7 +79,7 @@ export function Sidebar() {
 					aria-label="Home">
 					<Logo
 						variant="mark"
-						orientation="vertical"
+						orientation={isMobile ? "horizontal" : "vertical"}
 						purpose="static"
 						size="fill"
 						className={styles.verticalGlyph}

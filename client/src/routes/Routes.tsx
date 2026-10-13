@@ -7,15 +7,7 @@ import { RoleGuard } from "../features/auth/components/RoleGuard";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import Layout from "../layouts/Layout";
 import { FormLogin, FormSignup, RequireGuest } from "../features/auth";
-import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
-import { PieceDetails } from "../pages/creative/PieceDetails";
-import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
-import { MyPieces } from "../pages/creative/MyPieces";
-// import { Events } from "../pages/creative/Events";
-// import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
-// import { FollowingPage } from "../features/explore/FollowingPage";
-// import ProfilePage from "../pages/ProfilePage";
-// import NotificationsPage from "../pages/NotificationsPage";
+import { MyPiecesPage } from "../pages/MyPiecesPage";
 
 export function AppRoutes() {
 	return (
@@ -93,29 +85,24 @@ export function AppRoutes() {
 				<Route element={<RoleGuard allowedRoles={["artist"]} />}>
 					<Route
 						path={ROUTES.MY_PIECES}
-						element={<div>My Pieces</div>}
-					/>
-					<Route
-						path={ROUTES.MY_APPLICATIONS}
-						element={<div>My Applications</div>}
+						element={<MyPiecesPage />}
 					/>
 				</Route>
 				// ============= ORGANIZERS ==============
-				<Route element={<RoleGuard allowedRoles={["organizer"]} />}>
-					<Route
-						path={ROUTES.MY_HAPPENINGS}
-						element={<div>My Happenings</div>}
-					/>
-					<Route
-						path={ROUTES.MY_APPLICATIONS}
-						element={<div>My Applications</div>}
-					/>
-				</Route>
+				<Route element={<RoleGuard allowedRoles={["organizer"]} />}></Route>
 				// ============= CREAIVES + ORGANIZERS ==============
 				<Route element={<RoleGuard allowedRoles={["artist", "organizer"]} />}>
 					<Route
 						path={ROUTES.ON_AIR}
 						element={<div>On Air</div>}
+					/>
+					<Route
+						path={ROUTES.MY_APPLICATIONS}
+						element={<div>My Applications</div>}
+					/>
+					<Route
+						path={ROUTES.MY_HAPPENINGS}
+						element={<div>My Happenings</div>}
 					/>
 					<Route
 						path={ROUTES.PROFILE_PATTERN}

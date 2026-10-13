@@ -1,6 +1,6 @@
 import styles from "./Button.module.css";
 
-export type ButtonVariant = "solid" | "ghost" | "logo" | "expandable";
+export type ButtonVariant = "solid" | "ghost" | "logo" | "expandable" | "nav";
 export type ButtonColor = "default" | "white" | "black" | "cream" | "yellow" | "moss" | "blue";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,14 +9,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 	hoverText?: string;
 }
 
-export function Button({
-	variant = "solid",
-	active = false,
-	hoverText,
-	className = "",
-	children,
-	...rest
-}: ButtonProps) {
+export function Button({ variant = "solid", active = false, hoverText, className = "", children, ...rest }: ButtonProps) {
 	return (
 		<button
 			className={`${styles.button} ${className}`.trim()}

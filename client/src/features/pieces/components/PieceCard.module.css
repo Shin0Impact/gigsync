@@ -1,97 +1,164 @@
-.card {
-    background-color: var(--color-primary);
-    border: 0.125rem solid var(--color-accent);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.cardWrapper {
+    display: grid;
+    grid-template-columns: 30rem 0fr;
+    gap: 0rem;
+    align-items: start;
+    transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1), gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    width: max-content;
+    max-width: 100%;
 
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    &[data-confirm="true"] {
+        grid-template-columns: 30rem 22rem;
+        gap: 1.25rem;
     }
-}
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-}
+    .card {
+        background-color: var(--color-primary);
+        border: 0.125rem solid var(--color-accent);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        width: 30rem;
+        box-sizing: border-box;
 
-.pieceId {
-    font-family: var(--font-sans, sans-serif);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-accent);
-    opacity: 0.6;
-}
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
 
-.date {
-    font-family: var(--font-serif, serif);
-    font-size: 0.85rem;
-    font-style: italic;
-    color: var(--color-accent);
-    opacity: 0.7;
-}
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
 
-.description {
-    font-family: var(--font-sans, sans-serif);
-    font-size: 1.1rem;
-    color: var(--color-accent);
-    margin: 0;
-    line-height: 1.5;
-    word-break: break-word;
-}
+            .pieceId {
+                font-family: var(--font-sans, sans-serif);
+                font-size: 0.85rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--color-accent);
+                opacity: 0.6;
+            }
 
-.noDescription {
-    font-family: var(--font-serif, serif);
-    font-style: italic;
-    opacity: 0.5;
-}
+            .date {
+                font-family: var(--font-serif, serif);
+                font-size: 0.85rem;
+                font-style: italic;
+                color: var(--color-accent);
+                opacity: 0.7;
+            }
+        }
 
-.updatesSummary {
-    font-family: var(--font-serif, serif);
-    font-size: 0.9rem;
-    color: var(--color-accent);
-    font-style: italic;
-    opacity: 0.8;
-}
+        .description {
+            font-family: var(--font-sans, sans-serif);
+            font-size: 1.1rem;
+            color: var(--color-accent);
+            margin: 0;
+            line-height: 1.5;
+            word-break: break-word;
 
-.actions {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: auto;
-    padding-top: 0.5rem;
-    border-top: 1px dashed rgba(0, 0, 0, 0.15);
-}
+            &.noDescription {
+                font-family: var(--font-serif, serif);
+                font-style: italic;
+                opacity: 0.5;
+            }
+        }
 
-.actionButton {
-    flex: 1;
-    padding: 0.6rem 0.875rem;
-    background-color: transparent;
-    border: 0.125rem solid var(--color-accent);
-    color: var(--color-accent);
-    font-family: var(--font-sans, sans-serif);
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s ease;
+        .updatesSummary {
+            font-family: var(--font-serif, serif);
+            font-size: 0.9rem;
+            color: var(--color-accent);
+            font-style: italic;
+            opacity: 0.8;
+        }
 
-    &:hover {
-        background-color: var(--color-accent);
-        color: var(--color-primary);
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: auto;
+            padding-top: 0.5rem;
+            border-top: 1px dashed rgba(0, 0, 0, 0.15);
+
+            .actionButton {
+                flex: 1;
+                padding: 0.6rem 0.875rem;
+                background-color: transparent;
+                border: 0.125rem solid var(--color-accent);
+                color: var(--color-accent);
+                font-family: var(--font-sans, sans-serif);
+                font-size: 0.9rem;
+                font-weight: 500;
+                cursor: pointer;
+                text-align: center;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background-color: var(--color-accent);
+                    color: var(--color-primary);
+                }
+
+                &.addIntermezzoBtn {
+                    &:hover {
+                        background-color: var(--color-yellow);
+                        color: var(--color-accent);
+                        border-color: var(--color-accent);
+                    }
+                }
+            }
+        }
     }
-}
 
-.addIntermezzoBtn {
-    &:hover {
-        background-color: var(--color-yellow);
-        color: var(--color-accent);
-        border-color: var(--color-accent);
+    .confirmDelete {
+        overflow: hidden;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s;
+        background-color: var(--color-primary);
+        border: 0.125rem solid var(--color-accent);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        box-sizing: border-box;
+        overflow: hidden;
+        height: 40vh;
+
+        p {
+            margin: 0;
+            color: var(--color-accent);
+
+            &:first-child {
+                font-weight: 600;
+                font-size: 1.5rem;
+                font-family: var(--font-sans, sans-serif);
+            }
+
+            &:nth-child(2) {
+                font-size: 1.25rem;
+                font-family: var(--font-serif, serif);
+                line-height: 1.2;
+            }
+        }
+
+        .errorText {
+            color: #e53e3e;
+            font-size: 0.85rem;
+        }
+
+        .confirmActions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+    }
+
+    &[data-confirm="true"] .confirmDelete {
+        opacity: 1;
+        transform: translateX(0);
     }
 }

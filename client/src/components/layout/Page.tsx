@@ -1,24 +1,39 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import styles from "./Page.module.css";
+import ProfilePicture from "@components/user/ProfilePicture";
 
-interface PageProps {
+interface PageRootProps {
+	type?: "main" | "sub";
 	children: ReactNode;
+	className?: string;
 }
 
-export const Page = ({ children }: PageProps) => {
-	return <div className={styles.page}>{children}</div>;
-};
+function PageRoot({ type = "main", children, className = "" }: PageRootProps) {
+	return (
+		<div
+			className={`${styles.page} ${className}`.trim()}
+			data-type={type}>
+			{children}
+		</div>
+	);
+}
 
-interface PageHeaderProps {
+interface HeaderProps {
 	title: string;
 	actions?: ReactNode;
 }
 
-Page.Header = ({ title, actions }: PageHeaderProps) => (
-	<header className={styles.header}>
-		<h1 className={styles.title}>{title}</h1>
-		{actions && <div className={styles.actions}>{actions}</div>}
-	</header>
-);
+function Header({ title }: HeaderProps) {
+	return (
+		<header className={styles.header}>
+			<h1 className={styles.title}>{title}</h1>
+			<ProfilePicture variant="page" />
+		</header>
+	);
+}
 
-Page.Body = ({ children }: { children: ReactNode }) => <div className={styles.body}>{children}</div>;
+function Body({ children, className = "" }: { children: ReactNode; className?: string }) {
+	return <div className={`${styles.body} ${className}`.trim()}>{children}</div>;
+}
+
+export const Page = Object.assign(PageRoot, { Header, Body });

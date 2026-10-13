@@ -27,7 +27,7 @@ export const piecesApi = api.injectEndpoints({
 			invalidatesTags: ["Piece"],
 		}),
 
-		listPieces: builder.query<ListWorksResponse, string>({
+		listUserPieces: builder.query<ListWorksResponse, string>({
 			query: (userId) => `/api/works/${userId}`,
 			providesTags: (result, _error, userId) =>
 				result
@@ -154,7 +154,7 @@ export const piecesApi = api.injectEndpoints({
 
 export const {
 	useCreatePieceMutation,
-	useListPiecesQuery,
+	useListUserPiecesQuery,
 	useDeletePieceMutation,
 	useAddIntermezzoMutation,
 	useListIntermezzosQuery,

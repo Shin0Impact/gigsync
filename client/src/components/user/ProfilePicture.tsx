@@ -1,12 +1,18 @@
+import styles from "./ProfilePicture.module.css";
+
 interface ProfilePictureProps {
-	isLoading?: boolean;
-	isDefault?: boolean;
-	variant: "nav" | "profile";
+	name?: string;
+	variant?: "page" | "profile";
 }
 
-function ProfilePicture({ isLoading = false, isDefault = true, variant }: ProfilePictureProps) {
-	if (isLoading || isDefault || variant == "profile") return <div>PFP</div>;
-	return <div>PFP</div>;
+function ProfilePicture({ name = "User", variant = "page" }: ProfilePictureProps) {
+	const initial = name.charAt(0);
+
+	return (
+		<div className={styles.profilePic}>
+			<div className={styles.iniital}></div>
+		</div>
+	);
 }
 
 export default ProfilePicture;

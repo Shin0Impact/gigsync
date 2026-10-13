@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMeQuery } from "../../auth";
-import { useListPiecesQuery } from "../../pieces";
+import { useListUserPiecesQuery } from "../../pieces";
 import { Form } from "@components";
 import { useAddToPortfolioMutation } from "../portfolioApi";
 import { AddShowcaseItemInput } from "@shared/types/index";
@@ -16,7 +16,7 @@ export function FormAddToPortfolio({ onSuccess }: FormAddToPortfolioProps) {
 	const [sourceType, setSourceType] = useState<"work" | "event">("work");
 	const [sourceId, setSourceId] = useState<string>("");
 
-	const { data: piecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
+	const { data: piecesData, isLoading: isLoadingPieces } = useListUserPiecesQuery(userId!, {
 		skip: !userId,
 	});
 	const pieces = piecesData?.works ?? [];
