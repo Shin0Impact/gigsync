@@ -1,0 +1,68 @@
+.compositionContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    padding: 5rem 2rem;
+    box-sizing: border-box;
+    position: relative;
+    background-color: var(--color-primary);
+}
+
+.empty {
+    font-family: monospace;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4rem;
+    text-align: center;
+    color: var(--color-accent);
+}
+
+.versionRow {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.versionLabelWrapper {
+    position: absolute;
+    top: -1.75rem;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.versionLabel {
+    font-family: monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-accent);
+    white-space: nowrap;
+    background-color: var(--color-primary);
+    padding: 0 0.4rem;
+    border-bottom: 2px solid var(--color-accent);
+}
+
+.barsGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.activityBar {
+    width: 100%;
+    background-color: var(--color-primary);
+    border: 2px solid var(--color-accent);
+    transition: background-color 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+}
+
+.activityBar:hover {
+    transform: scaleY(1.05);
+    border-color: var(--color-accent);
+    z-index: 2;
+}

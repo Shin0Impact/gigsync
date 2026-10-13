@@ -33,6 +33,7 @@
         white-space: nowrap;
         opacity: 0;
         transition: max-width var(--transition-base), opacity var(--transition-base);
+        text-box: trim-both cap alphabetic;
     }
 
     &:hover,

@@ -17,6 +17,7 @@ import {
 	list_works_feed_handler,
 	list_works_handler,
 	unlike_work_handler,
+	get_composition_handler,
 } from "../controllers/works.controller";
 
 const router = Router();
@@ -66,5 +67,7 @@ router.delete("/:workId/like", requireAuth, unlike_work_handler);
 router.post("/:workId/comments", requireAuth, add_comment_handler);
 router.get("/:workId/comments", list_comments_handler);
 router.delete("/comments/:commentId", requireAuth, delete_comment_handler);
+
+router.get("/:workId/composition", get_composition_handler);
 
 export default router;

@@ -755,3 +755,29 @@ export async function deleteWork(workId: number): Promise<boolean> {
 	const result = await query("delete from works where id = $1", [workId]);
 	return (result.rowCount ?? 0) > 0;
 }
+
+export interface InteractionWithRoleRow {
+	id: number;
+	work_id: number;
+	user_id: string;
+	created_at: string;
+	interaction_type: "like" | "comment";
+	role: string | null;
+}
+
+export async function getInteractionsWithRolesForWork(workId: number): Promise<InteractionWithRoleRow[]> {
+	const result = await query<InteractionWithRoleRow>(
+		`select wl.id, wl.work_id, wl.user_id, wl.created_at, 'like' as interaction_type, r.role
+     from work_likes wl
+     left join roles r on r.user_id = wl.user_id
+     where wl.work_id = $1
+     union all
+     select wc.id, wc.work_id, wc.user_id, wc.created_at, 'comment' as interaction_type, r.role
+     from work_comments wc
+     left join roles r on r.user_id = wc.user_id
+     where wc.work_id = $1
+     order by created_at asc`,
+		[workId],
+	);
+	return result.rows;
+}
