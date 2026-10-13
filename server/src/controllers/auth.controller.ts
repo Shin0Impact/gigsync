@@ -11,6 +11,11 @@ import {
 	ErrorResponse,
 } from "../types";
 
+// Matches env.jwt.refreshExpiresIn's 7-day default - kept as a literal
+// here rather than parsed from that string because res.cookie wants a
+// number of milliseconds, not a jsonwebtoken-style duration string.
+const REMEMBER_ME_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
 export async function register(
 	req: Request<Record<string, never>, unknown, RegisterInput>,
 	res: Response<RegisterResponse | ErrorResponse>,
@@ -75,7 +80,7 @@ export async function login(
 	res: Response<LoginResponse | ErrorResponse>,
 ) {
 	try {
-		const { identifier, password } = req.body;
+		const { identifier, password, rememberMe = true } = req.body;
 
 		if (!identifier || !password) {
 			return res.status(400).json({
@@ -86,6 +91,7 @@ export async function login(
 		const result = await login_user({
 			identifier,
 			password,
+			rememberMe,
 		});
 
 		res.cookie("access_token", result.access_token, {
@@ -95,11 +101,14 @@ export async function login(
 			maxAge: 15 * 60 * 1000,
 		});
 
+		// "Remember me" unchecked: no maxAge at all makes this a session
+		// cookie, cleared when the browser closes, instead of persisting for
+		// REMEMBER_ME_COOKIE_MAX_AGE_MS regardless of what the user picked.
 		res.cookie("refresh_token", result.refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",
-			maxAge: 7 * 24 * 60 * 60 * 1000,
+			...(rememberMe ? { maxAge: REMEMBER_ME_COOKIE_MAX_AGE_MS } : {}),
 		});
 
 		const { password_hash: _password_hash, ...safe_user } = result.user;
@@ -148,11 +157,15 @@ export async function refresh(req: Request, res: Response<RefreshResponse | Erro
 			maxAge: 15 * 60 * 1000,
 		});
 
+		// Carries forward whatever "remember me" was chosen at login (see
+		// refresh_tokens in auth.service.ts) - a session that started as
+		// session-only shouldn't quietly become persistent just because its
+		// access token expired and got silently refreshed.
 		res.cookie("refresh_token", result.refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax",
-			maxAge: 7 * 24 * 60 * 60 * 1000,
+			...(result.remember ? { maxAge: REMEMBER_ME_COOKIE_MAX_AGE_MS } : {}),
 		});
 
 		return res.status(200).json({

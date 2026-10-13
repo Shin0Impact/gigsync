@@ -134,6 +134,38 @@ function OptionGroup<T extends string>({ options, value, onChange }: OptionGroup
 	);
 }
 
+interface CheckboxProps {
+	id: string;
+	label: ReactNode;
+	checked: boolean;
+	onChange: (checked: boolean) => void;
+	disabled?: boolean;
+}
+
+// Deliberately its own component rather than reusing Input - the .field
+// input/textarea/select cascade in Form.module.css makes every plain
+// <input> a full-width bordered box, which is right for text fields and
+// wrong for a checkbox. This renders outside that scope with its own
+// (small, inline) styling instead.
+function Checkbox({ id, label, checked, onChange, disabled }: CheckboxProps) {
+	return (
+		<label
+			htmlFor={id}
+			className={styles.checkboxField}
+			data-disabled={disabled}>
+			<input
+				id={id}
+				type="checkbox"
+				className={styles.checkboxInput}
+				checked={checked}
+				onChange={(e) => onChange(e.target.checked)}
+				disabled={disabled}
+			/>
+			<span>{label}</span>
+		</label>
+	);
+}
+
 function ErrorMessage({ children }: { children: ReactNode }) {
 	return (
 		<p
@@ -176,6 +208,7 @@ export const Form = Object.assign(FormRoot, {
 	Select,
 	ButtonRow,
 	OptionGroup,
+	Checkbox,
 	ErrorMessage,
 	Submit,
 	ToggleButton,

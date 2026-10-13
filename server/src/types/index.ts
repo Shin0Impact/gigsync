@@ -156,6 +156,14 @@ export interface RegisterInput {
 export interface LoginInput {
 	identifier: string;
 	password: string;
+	// Defaults to true (see login_user in auth.service.ts) when omitted,
+	// so old clients that predate this field keep today's always-persistent
+	// behavior. true = refresh token persists for env.jwt.refreshExpiresIn
+	// (7d by default) across browser restarts; false = refresh token is a
+	// session cookie (cleared when the browser closes) backed by a short
+	// JWT expiry as a backstop, in case the browser doesn't actually clear
+	// it (mobile "continue where you left off" session restore).
+	rememberMe?: boolean;
 }
 
 export interface UpdateEmergencyStatusInput {

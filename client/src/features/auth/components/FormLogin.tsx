@@ -8,12 +8,17 @@ export function FormLogin() {
 	const navigate = useNavigate();
 	const [identifier, setIdentifier] = useState("");
 	const [password, setPassword] = useState("");
+	// Defaults checked - matches the always-persistent behavior logins
+	// had before this existed, so unchecking is an explicit opt into a
+	// shorter, browser-session-only login rather than the other way
+	// around.
+	const [rememberMe, setRememberMe] = useState(true);
 	const [login, { isLoading, error }] = useLoginMutation();
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
 		try {
-			await login({ identifier, password }).unwrap();
+			await login({ identifier, password, rememberMe }).unwrap();
 			setTimeout(() => {
 				handleLoginSuccess();
 			}, 50);
@@ -61,6 +66,14 @@ export function FormLogin() {
 					required
 				/>
 			</Form.Field>
+
+			<Form.Checkbox
+				id="login-remember-me"
+				label="Remember me"
+				checked={rememberMe}
+				onChange={setRememberMe}
+				disabled={isLoading}
+			/>
 
 			{error && (
 				<Form.ErrorMessage>Couldn't log in. Check your email/username and password and try again.</Form.ErrorMessage>
