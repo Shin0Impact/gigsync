@@ -14,11 +14,23 @@
     align-items: center;
 }
 
-.links {
+/* Following/Explore used to live here (.links); now that they are in the
+   Sidebar nav list, this is the only other thing in the navbar besides an
+   optional logo - margin-left: auto keeps it pinned to the right whether
+   or not the logo is rendered alongside it. */
+.profileArea {
+    margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 2rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+}
+/* The "profile" ProfilePicture variant is 6rem - fine next to the logo on
+   desktop, but that's a quarter of a phone's width in a slim header bar.
+   Shrink it below 48rem only; ProfilePage's own (larger) avatar has its
+   own override and isn't affected. */
+@media (max-width: 48rem) {
+    .navAvatar {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        font-size: 0.85rem !important;
+    }
 }

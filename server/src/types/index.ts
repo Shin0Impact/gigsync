@@ -206,6 +206,13 @@ export interface SearchEmergencyAvailableInput {
 	radiusKm: number;
 }
 
+export interface SearchArtistsInput {
+	lat: number;
+	lng: number;
+	radiusKm: number;
+	artistsType?: ArtistCategory | null;
+}
+
 export interface RequestUploadUrlInput {
 	fileName: string;
 	contentType: string;
@@ -289,6 +296,17 @@ export interface EmergencyAvailableArtist {
 	emergencyUntil: Date | string | null;
 	location: GeoPoint | null;
 	distanceKm: number;
+}
+
+export interface ArtistSearchResult {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+	artistsType: string | null;
+	location: GeoPoint | null;
+	distanceKm: number;
+	followersNumber: number;
+	isEmergencyAvailable: boolean;
 }
 
 export interface UploadUrlResult {
@@ -384,6 +402,16 @@ export interface RefreshResponse {
 
 export interface MeResponse {
 	user: AuthTokenPayload | null;
+	// Thin profile summary resolved server-side so the client never has to
+	// guess its own username/avatar - null if not authenticated or if the
+	// profile row doesn't exist yet (shouldn't happen post-registration).
+	profile: MeProfileSummary | null;
+}
+
+export interface MeProfileSummary {
+	userName: string;
+	avatarUrl: string | null;
+	artistsType: string | null;
 }
 
 // artists.controller.ts
@@ -393,6 +421,10 @@ export interface EmergencyStatusHandlerResponse {
 
 export interface ListEmergencyAvailableResponse {
 	artists: EmergencyAvailableArtist[];
+}
+
+export interface ListArtistsSearchResponse {
+	artists: ArtistSearchResult[];
 }
 
 // event_media.controller.ts
@@ -466,4 +498,76 @@ export interface GetIdDocumentViewUrlResponse {
 
 export interface ReviewVerificationRequestResponse {
 	request: DbVerificationRequest;
+}
+
+// -----------------------------------------------------------------------------
+// Profiles, follow, and derived activity feed (2026-10-11)
+// -----------------------------------------------------------------------------
+
+export interface ProfileSummary {
+	userId: string;
+	userName: string;
+	name: string | null;
+	avatarUrl: string | null;
+	artistsType: string | null;
+	role: UserRole | null;
+	followersCount: number;
+	isVerified: boolean;
+	isFollowedByMe: boolean;
+	isOwnProfile: boolean;
+	socialLinks: DbSocialLink[];
+	createdAt: Date | string;
+}
+
+export interface GetProfileResponse {
+	profile: ProfileSummary;
+}
+
+export interface FollowResponse {
+	following: boolean;
+	followersCount: number;
+}
+
+export type ActivityItemType =
+	| "like"
+	| "comment"
+	| "follow"
+	| "application_accepted"
+	| "application_rejected";
+
+export interface ActivityActor {
+	userId: string;
+	userName: string;
+	avatarUrl: string | null;
+}
+
+// Synthesized from existing tables (work_likes, work_comments, followings,
+// event_applications) - there's no dedicated notifications table, so this
+// is assembled on read rather than stored. See profiles.service.ts.
+export interface ActivityItem {
+	id: string;
+	type: ActivityItemType;
+	createdAt: string;
+	actor: ActivityActor | null;
+	workId?: number;
+	commentContent?: string;
+	eventId?: number;
+	eventTitle?: string;
+}
+
+export interface ListMyActivityResponse {
+	activity: ActivityItem[];
+}
+
+// An artist's own application, joined with the event it's for - see
+// list_applications_for_artist in db/queries/events.queries.ts.
+export interface DbEventApplicationWithEvent extends DbEventApplication {
+	event_title: string;
+	event_start_at: Date;
+	event_venue_name: string | null;
+	event_status: EventStatus;
+}
+
+export interface ListMyApplicationsResponse {
+	applications: DbEventApplicationWithEvent[];
 }

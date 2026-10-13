@@ -1,13 +1,19 @@
 import {
+	DbArtistSearchResult,
 	DbEmergencyAvailableArtist,
 	DbEmergencyStatus,
+	find_artists_near,
 	find_emergency_available_near,
 	find_emergency_status_for_user,
 	update_emergency_status,
 } from "../db/queries/profiles.queries";
 import { getIO, broadcastEmergencyStatusChange } from "../sockets";
 
-import { UpdateEmergencyStatusInput, SearchEmergencyAvailableInput } from "../types";
+import {
+	UpdateEmergencyStatusInput,
+	SearchEmergencyAvailableInput,
+	SearchArtistsInput,
+} from "../types";
 
 // Card #25 - emergency availability toggle + search.
 //
@@ -169,4 +175,41 @@ export async function search_emergency_available(input: SearchEmergencyAvailable
 
 	const rows = await find_emergency_available_near(lat, lng, radiusKm);
 	return rows.map(to_search_result);
+}
+
+function to_artist_search_result(row: DbArtistSearchResult) {
+	return {
+		userId: row.user_id,
+		userName: row.user_name,
+		avatarUrl: row.avatar_url,
+		artistsType: row.artists_type,
+		location:
+			row.location_lat !== null && row.location_lng !== null
+				? { lat: row.location_lat, lng: row.location_lng }
+				: null,
+		distanceKm: Math.round(row.distance_km * 10) / 10,
+		followersNumber: row.followers_number,
+		isEmergencyAvailable: row.is_emergency_available,
+	};
+}
+
+// Card #24 - artist directory search centered on a location the caller
+// picks (a map pin, a geocoded address, their own browser geolocation -
+// this just takes lat/lng, it doesn't care how they got there), same
+// validation shape as search_emergency_available above.
+export async function search_artists(input: SearchArtistsInput) {
+	const { lat, lng, radiusKm, artistsType } = input;
+
+	if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(radiusKm)) {
+		throw new Error("lat, lng, and radius_km are required and must be numbers");
+	}
+	if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+		throw new Error("lat/lng out of range");
+	}
+	if (radiusKm <= 0 || radiusKm > MAX_RADIUS_KM) {
+		throw new Error(`radius_km must be between 0 and ${MAX_RADIUS_KM}`);
+	}
+
+	const rows = await find_artists_near(lat, lng, radiusKm, artistsType ?? null);
+	return rows.map(to_artist_search_result);
 }
