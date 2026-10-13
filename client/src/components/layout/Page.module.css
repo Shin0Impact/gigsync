@@ -33,13 +33,10 @@
         gap: 0.75rem;
     }
 
-    /* The body scrolls on its own, because SplitView's content frame is
-       overflow: hidden. */
     .body {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding-top: 1.5rem;
     }
 
     &[data-type="sub"] {

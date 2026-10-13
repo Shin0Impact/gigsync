@@ -1,5 +1,9 @@
 .container {
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
     .emptyState {
         width: 100%;
@@ -10,6 +14,7 @@
 
     .userPieces {
         width: 100%;
+        height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;

@@ -61,7 +61,7 @@ export function EmptyState({ title, subtitle, actionLabel, to, href, onAction }:
 					gap={0.02}
 					glow={0}
 					speed={1}
-					scale={0.5}
+					scale={0.25}
 				/>
 			</div>
 
