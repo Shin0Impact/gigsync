@@ -3,6 +3,7 @@ import { optionalAuth, requireAuth } from "../middleware/auth.middleware";
 import {
 	follow_profile_handler,
 	get_my_activity_handler,
+	get_profile_by_id_handler,
 	get_profile_handler,
 	unfollow_profile_handler,
 } from "../controllers/profiles.controller";
@@ -16,6 +17,7 @@ const router = Router();
 router.get("/me/activity", requireAuth, get_my_activity_handler);
 
 router.get("/:username", optionalAuth, get_profile_handler);
+router.get("/id/:userId", requireAuth, get_profile_by_id_handler);
 router.post("/:username/follow", requireAuth, follow_profile_handler);
 router.delete("/:username/follow", requireAuth, unfollow_profile_handler);
 

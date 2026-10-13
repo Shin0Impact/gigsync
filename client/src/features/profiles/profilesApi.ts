@@ -4,8 +4,13 @@ import { api } from "../../shared/api";
 export const profilesApi = api.injectEndpoints({
 	endpoints: (builder) => ({
 		getProfile: builder.query<GetProfileResponse, string>({
-			query: (username) => `/api/profiles/${username}`,
+			query: (username) => `/api/profiles/${username.toLowerCase()}`,
 			providesTags: (_result, _error, username) => [{ type: "Profile", id: username }],
+		}),
+
+		getProfileById: builder.query<GetProfileResponse, string>({
+			query: (userId) => `/api/profiles/id/${userId}`,
+			providesTags: (_result, _error, userId) => [{ type: "Profile", id: userId }],
 		}),
 
 		followProfile: builder.mutation<FollowResponse, string>({
@@ -31,4 +36,10 @@ export const profilesApi = api.injectEndpoints({
 	}),
 });
 
-export const { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation, useGetMyActivityQuery } = profilesApi;
+export const {
+	useGetProfileQuery,
+	useGetProfileByIdQuery,
+	useFollowProfileMutation,
+	useUnfollowProfileMutation,
+	useGetMyActivityQuery,
+} = profilesApi;

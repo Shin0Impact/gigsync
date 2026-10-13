@@ -25,6 +25,7 @@ const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
 	artist: [
 		{ to: ROUTES.ON_AIR, label: "On Air" },
 		{ to: ROUTES.MY_PIECES, label: "Pieces" },
+		{ to: ROUTES.MY_APPLICATIONS, label: "Applications" },
 	],
 	organizer: [
 		{ to: ROUTES.ON_AIR, label: "On Air" },
@@ -32,7 +33,10 @@ const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
 	],
 };
 
-const BOTTOM_NAV_ITEMS: NavItem[] = [{ to: (username: string) => ROUTES.PROFILE(username), label: "Profile" }];
+const BOTTOM_NAV_ITEMS: NavItem[] = [
+	{ to: ROUTES.SETTINGS, label: "Settings" },
+	{ to: (username: string) => ROUTES.PROFILE(username.toLowerCase()), label: "Profile" },
+];
 
 export function Sidebar() {
 	const { data, isLoading } = useMeQuery();
@@ -115,15 +119,17 @@ export function Sidebar() {
 						</div>
 					)}
 
-					{BOTTOM_NAV_ITEMS.map((item) => (
-						<LinkNav
-							key={item.label}
-							to={resolvePath(item.to)}
-							color="invert"
-							active={resolvePath(item.to) === path}>
-							{item.label}
-						</LinkNav>
-					))}
+					<div className={styles.userNav}>
+						{BOTTOM_NAV_ITEMS.map((item) => (
+							<LinkNav
+								key={item.label}
+								to={resolvePath(item.to)}
+								color="invert"
+								active={resolvePath(item.to) === path}>
+								{item.label}
+							</LinkNav>
+						))}
+					</div>
 				</aside>
 			</div>
 		</div>

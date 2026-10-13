@@ -18,6 +18,8 @@ import ProfilePage from "../pages/ProfilePage";
 import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import { MyPiecesPage } from "../pages/MyPiecesPage";
+import MyApplicationsPage from "../pages/MyApplicationsPage";
 
 export function AppRoutes() {
 	return (
@@ -51,6 +53,10 @@ export function AppRoutes() {
 			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
 				<Route element={<Layout type="page" />}>
 					<Route
+						path={ROUTES.SETTINGS}
+						element={<SettingsPage />}
+					/>
+					<Route
 						path={ROUTES.SINGLE_PIECE_PATTERN}
 						element={<PieceDetails />}
 					/>
@@ -59,6 +65,14 @@ export function AppRoutes() {
 
 			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
 				<Route element={<Layout type="page" />}>
+					<Route
+						path={ROUTES.MY_PIECES}
+						element={<MyPiecesPage />}
+					/>
+					<Route
+						path={ROUTES.MY_APPLICATIONS}
+						element={<MyApplicationsPage />}
+					/>
 					<Route
 						path={ROUTES.DISCOVERY_HAPPENINGS}
 						element={<Events />}
@@ -87,10 +101,7 @@ export function AppRoutes() {
 						path={ROUTES.MESSAGE_THREAD_PATTERN}
 						element={<MessagesPage />}
 					/>
-					<Route
-						path={ROUTES.SETTINGS}
-						element={<SettingsPage />}
-					/>
+
 					<Route
 						path={ROUTES.PROFILE_PATTERN}
 						element={<ProfilePage />}

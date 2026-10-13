@@ -24,7 +24,7 @@ export function ProfilePage() {
 	const { username } = useParams<{ username: string }>();
 	const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
 
-	const { data, isLoading, error } = useGetProfileQuery(username ?? "", { skip: !username });
+	const { data, isLoading, error } = useGetProfileQuery(username?.toLowerCase() ?? "", { skip: !username });
 	const profile = data?.profile;
 
 	const { data: piecesData, isLoading: isLoadingPieces } = useListPiecesQuery(profile?.userId ?? "", {

@@ -1,22 +1,20 @@
-import { PoolClient } from 'pg';
-import { pool } from '../../config/db';
+import { PoolClient } from "pg";
+import { pool } from "../../config/db";
 
 export interface DbProfile {
-  id: number;
-  created_at: Date;
-  user_name: string;
-  user_id: string;
-  avatar_url: string | null;
-  followers_number: number;
-  artists_type: string | null;
-  name: string | null;
+	id: number;
+	created_at: Date;
+	user_name: string;
+	user_id: string;
+	avatar_url: string | null;
+	followers_number: number;
+	artists_type: string | null;
+	name: string | null;
 }
 
-export async function find_profile_by_user_name(
-  user_name: string,
-): Promise<DbProfile | null> {
-  const result = await pool.query<DbProfile>(
-    `
+export async function find_profile_by_user_name(user_name: string): Promise<DbProfile | null> {
+	const result = await pool.query<DbProfile>(
+		`
       SELECT
         id,
         created_at,
@@ -30,20 +28,42 @@ export async function find_profile_by_user_name(
       WHERE user_name = $1
       LIMIT 1
     `,
-    [user_name],
-  );
+		[user_name],
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
+}
+
+export async function find_profile_by_user_id(user_id: string): Promise<DbProfile | null> {
+	const result = await pool.query<DbProfile>(
+		`
+            SELECT
+                id,
+                created_at,
+                user_name,
+                user_id,
+                avatar_url,
+                followers_number,
+                artists_type,
+                name
+            FROM profiles
+            WHERE user_id = $1
+            LIMIT 1
+        `,
+		[user_id],
+	);
+
+	return result.rows[0] ?? null;
 }
 
 export async function create_profile(
-  client: PoolClient,
-  user_id: string,
-  user_name: string,
-  artists_type: string | null,
+	client: PoolClient,
+	user_id: string,
+	user_name: string,
+	artists_type: string | null,
 ): Promise<DbProfile> {
-  const result = await client.query<DbProfile>(
-    `
+	const result = await client.query<DbProfile>(
+		`
       INSERT INTO profiles (
         user_id,
         user_name,
@@ -60,10 +80,10 @@ export async function create_profile(
         artists_type,
         name
     `,
-    [user_id, user_name, artists_type],
-  );
+		[user_id, user_name, artists_type],
+	);
 
-  return result.rows[0];
+	return result.rows[0];
 }
 
 // --- Emergency availability (card #25) --------------------------------
@@ -82,26 +102,26 @@ export async function create_profile(
 // explicitly turn it off early via the same PATCH.
 
 export interface DbEmergencyStatus {
-  user_id: string;
-  is_emergency_available: boolean;
-  emergency_until: Date | null;
-  location_lat: number | null;
-  location_lng: number | null;
+	user_id: string;
+	is_emergency_available: boolean;
+	emergency_until: Date | null;
+	location_lat: number | null;
+	location_lng: number | null;
 }
 
 export interface UpdateEmergencyStatusParams {
-  isEmergencyAvailable: boolean;
-  emergencyUntil: string | null;
-  lat: number | null;
-  lng: number | null;
+	isEmergencyAvailable: boolean;
+	emergencyUntil: string | null;
+	lat: number | null;
+	lng: number | null;
 }
 
 export async function update_emergency_status(
-  user_id: string,
-  params: UpdateEmergencyStatusParams,
+	user_id: string,
+	params: UpdateEmergencyStatusParams,
 ): Promise<DbEmergencyStatus | null> {
-  const result = await pool.query<DbEmergencyStatus>(
-    `
+	const result = await pool.query<DbEmergencyStatus>(
+		`
       UPDATE profiles
       SET
         is_emergency_available = $1,
@@ -118,17 +138,15 @@ export async function update_emergency_status(
         ST_Y(location::geometry) AS location_lat,
         ST_X(location::geometry) AS location_lng
     `,
-    [params.isEmergencyAvailable, params.emergencyUntil, params.lng, params.lat, user_id],
-  );
+		[params.isEmergencyAvailable, params.emergencyUntil, params.lng, params.lat, user_id],
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
 }
 
-export async function find_emergency_status_for_user(
-  user_id: string,
-): Promise<DbEmergencyStatus | null> {
-  const result = await pool.query<DbEmergencyStatus>(
-    `
+export async function find_emergency_status_for_user(user_id: string): Promise<DbEmergencyStatus | null> {
+	const result = await pool.query<DbEmergencyStatus>(
+		`
       SELECT
         user_id,
         is_emergency_available,
@@ -139,21 +157,21 @@ export async function find_emergency_status_for_user(
       WHERE user_id = $1
       LIMIT 1
     `,
-    [user_id],
-  );
+		[user_id],
+	);
 
-  return result.rows[0] ?? null;
+	return result.rows[0] ?? null;
 }
 
 export interface DbEmergencyAvailableArtist {
-  user_id: string;
-  user_name: string;
-  avatar_url: string | null;
-  artists_type: string | null;
-  emergency_until: Date | null;
-  location_lat: number | null;
-  location_lng: number | null;
-  distance_km: number;
+	user_id: string;
+	user_name: string;
+	avatar_url: string | null;
+	artists_type: string | null;
+	emergency_until: Date | null;
+	location_lat: number | null;
+	location_lng: number | null;
+	distance_km: number;
 }
 
 // ST_DWithin/ST_Distance both work in meters on a `geography` column - the
@@ -161,12 +179,12 @@ export interface DbEmergencyAvailableArtist {
 // than asking callers to pass meters, to match the km-facing query param
 // (`radius_km`) the route accepts.
 export async function find_emergency_available_near(
-  lat: number,
-  lng: number,
-  radius_km: number,
+	lat: number,
+	lng: number,
+	radius_km: number,
 ): Promise<DbEmergencyAvailableArtist[]> {
-  const result = await pool.query<DbEmergencyAvailableArtist>(
-    `
+	const result = await pool.query<DbEmergencyAvailableArtist>(
+		`
       SELECT
         p.user_id,
         p.user_name,
@@ -187,10 +205,10 @@ export async function find_emergency_available_near(
         )
       ORDER BY distance_km ASC
     `,
-    [lat, lng, radius_km],
-  );
+		[lat, lng, radius_km],
+	);
 
-  return result.rows;
+	return result.rows;
 }
 
 // --- Card #24 - artist directory search by location --------------------
@@ -204,25 +222,25 @@ export async function find_emergency_available_near(
 // etc. - see the ArtistCategory union in types/index.ts). Capped at 50
 // results since an unfiltered 200km-radius search has no other bound.
 export interface DbArtistSearchResult {
-  user_id: string;
-  user_name: string;
-  avatar_url: string | null;
-  artists_type: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
-  distance_km: number;
-  followers_number: number;
-  is_emergency_available: boolean;
+	user_id: string;
+	user_name: string;
+	avatar_url: string | null;
+	artists_type: string | null;
+	location_lat: number | null;
+	location_lng: number | null;
+	distance_km: number;
+	followers_number: number;
+	is_emergency_available: boolean;
 }
 
 export async function find_artists_near(
-  lat: number,
-  lng: number,
-  radius_km: number,
-  artists_type: string | null,
+	lat: number,
+	lng: number,
+	radius_km: number,
+	artists_type: string | null,
 ): Promise<DbArtistSearchResult[]> {
-  const result = await pool.query<DbArtistSearchResult>(
-    `
+	const result = await pool.query<DbArtistSearchResult>(
+		`
       SELECT
         p.user_id,
         p.user_name,
@@ -247,8 +265,8 @@ export async function find_artists_near(
       ORDER BY distance_km ASC
       LIMIT 50
     `,
-    [lat, lng, radius_km, artists_type],
-  );
+		[lat, lng, radius_km, artists_type],
+	);
 
-  return result.rows;
+	return result.rows;
 }

@@ -7,13 +7,10 @@ import {
 	getRecentNewFollowers,
 	isFollowing,
 } from "../db/social.queries";
-import { find_profile_by_user_name } from "../db/queries/profiles.queries";
+import { find_profile_by_user_id, find_profile_by_user_name } from "../db/queries/profiles.queries";
 import { find_role_by_user_id } from "../db/queries/roles.queries";
 import { list_my_applications } from "./events.service";
-import {
-	is_profile_verified,
-	list_social_links_for_user,
-} from "../db/queries/verification.queries";
+import { is_profile_verified, list_social_links_for_user } from "../db/queries/verification.queries";
 import { ActivityItem, ProfileSummary } from "../types";
 
 // Profiles (2026-10-11) - public profile lookup by username, plus the
@@ -23,11 +20,40 @@ import { ActivityItem, ProfileSummary } from "../types";
 // social.queries.ts. The derived "my activity" feed at the bottom stands
 // in for a notifications table, which doesn't exist on the live schema.
 
-export async function get_profile_by_username(
-	username: string,
-	viewerId: string | null,
-) : Promise<ProfileSummary> {
+export async function get_profile_by_username(username: string, viewerId: string | null): Promise<ProfileSummary> {
 	const row = await find_profile_by_user_name(username);
+	if (!row) {
+		throw new Error("Profile not found");
+	}
+
+	const isOwnProfile = viewerId !== null && viewerId === row.user_id;
+
+	const [roleRecord, isVerified, socialLinks, followersCount, isFollowedByMe] = await Promise.all([
+		find_role_by_user_id(row.user_id),
+		is_profile_verified(row.user_id),
+		list_social_links_for_user(row.user_id),
+		getFollowerCount(row.user_id),
+		viewerId && !isOwnProfile ? isFollowing(viewerId, row.user_id) : Promise.resolve(false),
+	]);
+
+	return {
+		userId: row.user_id,
+		userName: row.user_name,
+		name: row.name,
+		avatarUrl: row.avatar_url,
+		artistsType: row.artists_type,
+		role: roleRecord?.role ?? null,
+		followersCount,
+		isVerified,
+		isFollowedByMe,
+		isOwnProfile,
+		socialLinks,
+		createdAt: row.created_at,
+	};
+}
+
+export async function get_profile_by_user_id(userId: string, viewerId: string | null): Promise<ProfileSummary> {
+	const row = await find_profile_by_user_id(userId);
 	if (!row) {
 		throw new Error("Profile not found");
 	}
