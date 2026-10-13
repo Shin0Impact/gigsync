@@ -96,8 +96,15 @@ export async function login(
 
 		res.cookie("access_token", result.access_token, {
 			httpOnly: true,
+			// Frontend (Cloudflare Workers) and API (Render) are different
+			// registrable domains, so this is a cross-site request from the
+			// browser's perspective - SameSite=Lax cookies never get attached to
+			// those fetches, which is why "logged in" kept bouncing back to the
+			// landing page right after a successful login. None is required for
+			// cross-site, and browsers require Secure whenever SameSite=None is
+			// used (true in production, where secure above is also true).
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			maxAge: 15 * 60 * 1000,
 		});
 
@@ -107,7 +114,7 @@ export async function login(
 		res.cookie("refresh_token", result.refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			...(rememberMe ? { maxAge: REMEMBER_ME_COOKIE_MAX_AGE_MS } : {}),
 		});
 
@@ -153,7 +160,7 @@ export async function refresh(req: Request, res: Response<RefreshResponse | Erro
 		res.cookie("access_token", result.access_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			maxAge: 15 * 60 * 1000,
 		});
 
@@ -164,7 +171,7 @@ export async function refresh(req: Request, res: Response<RefreshResponse | Erro
 		res.cookie("refresh_token", result.refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			...(result.remember ? { maxAge: REMEMBER_ME_COOKIE_MAX_AGE_MS } : {}),
 		});
 
