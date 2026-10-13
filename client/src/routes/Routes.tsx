@@ -15,9 +15,9 @@ import { ArtistSearchPage } from "../pages/ArtistSearchPage";
 import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
 import { FollowingPage } from "../features/explore/FollowingPage";
 import ProfilePage from "../pages/ProfilePage";
-import NotificationsPage from "../pages/NotificationsPage";
 import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
+import NotificationsPage from "../pages/NotificationsPage";
 
 export function AppRoutes() {
 	return (
@@ -26,9 +26,8 @@ export function AppRoutes() {
 				path={ROUTES.HOME}
 				element={<RootRedirect />}
 			/>
-
-			<Route element={<Layout type="form" />}>
-				<Route element={<RequireGuest />}>
+			<Route element={<RequireGuest />}>
+				<Route element={<Layout type="form" />}>
 					<Route
 						path={ROUTES.LOGIN}
 						element={<FormLogin />}
@@ -49,62 +48,36 @@ export function AppRoutes() {
 				}
 			/>
 
-			<Route element={<Layout type="page" />}>
-				// ============= ALL ROLES ==============
-				<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
-					// ============= MAIN PAGES ==============
-					<Route path={ROUTES.TIMELINE}>
-						<Route
-							index
-							element={<div>Timeline</div>}
-						/>
-						<Route
-							path={ROUTES.TIMELINE_PIECES}
-							element={<div>Timeline Pieces</div>}
-						/>
-						<Route
-							path={ROUTES.TIMELINE_HAPPENINGS}
-							element={<div>Timeline Happenings</div>}
-						/>
-					</Route>
-					<Route path={ROUTES.DISCOVERY}>
-						<Route
-							index
-							element={<div>Discovery</div>}
-						/>
-						<Route
-							path={ROUTES.DISCOVERY_PIECES}
-							element={<div>Discovery Pieces</div>}
-						/>
-						<Route
-							path={ROUTES.DISCOVERY_HAPPENINGS}
-							element={<div>Discovery Happenings</div>}
-						/>
-					</Route>
-					<Route
-						path={ROUTES.NOTIFICATIONS}
-						element={<div>Notifications</div>}
-					/>
-					// ============ SUBPAGES ==============
+			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
+				<Route element={<Layout type="page" />}>
 					<Route
 						path={ROUTES.SINGLE_PIECE_PATTERN}
-						element={<div>PieceDetails</div>}
+						element={<PieceDetails />}
 					/>
 				</Route>
-				// ============= CREATIVES ==============
-				<Route element={<RoleGuard allowedRoles={["artist"]} />}>
+			</Route>
+
+			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
+				<Route element={<Layout type="page" />}>
 					<Route
-						path={ROUTES.MY_PIECES}
-						element={<MyPiecesPage />}
+						path={ROUTES.DISCOVERY_HAPPENINGS}
+						element={<Events />}
 					/>
-				</Route>
-				// ============= ORGANIZERS ==============
-				<Route element={<RoleGuard allowedRoles={["organizer"]} />}></Route>
-				// ============= CREAIVES + ORGANIZERS ==============
-				<Route element={<RoleGuard allowedRoles={["artist", "organizer"]} />}>
 					<Route
-						path={ROUTES.ON_AIR}
-						element={<div>On Air</div>}
+						path={ROUTES.SEARCH}
+						element={<ArtistSearchPage />}
+					/>
+					<Route
+						path={ROUTES.DISCOVERY}
+						element={<ExplorePiecesPage />}
+					/>
+					<Route
+						path={ROUTES.TIMELINE}
+						element={<FollowingPage />}
+					/>
+					<Route
+						path={ROUTES.NOTIFICATIONS}
+						element={<NotificationsPage />}
 					/>
 					<Route
 						path={ROUTES.MESSAGES}
@@ -118,25 +91,23 @@ export function AppRoutes() {
 						path={ROUTES.SETTINGS}
 						element={<SettingsPage />}
 					/>
-				</Route>
-				<Route
-					element={
-						<Layout
-							type="form"
-							role="creative"
-						/>
-					}>
-					<Route
-						path={ROUTES.MY_APPLICATIONS}
-						element={<div>My Applications</div>}
-					/>
-					<Route
-						path={ROUTES.MY_HAPPENINGS}
-						element={<div>My Happenings</div>}
-					/>
 					<Route
 						path={ROUTES.PROFILE_PATTERN}
-						element={<div>My Profile</div>}
+						element={<ProfilePage />}
+					/>
+				</Route>
+				<Route element={<Layout type="form" />}>
+					<Route
+						path={ROUTES.CREATE_PIECE}
+						element={<FormPieceCreate />}
+					/>
+					<Route
+						path={ROUTES.CREATE_INTERMEZZO}
+						element={<FormIntermezzoCreate />}
+					/>
+					<Route
+						path={ROUTES.CREATE_PORTFOLIO_SECTION}
+						element={<FormAddToPortfolio />}
 					/>
 				</Route>
 			</Route>

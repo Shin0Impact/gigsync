@@ -1,8 +1,9 @@
-import { useListUserPiecesQuery } from "../piecesApi";
+import { useListPiecesQuery } from "../piecesApi";
 import styles from "./UserPieces.module.css";
 import { ButtonLink } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { PieceCard } from "./PieceCard";
+import { IWork } from "@shared/types/social";
 
 interface UserPiecesProps {
 	userId: string;
@@ -14,7 +15,7 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 		data: piecesData,
 		isLoading,
 		error,
-	} = useListUserPiecesQuery(userId ?? "", {
+	} = useListPiecesQuery(userId ?? "", {
 		skip: !userId,
 	});
 
@@ -40,7 +41,7 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 
 			{!isLoading && pieces.length > 0 && (
 				<section className={styles.userPieces}>
-					{pieces.map((piece) => (
+					{pieces.map((piece: IWork) => (
 						<PieceCard
 							key={piece.id}
 							piece={piece}

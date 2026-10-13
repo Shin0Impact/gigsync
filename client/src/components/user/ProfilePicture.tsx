@@ -1,16 +1,51 @@
 import styles from "./ProfilePicture.module.css";
+import { getMediaUrl } from "../../shared/mediaUrl";
 
 interface ProfilePictureProps {
-	name?: string;
-	variant?: "page" | "profile";
+	avatarUrl?: string | null;
+	userName?: string | null;
+	isLoading?: boolean;
+	variant: "nav" | "profile" | "page";
+	className?: string;
 }
 
-function ProfilePicture({ name = "User", variant = "page" }: ProfilePictureProps) {
-	const initial = name.charAt(0);
+function initials(userName?: string | null): string {
+	if (!userName) return "?";
+	return userName.trim().slice(0, 2).toUpperCase();
+}
+
+function ProfilePicture({ avatarUrl, userName, isLoading = false, variant, className = "" }: ProfilePictureProps) {
+	const combined = `${styles.picture} ${className}`.trim();
+
+	if (isLoading) {
+		return (
+			<div
+				className={combined}
+				data-variant={variant}
+				data-state="loading"
+				aria-hidden="true"
+			/>
+		);
+	}
+
+	if (avatarUrl) {
+		return (
+			<img
+				src={getMediaUrl(avatarUrl)}
+				alt={userName ? `${userName}'s avatar` : "Profile picture"}
+				className={combined}
+				data-variant={variant}
+			/>
+		);
+	}
 
 	return (
-		<div className={styles.profilePic}>
-			<div className={styles.iniital}></div>
+		<div
+			className={combined}
+			data-variant={variant}
+			data-state="placeholder"
+			aria-hidden={!userName}>
+			{initials(userName)}
 		</div>
 	);
 }

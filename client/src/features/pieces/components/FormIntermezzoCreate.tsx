@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMeQuery } from "../../auth/authApi";
-import { useListUserPiecesQuery, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
+import { useListPiecesQuery, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
 import { uploadFileToR2 } from "../../../shared/uploadClient";
 import { Form } from "@components";
 import { IWork } from "@shared/types/social";
@@ -27,7 +27,7 @@ export function FormIntermezzoCreate() {
 	const [mediaType, setMediaType] = useState<"image" | "video" | "audio">("image");
 	const [isUploadingFile, setIsUploadingFile] = useState(false);
 
-	const { data: userPiecesData, isLoading: isLoadingPieces } = useListUserPiecesQuery(userId!, {
+	const { data: userPiecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
 		skip: !userId,
 	});
 

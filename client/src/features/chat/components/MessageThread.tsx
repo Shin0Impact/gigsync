@@ -30,9 +30,7 @@ export function MessageThread({ conversationId, otherParticipant }: MessageThrea
 	const { data: me } = useMeQuery();
 	const myUserId = me?.user?.userId;
 
-	const liveMessages = useSelector(
-		(state: RootState) => state.chat.messages[conversationId] ?? [],
-	);
+	const liveMessages = useSelector((state: RootState) => state.chat.messages[conversationId] ?? []);
 
 	const [draft, setDraft] = useState("");
 	const bottomRef = useRef<HTMLDivElement | null>(null);

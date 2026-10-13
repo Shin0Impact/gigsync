@@ -16,7 +16,7 @@ import {
 } from "@shared/types/social";
 import { api } from "../../shared/api";
 
-export const piecesApi = api.injectEndpoints({
+export const worksApi = api.injectEndpoints({
 	endpoints: (builder) => ({
 		createPiece: builder.mutation<CreateWorkResponse, CreateWorkInput>({
 			query: (body) => ({
@@ -27,7 +27,7 @@ export const piecesApi = api.injectEndpoints({
 			invalidatesTags: ["Piece"],
 		}),
 
-		listUserPieces: builder.query<ListWorksResponse, string>({
+		listPieces: builder.query<ListWorksResponse, string>({
 			query: (userId) => `/api/works/${userId}`,
 			providesTags: (result, _error, userId) =>
 				result
@@ -46,7 +46,7 @@ export const piecesApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, { pieceId, ownerId }) => [
 				{ type: "Piece", id: pieceId },
 				...(ownerId ? [{ type: "Piece" as const, id: `USER_${ownerId}` }] : []),
-				{ type: "PieceFeed", id: "LIST" },
+				{ type: "Feed", id: "LIST" },
 			],
 		}),
 
@@ -85,8 +85,7 @@ export const piecesApi = api.injectEndpoints({
 			}),
 			invalidatesTags: (_result, _error, { intermezzoId }) => [{ type: "Vignette", id: intermezzoId }],
 		}),
-
-		listPiecesFeed: builder.query<
+		listWorksFeed: builder.query<
 			ListWorksFeedResponse,
 			{ scope?: "explore" | "following"; limit?: number; offset?: number } | void
 		>({
@@ -98,12 +97,12 @@ export const piecesApi = api.injectEndpoints({
 				const qs = search.toString();
 				return `/api/works${qs ? `?${qs}` : ""}`;
 			},
-			providesTags: [{ type: "PieceFeed", id: "LIST" }],
+			providesTags: [{ type: "Feed", id: "LIST" }],
 		}),
 
-		getNodStatus: builder.query<ToggleWorkLikeResponse, number | string>({
-			query: (pieceId) => `/api/works/${pieceId}/like`,
-			providesTags: (_result, _error, pieceId) => [{ type: "Nod", id: pieceId }],
+		getLikeStatus: builder.query<ToggleWorkLikeResponse, number | string>({
+			query: (workId) => `/api/works/${workId}/like`,
+			providesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
 		// Previously these invalidated the whole feed ({ type: "Feed", id: "LIST" })
@@ -162,9 +161,9 @@ export const piecesApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
-		unnodPiece: builder.mutation<ToggleWorkLikeResponse, number | string>({
-			query: (pieceId) => ({
-				url: `/api/works/${pieceId}/like`,
+		unlikeWork: builder.mutation<ToggleWorkLikeResponse, number | string>({
+			query: (workId) => ({
+				url: `/api/works/${workId}/like`,
 				method: "DELETE",
 			}),
 			async onQueryStarted(workId, { dispatch, queryFulfilled, getState }) {
@@ -206,44 +205,44 @@ export const piecesApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
-		listEchoes: builder.query<ListWorkCommentsResponse, number | string>({
-			query: (pieceId) => `/api/works/${pieceId}/comments`,
-			providesTags: (_result, _error, pieceId) => [{ type: "Echo", id: pieceId }],
+		listComments: builder.query<ListWorkCommentsResponse, number | string>({
+			query: (workId) => `/api/works/${workId}/comments`,
+			providesTags: (_result, _error, workId) => [{ type: "Comment", id: workId }],
 		}),
 
-		addEcho: builder.mutation<AddWorkCommentResponse, { pieceId: number | string; body: AddWorkCommentInput }>({
-			query: ({ pieceId, body }) => ({
-				url: `/api/works/${pieceId}/comments`,
+		addComment: builder.mutation<AddWorkCommentResponse, { workId: number | string; body: AddWorkCommentInput }>({
+			query: ({ workId, body }) => ({
+				url: `/api/works/${workId}/comments`,
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: (_result, _error, { pieceId }) => [{ type: "Echo", id: pieceId }],
+			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
 		}),
 
-		deleteEcho: builder.mutation<void, { pieceId: number | string; commentId: number | string }>({
+		deleteComment: builder.mutation<void, { workId: number | string; commentId: number | string }>({
 			query: ({ commentId }) => ({
 				url: `/api/works/comments/${commentId}`,
 				method: "DELETE",
 			}),
-			invalidatesTags: (_result, _error, { pieceId }) => [{ type: "Echo", id: pieceId }],
+			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
 		}),
 	}),
 });
 
 export const {
 	useCreatePieceMutation,
-	useListUserPiecesQuery,
+	useListPiecesQuery,
 	useDeletePieceMutation,
 	useAddIntermezzoMutation,
 	useListIntermezzosQuery,
 	useAddVignetteMutation,
 	useListVignettesQuery,
 	useDeleteVignetteMutation,
-	useListPiecesFeedQuery,
-	useGetNodStatusQuery,
-	useNodPieceMutation,
-	useUnnodPieceMutation,
-	useListEchoesQuery,
-	useAddEchoMutation,
-	useDeleteEchoMutation,
-} = piecesApi;
+	useListWorksFeedQuery,
+	useGetLikeStatusQuery,
+	useLikeWorkMutation,
+	useUnlikeWorkMutation,
+	useListCommentsQuery,
+	useAddCommentMutation,
+	useDeleteCommentMutation,
+} = worksApi;

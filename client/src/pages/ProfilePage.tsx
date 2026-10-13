@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation } from "../features/profiles";
-import { useListPiecesQuery, useComposer } from "../features/pieces";
+import { useListPiecesQuery } from "../features/pieces";
 import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { AvailabilityCalendar } from "../features/artists";
@@ -40,7 +40,7 @@ export function ProfilePage() {
 	const portfolioItems = portfolioData?.items ?? [];
 
 	const [removeFromPortfolio, { isLoading: isRemovingFromPortfolio }] = useRemoveFromPortfolioMutation();
-	const { openComposer } = useComposer();
+	// const { openComposer } = useComposer();
 
 	const [followProfile, { isLoading: isSendingFollow }] = useFollowProfileMutation();
 	const [unfollowProfile, { isLoading: isSendingUnfollow }] = useUnfollowProfileMutation();
@@ -192,10 +192,16 @@ export function ProfilePage() {
 										: `${profile.userName} hasn't shared any posts yet.`}
 								</p>
 								{profile.isOwnProfile && (
+									// <button
+									// 	type="button"
+									// 	className={styles.createButton}
+									// 	onClick={openComposer}>
+									// 	Create Your First Post
+									// </button>
 									<button
 										type="button"
 										className={styles.createButton}
-										onClick={openComposer}>
+										onClick={() => 1}>
 										Create Your First Post
 									</button>
 								)}
