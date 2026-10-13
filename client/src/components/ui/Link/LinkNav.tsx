@@ -3,7 +3,6 @@ import styles from "./Link.module.css";
 
 export interface LinkNavProps extends LinkProps {
 	active?: boolean;
-	// hoverText?: string;
 }
 
 export function LinkNav({ to, active = false, color = "default", className = "", children, ...rest }: LinkNavProps) {

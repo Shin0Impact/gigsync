@@ -83,7 +83,9 @@ export function FormSignup() {
 		/>
 	);
 
-	const headerRight = <Form.ToggleButton onClick={() => navigate(ROUTES.LOGIN)}>Already a member?</Form.ToggleButton>;
+	const headerRight = (
+		<Form.ToggleButton onClick={() => navigate(ROUTES.LOGIN, { replace: true })}>Already a member?</Form.ToggleButton>
+	);
 
 	return (
 		<Form

@@ -514,12 +514,7 @@ export interface FollowResponse {
 	followersCount: number;
 }
 
-export type ActivityItemType =
-	| "like"
-	| "comment"
-	| "follow"
-	| "application_accepted"
-	| "application_rejected";
+export type ActivityItemType = "like" | "comment" | "follow" | "application_accepted" | "application_rejected";
 
 export interface ActivityActor {
 	userId: string;

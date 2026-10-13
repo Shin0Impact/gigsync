@@ -1,166 +1,143 @@
 .sidebar {
-    width: 9rem;
+    position: relative;
+    width: fit-content;
     height: 100%;
-    background-color: var(--color-accent);
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
+    justify-content: space-between;
     box-sizing: border-box;
-    position: relative;
     overflow: hidden;
-}
 
-.glyphArea {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.6rem 0;
-    position: relative;
-    z-index: 1;
-}
-
-/* Logo.module.css hardcodes the glyph to --color-black; it needs to read
-   as the light mark on this dark panel instead. Only used for guests now -
-   everyone else gets SidebarGlyph's small profile picture below. */
-.glyphIcon {
-    color: var(--color-primary) !important;
-}
-
-/* The small profile-picture glyph that replaced the logo mark for
-   signed-in roles - white border so a photo avatar still reads as a
-   round cutout against the dark panel instead of blending flush into it. */
-.glyphAvatar {
-    border-color: var(--color-primary) !important;
-}
-
-.navList {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    width: 100%;
-    padding: 0.5rem 0;
-    position: relative;
-    z-index: 1;
-}
-
-.navItem {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.55rem 0;
-    font-size: 0.95rem;
-    text-align: center;
-}
-
-/* The large scalloped "bite" per nav item - centered exactly on the
-   sidebar's own edge so .sidebar's overflow:hidden clips it to a clean
-   semicircle, coloured to match the page background behind the sidebar
-   (--color-role) so it reads as a true cutout rather than an overlay.
-   Alternating nth-child(odd)/(even) is what makes each item sit in its
-   own notch on alternating sides as the list grows or shrinks - add or
-   remove a NAV_ITEMS entry and the rhythm just continues, no CSS to
-   touch. */
-.navItem::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    background-color: var(--color-role);
-    z-index: -1;
-}
-
-.navItem:nth-child(odd)::before {
-    left: -1.25rem;
-}
-
-.navItem:nth-child(even)::before {
-    right: -1.25rem;
-}
-
-.utilityRow {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.6rem 0;
-    position: relative;
-    z-index: 1;
-}
-
-.settingsLink {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-primary);
-    padding: 0.4rem;
-    border-radius: 50%;
-    transition: background-color 0.2s ease, color 0.2s ease;
-
-    &:hover {
-        background-color: var(--color-role);
-        color: var(--color-accent);
-    }
-}
-
-/* Bottom-bar layout below 48rem (see SplitView.module.css's matching
-   column-reverse flip) - same modular nav-item list, just laid out as a
-   row instead of a full-height column, with the bite notches moved from
-   the left/right edges to the top edge (there's no bottom edge to bite
-   into once this is a short bar, so every item notches upward instead of
-   alternating - still driven by the same NAV_ITEMS list/nth-child rule,
-   just one declaration swapped). */
-@media (max-width: 48rem) {
-    .sidebar {
+    .glyphContainer {
         width: 100%;
-        height: auto;
-        flex-direction: row;
-        align-items: stretch;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-decoration: none;
+
+        .glyphArea {
+            flex: 1;
+            height: 100%;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .verticalGlyph {
+                height: 100%;
+            }
+        }
+
+
+    }
+
+    .linkContainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+
+        .topNav,
+        .bottomNav,
+        .roleNav {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 0.5rem;
+            z-index: 2;
+
+            >* {
+                padding: 0.25rem 0;
+            }
+        }
+
+        .bottomNav {
+            gap: 1.5rem;
+        }
+
+        .navLinks {
+            position: absolute;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .sidebarWordmark {
+            width: 100%;
+            text-align: center;
+            color: var(--color-primary);
+            font-family: var(--font-sans);
+            font-size: 3rem;
+            flex-shrink: 0;
+            pointer-events: none;
+
+            /* padding: 2rem; */
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        order: 3;
+        width: 100% !important;
+        height: 4rem !important;
+        flex-direction: row !important;
+        background-color: var(--color-primary);
+        border: 0;
+        box-shadow: 0;
+        padding: 0 1rem;
         flex-shrink: 0;
-    }
 
-    .glyphArea {
-        display: none;
-    }
+        .glyphContainer {
+            height: 100%;
+            width: auto;
 
-    /* No room for a third row on a phone-width bottom bar - Settings
-       stays a sidebar-only affordance for now, same as it being hidden
-       here rather than fighting the nav items for space. */
-    .utilityRow {
-        display: none;
-    }
+            .glyphArea {
+                height: 2rem;
 
-    .navList {
-        flex-direction: row;
-        padding: 0.5rem 0.25rem;
-    }
+                .verticalGlyph {
+                    height: 1.75rem;
+                    width: auto;
+                }
+            }
+        }
 
-    .navItem {
-        padding: 0.5rem 0.25rem;
-        font-size: 0.68rem;
-        line-height: 1.15;
-    }
+        .linkContainer {
+            position: static !important;
+            flex-direction: row !important;
+            width: auto !important;
+            height: 100% !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
 
-    .navItem::before {
-        top: -1.25rem;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        width: 2.5rem;
-        height: 2.5rem;
-    }
+            .topNav,
+            .roleNav {
+                display: none;
+                /* Hide heavy text links on mobile bar for now to avoid overflow, or handle later */
+            }
 
-    .navItem:nth-child(odd)::before,
-    .navItem:nth-child(even)::before {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
+            .bottomNav {
+                flex-direction: row !important;
+                gap: 1rem !important;
+                padding: 0 !important;
+                height: 100%;
+                align-items: center;
+
+                >* {
+                    padding: 0 !important;
+                }
+            }
+        }
     }
 }

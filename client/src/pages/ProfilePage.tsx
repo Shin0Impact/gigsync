@@ -187,7 +187,9 @@ export function ProfilePage() {
 						{!isLoadingPieces && pieces.length === 0 && (
 							<div className={styles.emptyState}>
 								<p className={styles.emptyText}>
-									{profile.isOwnProfile ? "You haven't shared any posts yet." : `${profile.userName} hasn't shared any posts yet.`}
+									{profile.isOwnProfile
+										? "You haven't shared any posts yet."
+										: `${profile.userName} hasn't shared any posts yet.`}
 								</p>
 								{profile.isOwnProfile && (
 									<button
@@ -273,7 +275,9 @@ export function ProfilePage() {
 												{!isEvent && workPost && (
 													<>
 														<h3 className={styles.portfolioCardTitle}>Work #{workPost.id}</h3>
-														<p className={styles.portfolioCardText}>{workPost.description || "No description provided."}</p>
+														<p className={styles.portfolioCardText}>
+															{workPost.description || "No description provided."}
+														</p>
 														<span className={styles.portfolioCardMeta}>
 															{workPost.updates?.length || 0} updates recorded
 														</span>

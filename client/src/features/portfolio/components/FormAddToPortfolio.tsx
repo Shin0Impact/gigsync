@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useMeQuery } from "../../auth";
-import { useListPiecesQuery } from "../../pieces";
-import { useListMyApplicationsQuery } from "../../events";
+import { useListUserPiecesQuery } from "../../pieces";
 import { Form } from "@components";
 import { useAddToPortfolioMutation } from "../portfolioApi";
 import { AddShowcaseItemInput } from "@shared/types/index";
@@ -17,17 +16,10 @@ export function FormAddToPortfolio({ onSuccess }: FormAddToPortfolioProps) {
 	const [sourceType, setSourceType] = useState<"work" | "event">("work");
 	const [sourceId, setSourceId] = useState<string>("");
 
-	const { data: piecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
+	const { data: piecesData, isLoading: isLoadingPieces } = useListUserPiecesQuery(userId!, {
 		skip: !userId,
 	});
 	const pieces = piecesData?.works ?? [];
-
-	// Only events the artist has actually been accepted into make sense to
-	// showcase - applications table has no "my events" concept otherwise.
-	const { data: applicationsData, isLoading: isLoadingEvents } = useListMyApplicationsQuery();
-	const acceptedEvents = (applicationsData?.applications ?? []).filter(
-		(application) => application.status === "accepted",
-	);
 
 	const [addToPortfolio, { isLoading: isAdding, error }] = useAddToPortfolioMutation();
 
@@ -82,28 +74,13 @@ export function FormAddToPortfolio({ onSuccess }: FormAddToPortfolioProps) {
 							</option>
 						))}
 
-					{sourceType === "event" &&
-						(isLoadingEvents ? (
-							<option
-								value=""
-								disabled>
-								Loading your events...
-							</option>
-						) : acceptedEvents.length === 0 ? (
-							<option
-								value=""
-								disabled>
-								No accepted events yet
-							</option>
-						) : (
-							acceptedEvents.map((application) => (
-								<option
-									key={application.event_id}
-									value={application.event_id}>
-									{application.event_title}
-								</option>
-							))
-						))}
+					{sourceType === "event" && (
+						<option
+							value=""
+							disabled>
+							Events loading coming soon
+						</option>
+					)}
 				</Form.Select>
 			</Form.Field>
 

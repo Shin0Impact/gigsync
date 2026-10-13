@@ -31,9 +31,4 @@ export const profilesApi = api.injectEndpoints({
 	}),
 });
 
-export const {
-	useGetProfileQuery,
-	useFollowProfileMutation,
-	useUnfollowProfileMutation,
-	useGetMyActivityQuery,
-} = profilesApi;
+export const { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation, useGetMyActivityQuery } = profilesApi;

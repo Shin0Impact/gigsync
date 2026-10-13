@@ -1,11 +1,4 @@
-import {
-	LoginInput,
-	LoginResponse,
-	RegisterResponse,
-	RegisterInput,
-	MeResponse,
-	RefreshResponse,
-} from "@shared/types/index";
+import { LoginInput, LoginResponse, RegisterResponse, RegisterInput, MeResponse, RefreshResponse } from "@shared/types/index";
 import { api } from "../../shared/api";
 
 export const authApi = api.injectEndpoints({
@@ -32,10 +25,4 @@ export const authApi = api.injectEndpoints({
 	}),
 });
 
-export const {
-	useLoginMutation,
-	useRegisterMutation,
-	useLogoutMutation,
-	useRefreshMutation,
-	useMeQuery,
-} = authApi;
+export const { useLoginMutation, useRegisterMutation, useLogoutMutation, useRefreshMutation, useMeQuery } = authApi;

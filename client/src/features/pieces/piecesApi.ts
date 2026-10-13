@@ -16,7 +16,7 @@ import {
 } from "@shared/types/social";
 import { api } from "../../shared/api";
 
-export const worksApi = api.injectEndpoints({
+export const piecesApi = api.injectEndpoints({
 	endpoints: (builder) => ({
 		createPiece: builder.mutation<CreateWorkResponse, CreateWorkInput>({
 			query: (body) => ({
@@ -27,7 +27,7 @@ export const worksApi = api.injectEndpoints({
 			invalidatesTags: ["Piece"],
 		}),
 
-		listPieces: builder.query<ListWorksResponse, string>({
+		listUserPieces: builder.query<ListWorksResponse, string>({
 			query: (userId) => `/api/works/${userId}`,
 			providesTags: (result, _error, userId) =>
 				result
@@ -46,22 +46,17 @@ export const worksApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, { pieceId, ownerId }) => [
 				{ type: "Piece", id: pieceId },
 				...(ownerId ? [{ type: "Piece" as const, id: `USER_${ownerId}` }] : []),
-				{ type: "Feed", id: "LIST" },
+				{ type: "PieceFeed", id: "LIST" },
 			],
 		}),
 
-		addIntermezzo: builder.mutation<
-			AddWorkUpdateResponse,
-			{ pieceId: number | string; body: CreateWorkUpdateInput }
-		>({
+		addIntermezzo: builder.mutation<AddWorkUpdateResponse, { pieceId: number | string; body: CreateWorkUpdateInput }>({
 			query: ({ pieceId, body }) => ({
 				url: `/api/works/${pieceId}/updates`,
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: (_result, _error, { pieceId }) => [
-				{ type: "Intermezzo", id: pieceId },
-			],
+			invalidatesTags: (_result, _error, { pieceId }) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
 		listIntermezzos: builder.query<ListWorkUpdatesResponse, number | string>({
@@ -69,40 +64,29 @@ export const worksApi = api.injectEndpoints({
 			providesTags: (_result, _error, pieceId) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
-		addVignette: builder.mutation<
-			AddUpdateMediaResponse,
-			{ intermezzoId: number | string; body: AddUpdateMediaInput }
-		>({
+		addVignette: builder.mutation<AddUpdateMediaResponse, { intermezzoId: number | string; body: AddUpdateMediaInput }>({
 			query: ({ intermezzoId, body }) => ({
 				url: `/api/works/updates/${intermezzoId}/media`,
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: (_result, _error, { intermezzoId }) => [
-				{ type: "Vignette", id: intermezzoId },
-			],
+			invalidatesTags: (_result, _error, { intermezzoId }) => [{ type: "Vignette", id: intermezzoId }],
 		}),
 
 		listVignettes: builder.query<ListUpdateMediaResponse, number | string>({
 			query: (intermezzoId) => `/api/works/updates/${intermezzoId}/media`,
-			providesTags: (_result, _error, intermezzoId) => [
-				{ type: "Vignette", id: intermezzoId },
-			],
+			providesTags: (_result, _error, intermezzoId) => [{ type: "Vignette", id: intermezzoId }],
 		}),
 
-		deleteVignette: builder.mutation<
-			void,
-			{ intermezzoId: number | string; vignetteId: number | string }
-		>({
+		deleteVignette: builder.mutation<void, { intermezzoId: number | string; vignetteId: number | string }>({
 			query: ({ intermezzoId, vignetteId }) => ({
 				url: `/api/works/updates/${intermezzoId}/media/${vignetteId}`,
 				method: "DELETE",
 			}),
-			invalidatesTags: (_result, _error, { intermezzoId }) => [
-				{ type: "Vignette", id: intermezzoId },
-			],
+			invalidatesTags: (_result, _error, { intermezzoId }) => [{ type: "Vignette", id: intermezzoId }],
 		}),
-		listWorksFeed: builder.query<
+
+		listPiecesFeed: builder.query<
 			ListWorksFeedResponse,
 			{ scope?: "explore" | "following"; limit?: number; offset?: number } | void
 		>({
@@ -114,12 +98,12 @@ export const worksApi = api.injectEndpoints({
 				const qs = search.toString();
 				return `/api/works${qs ? `?${qs}` : ""}`;
 			},
-			providesTags: [{ type: "Feed", id: "LIST" }],
+			providesTags: [{ type: "PieceFeed", id: "LIST" }],
 		}),
 
-		getLikeStatus: builder.query<ToggleWorkLikeResponse, number | string>({
-			query: (workId) => `/api/works/${workId}/like`,
-			providesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
+		getNodStatus: builder.query<ToggleWorkLikeResponse, number | string>({
+			query: (pieceId) => `/api/works/${pieceId}/like`,
+			providesTags: (_result, _error, pieceId) => [{ type: "Nod", id: pieceId }],
 		}),
 
 		// Previously these invalidated the whole feed ({ type: "Feed", id: "LIST" })
@@ -178,9 +162,9 @@ export const worksApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
-		unlikeWork: builder.mutation<ToggleWorkLikeResponse, number | string>({
-			query: (workId) => ({
-				url: `/api/works/${workId}/like`,
+		unnodPiece: builder.mutation<ToggleWorkLikeResponse, number | string>({
+			query: (pieceId) => ({
+				url: `/api/works/${pieceId}/like`,
 				method: "DELETE",
 			}),
 			async onQueryStarted(workId, { dispatch, queryFulfilled, getState }) {
@@ -222,50 +206,44 @@ export const worksApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
-		listComments: builder.query<ListWorkCommentsResponse, number | string>({
-			query: (workId) => `/api/works/${workId}/comments`,
-			providesTags: (_result, _error, workId) => [{ type: "Comment", id: workId }],
+		listEchoes: builder.query<ListWorkCommentsResponse, number | string>({
+			query: (pieceId) => `/api/works/${pieceId}/comments`,
+			providesTags: (_result, _error, pieceId) => [{ type: "Echo", id: pieceId }],
 		}),
 
-		addComment: builder.mutation<
-			AddWorkCommentResponse,
-			{ workId: number | string; body: AddWorkCommentInput }
-		>({
-			query: ({ workId, body }) => ({
-				url: `/api/works/${workId}/comments`,
+		addEcho: builder.mutation<AddWorkCommentResponse, { pieceId: number | string; body: AddWorkCommentInput }>({
+			query: ({ pieceId, body }) => ({
+				url: `/api/works/${pieceId}/comments`,
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
+			invalidatesTags: (_result, _error, { pieceId }) => [{ type: "Echo", id: pieceId }],
 		}),
 
-		deleteComment: builder.mutation<
-			void,
-			{ workId: number | string; commentId: number | string }
-		>({
+		deleteEcho: builder.mutation<void, { pieceId: number | string; commentId: number | string }>({
 			query: ({ commentId }) => ({
 				url: `/api/works/comments/${commentId}`,
 				method: "DELETE",
 			}),
-			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
+			invalidatesTags: (_result, _error, { pieceId }) => [{ type: "Echo", id: pieceId }],
 		}),
 	}),
 });
 
 export const {
 	useCreatePieceMutation,
-	useListPiecesQuery,
+	useListUserPiecesQuery,
 	useDeletePieceMutation,
 	useAddIntermezzoMutation,
 	useListIntermezzosQuery,
 	useAddVignetteMutation,
 	useListVignettesQuery,
 	useDeleteVignetteMutation,
-	useListWorksFeedQuery,
-	useGetLikeStatusQuery,
-	useLikeWorkMutation,
-	useUnlikeWorkMutation,
-	useListCommentsQuery,
-	useAddCommentMutation,
-	useDeleteCommentMutation,
-} = worksApi;
+	useListPiecesFeedQuery,
+	useGetNodStatusQuery,
+	useNodPieceMutation,
+	useUnnodPieceMutation,
+	useListEchoesQuery,
+	useAddEchoMutation,
+	useDeleteEchoMutation,
+} = piecesApi;

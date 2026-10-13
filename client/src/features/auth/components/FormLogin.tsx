@@ -43,7 +43,11 @@ export function FormLogin() {
 			onSubmit={handleSubmit}
 			header={
 				<Form.Header
-					right={<Form.ToggleButton onClick={() => navigate(ROUTES.SIGNUP)}>No account yet?</Form.ToggleButton>}
+					right={
+						<Form.ToggleButton onClick={() => navigate(ROUTES.SIGNUP, { replace: true })}>
+							No account yet?
+						</Form.ToggleButton>
+					}
 				/>
 			}>
 			<Form.Field>
