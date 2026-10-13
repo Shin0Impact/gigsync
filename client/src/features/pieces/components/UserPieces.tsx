@@ -1,12 +1,9 @@
 import { useListPiecesQuery } from "../piecesApi";
 import styles from "./UserPieces.module.css";
-import { ButtonLink } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { PieceCard } from "./PieceCard";
 import { IWork } from "@shared/types/social";
-import { Voronoi } from "@paper-design/shaders-react";
 import { EmptyState } from "@components/ui/EmptyState/EmptyState";
-import { useNavigate } from "react-router-dom";
 
 interface UserPiecesProps {
 	userId: string;

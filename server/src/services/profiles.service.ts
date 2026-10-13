@@ -7,7 +7,7 @@ import {
 	getRecentNewFollowers,
 	isFollowing,
 } from "../db/social.queries";
-import { find_profile_by_user_id, find_profile_by_user_name } from "../db/queries/profiles.queries";
+import { find_profile_with_role_by_user_id, find_profile_by_user_name } from "../db/queries/profiles.queries";
 import { find_role_by_user_id } from "../db/queries/roles.queries";
 import { list_my_applications } from "./events.service";
 import { is_profile_verified, list_social_links_for_user } from "../db/queries/verification.queries";
@@ -53,7 +53,7 @@ export async function get_profile_by_username(username: string, viewerId: string
 }
 
 export async function get_profile_by_user_id(userId: string, viewerId: string | null): Promise<ProfileSummary> {
-	const row = await find_profile_by_user_id(userId);
+	const row = await find_profile_with_role_by_user_id(userId);
 	if (!row) {
 		throw new Error("Profile not found");
 	}

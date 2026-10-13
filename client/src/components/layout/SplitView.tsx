@@ -38,7 +38,7 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 
 	const { data } = useMeQuery();
 	const role = data?.user?.role ?? "guest";
-	const username = data?.profile?.userName;
+	const username = data?.user?.userName;
 
 	const handleToggleDrawer = () => {
 		setSearchParams((prev) => {
