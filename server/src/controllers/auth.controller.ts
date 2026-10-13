@@ -200,8 +200,19 @@ export async function refresh(req: Request, res: Response<RefreshResponse | Erro
 }
 
 export async function logout(_req: Request, res: Response<void>) {
-	res.clearCookie("access_token");
-	res.clearCookie("refresh_token");
+	// clearCookie must be called with the same secure/sameSite options the
+	// cookie was originally set with, or the browser won't recognize it as
+	// the same cookie to delete - this was silently no-opping the clear on
+	// the cross-site (Workers <-> Render) deployment, so "logging out" left
+	// the old access/refresh cookies in place and the user stayed signed in.
+	const cookieOptions = {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+	} as const;
+
+	res.clearCookie("access_token", cookieOptions);
+	res.clearCookie("refresh_token", cookieOptions);
 	res.status(204).send();
 }
 
