@@ -13,6 +13,10 @@ export const ROUTES = {
 	DISCOVERY_PIECES: "/discovery/pieces",
 	DISCOVERY_HAPPENINGS: "/discovery/happenings",
 
+	SEARCH: "/search",
+	VERIFICATION: "/verification",
+	NOTIFICATIONS: "/notifications",
+
 	// ======== SELF =========
 
 	MY_PIECES: "/pieces",
@@ -22,21 +26,6 @@ export const ROUTES = {
 	// ======== ON AIR =========
 
 	ON_AIR: "/on-air",
-
-	// ======== PROFILE ========
-
-	PROFILE: (username: string) => `/${username}`,
-	PROFILE_PATTERN: "/:username",
-
-	USER_PIECES: (username: string) => `/${username}/pieces`,
-	USER_PIECES_PATTERN: "/:username/pieces",
-	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
-	USER_PORTFOLIO_PATTERN: "/:username/portfolio",
-	USER_HAPPENINGS: (username: string) => `/${username}/happenings`,
-	USER_HAPPENINGS_PATTERN: "/:username/happenings",
-
-	VERIFICATION: "/verification",
-	NOTIFICATIONS: "/notifications",
 
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
