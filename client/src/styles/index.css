@@ -2,7 +2,7 @@
 @import "./transitions.css";
 
 :root {
-	color-scheme: light dark;
+	color-scheme: light;
 
 	--color-white: #fafafa;
 	--color-cream: #f5f3ec;
@@ -17,9 +17,18 @@
 	--color-supporter: var(--color-green);
 	--color-organizer: var(--color-blue);
 
-	--color-background: light-dark(var(--color-cream), var(--color-gray));
-	--color-primary: light-dark(var(--color-white), var(--color-black));
-	--color-accent: light-dark(var(--color-black), var(--color-white));
+	/* Light is the default theme - set explicitly rather than mirrored
+	   off prefers-color-scheme, and overridden only when the user
+	   actually turns dark mode on (see app/ThemeProvider.tsx and
+	   components/ui/ThemeToggle). Dark mode used to be this same trio
+	   run through light-dark(), which put the page background
+	   (--color-gray, a mid-tone) lighter than the "lifted" card surface
+	   (--color-black) - cards read as darker than the page instead of
+	   sitting above it, and there was no toggle at all. See the
+	   data-theme="dark" block below for its own tuned palette. */
+	--color-background: var(--color-cream);
+	--color-primary: var(--color-white);
+	--color-accent: var(--color-black);
 
 	--color-role: var(--color-supporter);
 
@@ -51,6 +60,22 @@
 
 	--logo-height-xl: 14vh;
 	--logo-font-xl: 3.25rem;
+}
+
+/* Its own tuned palette, not --color-background/--color-primary/
+   --color-accent run backwards. Background is the darkest layer,
+   primary (card/panel surfaces) sits one step lighter so things still
+   read as lifted off the page the way they do in light mode, and
+   accent - the ink/text token, also what the dark Sidebar panel uses
+   for its own background in light mode - goes light so text reads
+   against the dark background and the sidebar stays the
+   highest-contrast thing on the page instead of blending into it. */
+:root[data-theme="dark"] {
+	color-scheme: dark;
+
+	--color-background: #16151a;
+	--color-primary: #232128;
+	--color-accent: #f2efe6;
 }
 
 body,

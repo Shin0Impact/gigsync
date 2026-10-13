@@ -6,6 +6,16 @@
 			name="viewport"
 			content="width=device-width, initial-scale=1.0" />
 		<title>Mezzo</title>
+		<script>
+			(function () {
+				try {
+					var stored = localStorage.getItem("gigsync:theme");
+					if (stored === "light" || stored === "dark") {
+						document.documentElement.setAttribute("data-theme", stored);
+					}
+				} catch (e) {}
+			})();
+		</script>
 	</head>
 	<body>
 		<div id="root"></div>

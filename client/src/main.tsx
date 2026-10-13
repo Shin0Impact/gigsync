@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { store } from "./app/store";
+import { ThemeProvider } from "./app/ThemeProvider";
 import "./styles/index.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 			   - both are forward-compatible preview flags, not breaking changes, so
 			   this silences the warnings now instead of waiting for a v7 upgrade. */}
 			<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-				<App />
+				<ThemeProvider>
+					<App />
+				</ThemeProvider>
 			</BrowserRouter>
 		</Provider>
 	</React.StrictMode>,

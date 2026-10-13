@@ -1,12 +1,18 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLoginMutation } from "../authApi";
 import { Form } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 
 export function FormLogin() {
 	const navigate = useNavigate();
-	const [identifier, setIdentifier] = useState("");
+	// Set by SettingsPage's "Switch to this account" - it signs out of
+	// the current session and sends the user here with the account they
+	// picked already filled in, so switching is "log out, retype your
+	// password" instead of "log out, retype everything".
+	const [searchParams] = useSearchParams();
+	const prefillIdentifier = searchParams.get("as") ?? "";
+	const [identifier, setIdentifier] = useState(prefillIdentifier);
 	const [password, setPassword] = useState("");
 	// Defaults checked - matches the always-persistent behavior logins
 	// had before this existed, so unchecking is an explicit opt into a
@@ -50,7 +56,7 @@ export function FormLogin() {
 					value={identifier}
 					onChange={(e) => setIdentifier(e.target.value)}
 					required
-					autoFocus
+					autoFocus={!prefillIdentifier}
 				/>
 			</Form.Field>
 
@@ -64,6 +70,7 @@ export function FormLogin() {
 					value={password}
 					onChange={(e) => setPassword(e.target.value)}
 					required
+					autoFocus={!!prefillIdentifier}
 				/>
 			</Form.Field>
 

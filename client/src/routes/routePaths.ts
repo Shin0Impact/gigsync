@@ -12,6 +12,7 @@ export const ROUTES = {
 
 	EVENTS: "/events",
 	SEARCH: "/search",
+	SETTINGS: "/settings",
 	VERIFICATION: "/verification",
 	NOTIFICATIONS: "/notifications",
 
