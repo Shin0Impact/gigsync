@@ -11,18 +11,18 @@
     "lint": "npm run typecheck --prefix client && npm run typecheck --prefix server"
   },
   "devDependencies": {
-    "concurrently": "^9.2.5",
-    "eslint-plugin-import": "^2.32.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.5.4"
-  },
-  "dependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cookie": "^0.6.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.23.1",
+    "concurrently": "^9.2.5",
+    "eslint-plugin-import": "^2.32.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
     "uninstall": "^0.0.0"
   },
   "allowScripts": {
