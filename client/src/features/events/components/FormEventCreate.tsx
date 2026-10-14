@@ -48,7 +48,7 @@ export function FormEventCreate() {
 			const eventId = response.event.id;
 
 			// Navigate to the newly created event page or happenings list
-			navigate(`${ROUTES.DISCOVERY_HAPPENINGS}/${eventId}`, { replace: true });
+			navigate(ROUTES.SINGLE_EVENT(eventId), { replace: true });
 		} catch (err) {
 			console.error("Failed to create event:", err);
 			setLocalError("Failed to create event. Please check your inputs and try again.");

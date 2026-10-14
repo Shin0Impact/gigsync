@@ -9,10 +9,10 @@ interface UserFeedProps {
 	scope: "explore" | "following";
 	emptyTitle: string;
 	emptyText: string;
-	actionLabel: string;
+	actionLabel?: string;
 }
 
-export function UserFeed({ scope, emptyTitle, emptyText, actionLabel }: UserFeedProps) {
+export function UserFeed({ scope, emptyTitle, emptyText, actionLabel = "" }: UserFeedProps) {
 	const { data, isLoading, error } = useListWorksFeedQuery({ scope });
 	const works = data?.works ?? [];
 
@@ -22,7 +22,7 @@ export function UserFeed({ scope, emptyTitle, emptyText, actionLabel }: UserFeed
 
 			{error && <div className={styles.error}>Unable to load this feed right now. Please try refreshing.</div>}
 
-			{!isLoading && !error && works.length === 0 && (
+			{!isLoading && !error && works.length === 0 && scope === "following" && (
 				<div className={styles.emptyState}>
 					<EmptyState
 						title={emptyTitle}

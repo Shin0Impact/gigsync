@@ -1,14 +1,12 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ROUTES } from "./routePaths";
 import { RootRedirect } from "../features/auth/components/RootRedirect";
 import { RequireAuth } from "../features/auth/components/RequireAuth";
-import OnboardingPage from "../pages/OnboardingPage";
 import { RoleGuard } from "../features/auth/components/RoleGuard";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import Layout from "../layouts/Layout";
 import { FormLogin, FormSignup, RequireGuest } from "../features/auth";
 import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
-import { PieceDetails } from "../pages/creative/PieceDetails";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
 import { Events } from "../pages/creative/Events";
 import ProfilePage from "../pages/ProfilePage";
@@ -23,6 +21,10 @@ import { MyEventsPage } from "../pages/MyEvents";
 import SearchPage from "../pages/SearchPage";
 import SingleEventPage from "../pages/subpages/SingleEventPage";
 import SinglePiecePage from "../pages/subpages/SinglePiecePage";
+import { DiscoveryPiecesFeed } from "../features/explore/DiscoveryPiecesFeed";
+import { DiscoveryEventsFeed } from "../features/explore/DiscoveryEventsFeed";
+import { TimelinePiecesFeed } from "../features/explore/TimelinePiecesFeed";
+import { TimelineEventsFeed } from "../features/explore/TimelineEventsFeed";
 
 export function AppRoutes() {
 	return (
@@ -31,6 +33,7 @@ export function AppRoutes() {
 				path={ROUTES.HOME}
 				element={<RootRedirect />}
 			/>
+
 			<Route element={<RequireGuest />}>
 				<Route element={<Layout type="form" />}>
 					<Route
@@ -48,7 +51,7 @@ export function AppRoutes() {
 				path={ROUTES.ONBOARDING}
 				element={
 					<RequireAuth>
-						<OnboardingPage />
+						<RootRedirect />
 					</RequireAuth>
 				}
 			/>
@@ -57,16 +60,46 @@ export function AppRoutes() {
 				<Route element={<Layout type="page" />}>
 					<Route
 						path={ROUTES.TIMELINE}
-						element={<TimelinePage />}
-					/>
+						element={<TimelinePage />}>
+						<Route
+							index
+							element={
+								<Navigate
+									to={ROUTES.TIMELINE_PIECES}
+									replace
+								/>
+							}
+						/>
+						<Route
+							path={ROUTES.TIMELINE_PIECES}
+							element={<TimelinePiecesFeed />}
+						/>
+						<Route
+							path={ROUTES.TIMELINE_EVENTS}
+							element={<TimelineEventsFeed />}
+						/>
+					</Route>
 					<Route
 						path={ROUTES.DISCOVERY}
-						element={<DiscoveryPage />}
-					/>
-					<Route
-						path={ROUTES.DISCOVERY_HAPPENINGS}
-						element={<Events />}
-					/>
+						element={<DiscoveryPage />}>
+						<Route
+							index
+							element={
+								<Navigate
+									to={ROUTES.DISCOVERY_PIECES}
+									replace
+								/>
+							}
+						/>
+						<Route
+							path={ROUTES.DISCOVERY_PIECES}
+							element={<DiscoveryPiecesFeed />}
+						/>
+						<Route
+							path={ROUTES.DISCOVERY_EVENTS}
+							element={<DiscoveryEventsFeed />}
+						/>
+					</Route>
 					<Route
 						path={ROUTES.NOTIFICATIONS}
 						element={<NotificationsPage />}

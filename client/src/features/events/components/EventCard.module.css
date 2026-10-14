@@ -146,6 +146,12 @@
                             flex: 1;
                             background-color: var(--color-primary);
 
+                            &[data-applied="true"] {
+                                background-color: var(--color-blue);
+                                color: var(--color-accent);
+                                border-color: var(--color-accent);
+                            }
+
                             &:hover {
                                 background-color: var(--color-yellow);
                                 color: var(--color-accent);
@@ -183,12 +189,26 @@
         box-sizing: border-box;
         height: 15rem;
 
+        .scrollableContent {
+            overflow-y: auto;
+            max-height: 8rem;
+            padding-right: 0.25rem;
+
+            .coverLetterText {
+                font-size: 1rem;
+                font-family: var(--font-serif, serif);
+                margin: 0;
+                color: var(--color-accent);
+                font-weight: normal;
+            }
+        }
+
         p {
             margin: 0;
             color: var(--color-accent);
 
             &:first-child {
-                font-weight: 600;
+                font-weight: bold;
                 font-size: 1.25rem;
                 font-family: var(--font-sans, sans-serif);
             }
@@ -217,8 +237,12 @@
         }
     }
 
-    &[data-confirm="true"] .confirmDelete {
-        opacity: 1;
-        transform: translateX(0);
+    &[data-confirm="true"] {
+
+        .confirmDelete,
+        .coverLetter {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 }

@@ -1,10 +1,14 @@
-// src/features/auth/components/RootRedirect.tsx
-import { Navigate } from "react-router-dom";
+import { Navigate, Routes } from "react-router-dom";
 import { useMeQuery } from "../authApi";
 import { ROUTES } from "../../../routes/routePaths";
 import { LandingPage } from "../../../pages/LandingPage";
+import OnboardingPage from "../../../pages/OnboardingPage";
 
-export function RootRedirect() {
+interface RootRedirectProps {
+	onboarding?: boolean;
+}
+
+export function RootRedirect({ onboarding = false }: RootRedirectProps) {
 	const { data, isLoading } = useMeQuery();
 
 	if (isLoading) return <p>Loading…</p>;
@@ -12,6 +16,10 @@ export function RootRedirect() {
 	const user = data?.user;
 
 	if (user) {
+		if (onboarding) {
+			return <OnboardingPage />;
+		}
+
 		if (user.role === "artist") {
 			return (
 				<Navigate

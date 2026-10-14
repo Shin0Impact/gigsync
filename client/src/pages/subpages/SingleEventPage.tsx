@@ -1,9 +1,10 @@
+import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Page, Button } from "@components";
 import styles from "./SingleEventPage.module.css";
 import { useMeQuery } from "../../features/auth";
 import { useGetEventQuery } from "../../features/events";
-import { useApplyToEventMutation, useListEventApplicationsQuery } from "../../features/events/eventsApi";
+import { useListEventApplicationsQuery, useListMyApplicationsQuery } from "../../features/events/eventsApi";
 
 export function SingleEventPage() {
 	const { id: eventId } = useParams<{ id: string }>();
@@ -32,14 +33,19 @@ export function SingleEventPage() {
 		skip: !numericEventId || !isMine,
 	});
 
+	const { data: myAppsData } = useListMyApplicationsQuery();
+	const myApplications = myAppsData?.applications ?? [];
+	const existingApplication = myApplications.find((app) => String(app.event_id) === String(numericEventId));
+
 	const applications = applicationsData?.applications ?? [];
-	const [applyToEvent, { isLoading: isApplying }] = useApplyToEventMutation();
 
 	const handleToggleDrawer = () => {
 		setSearchParams((prev) => {
 			const newParams = new URLSearchParams(prev);
 			if (isDrawerOpen) {
 				newParams.delete("drawer");
+				newParams.delete("form");
+				newParams.delete("eventId");
 			} else {
 				newParams.set("drawer", "open");
 			}
@@ -47,15 +53,17 @@ export function SingleEventPage() {
 		});
 	};
 
-	const handleApply = async () => {
-		if (!numericEventId) return;
-		try {
-			await applyToEvent({ eventId: numericEventId }).unwrap();
-			alert("Successfully applied to this event!");
-		} catch (err) {
-			console.error("Failed to apply:", err);
-			alert("Failed to submit application.");
-		}
+	const handleApply = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!event) return;
+		setSearchParams((prev) => {
+			const next = new URLSearchParams(prev);
+			next.set("drawer", "open");
+			next.set("form", "apply");
+			next.set("eventId", String(event.id));
+			return next;
+		});
 	};
 
 	if (!numericEventId) {
@@ -69,19 +77,11 @@ export function SingleEventPage() {
 	}
 
 	const eventTitle = event?.title ?? `Happening #${numericEventId}`;
-	const formattedDate = event?.start_at
-		? new Date(event.start_at).toLocaleDateString("en-US", {
-				month: "long",
-				day: "numeric",
-				year: "numeric",
-			})
-		: null;
 
 	return (
 		<Page type="sub">
 			<Page.Header
 				title={eventTitle}
-				// subtitle={formattedDate ? `Happening on ${formattedDate}` : "Happening details"}
 				mode="button"
 				actions={
 					isMine ? (
@@ -95,9 +95,9 @@ export function SingleEventPage() {
 						<Button
 							variant="solid"
 							onClick={handleApply}
-							disabled={isApplying}
+							disabled={Boolean(existingApplication)}
 							className={styles.actionBtn}>
-							{isApplying ? "Applying..." : "Apply to Event"}
+							{existingApplication ? `Applied (${existingApplication.status})` : "Apply to Event"}
 						</Button>
 					) : null
 				}

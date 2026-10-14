@@ -8,10 +8,10 @@ export const ROUTES = {
 
 	TIMELINE: "/timeline",
 	TIMELINE_PIECES: "/timeline/pieces",
-	TIMELINE_HAPPENINGS: "/timeline/happenings",
+	TIMELINE_EVENTS: "/timeline/events",
 	DISCOVERY: "/discovery",
 	DISCOVERY_PIECES: "/discovery/pieces",
-	DISCOVERY_HAPPENINGS: "/discovery/happenings",
+	DISCOVERY_EVENTS: "/discovery/events",
 
 	SEARCH: "/search",
 	SETTINGS: "/settings",
@@ -52,6 +52,9 @@ export const ROUTES = {
 
 	SINGLE_EVENT_PATTERN: "/events/:id",
 	SINGLE_EVENT: (id: string | number) => `/events/${id}`,
+
+	EVENT_APPLICATIONS_PATTERN: "/events/:id/applications",
+	EVENT_APPLICATIONS: (id: string | number) => `/events/:id/${id}`,
 
 	CREATE_PIECE: "/pieces/new",
 	CREATE_INTERMEZZO: "/intermezzi/new",

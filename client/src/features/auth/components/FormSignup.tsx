@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRegisterMutation } from "../authApi";
+import { useLoginMutation, useRegisterMutation } from "../authApi";
 import { StepIndicator } from "../../../components/StepIndicator";
 import { RegisterInput, UserRole } from "@shared/types/index";
 import { Form } from "@components";
@@ -25,6 +25,7 @@ export function FormSignup() {
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [register, { isLoading, error }] = useRegisterMutation();
+	const [login, { isLoading: isLoadingLogin, error: errorLogin }] = useLoginMutation();
 	const headers = ["We're Mezzo :)", "Hi, ", "Let's get you started.", "Pick a password.", "Finally, choose a handle."];
 
 	async function handleSubmit(e: FormEvent) {
@@ -37,6 +38,7 @@ export function FormSignup() {
 		}
 
 		try {
+			// 1. Create the account
 			await register({
 				user_name: userName,
 				name,
@@ -46,11 +48,15 @@ export function FormSignup() {
 				artists_type: null,
 			} as RegisterInput).unwrap();
 
-			setTimeout(() => {
-				handleSignupSuccess();
-			}, 50);
+			await login({
+				identifier: email,
+				password,
+				rememberMe: true,
+			}).unwrap();
+
+			handleSignupSuccess();
 		} catch {
-			// server-side error tracked by mutation hook
+			// server-side error tracked by mutation hooks or local state
 		}
 	}
 
