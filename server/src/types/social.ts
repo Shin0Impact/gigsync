@@ -195,6 +195,7 @@ export interface WorkFeedItem extends IWork {
 	// First media file of the latest update, if any - same "cover" rule the
 	// client already uses for PieceCard (see getWorkUpdates: newest-first).
 	coverMedia: IUpdateMedia | null;
+	workVersion: number | null;
 }
 
 export interface ListWorksFeedResponse {

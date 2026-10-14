@@ -505,6 +505,7 @@ interface FeedRow {
 	id: number;
 	user_id: string;
 	title: string;
+	version_number: number;
 	description: string | null;
 	created_at: string;
 	updated_at: string;
@@ -528,6 +529,7 @@ function mapFeedRow(row: FeedRow, likedWorkIds: Set<number>): WorkFeedItem {
 		id: row.id,
 		userId: row.user_id,
 		title: row.title,
+		workVersion: row.version_number,
 		description: row.description,
 		createdAt: row.created_at,
 		updatedAt: row.updated_at,
@@ -557,7 +559,8 @@ function mapFeedRow(row: FeedRow, likedWorkIds: Set<number>): WorkFeedItem {
 
 const FEED_SELECT = `
   select
-    w.id, w.user_id, w.description, w.created_at, w.updated_at,
+    w.id, w.user_id, w.title, w.description, w.created_at, w.updated_at,
+    latest_update.version_number,
     p.user_name, p.avatar_url, p.artists_type,
     coalesce(lc.like_count, 0) as like_count,
     coalesce(cc.comment_count, 0) as comment_count,
@@ -578,7 +581,7 @@ const FEED_SELECT = `
     select work_id, count(*)::int as comment_count from work_comments group by work_id
   ) cc on cc.work_id = w.id
   left join lateral (
-    select wu.id as update_id
+    select wu.id as update_id, wu.version_number
     from work_updates wu
     where wu.work_id = w.id
     order by wu.version_number desc
