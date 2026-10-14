@@ -120,12 +120,32 @@ export function AppRoutes() {
 						element={<SettingsPage />}
 					/>
 					<Route
-						path={ROUTES.SINGLE_EVENT_PATTERN}
-						element={<SingleEventPage />}
+						path={ROUTES.MESSAGE_THREAD_PATTERN}
+						element={<MessagesPage />}
 					/>
+					<Route
+						path={ROUTES.SINGLE_EVENT_PATTERN}
+						element={<SingleEventPage />}>
+						<Route
+							index
+							element={<SingleEventDetails />}
+						/>
+						<Route
+							path="applications"
+							element={<RoleGuard allowedRoles={["organizer"]} />}>
+							<Route
+								index
+								element={<SingleEventApplications />}
+							/>
+						</Route>
+					</Route>
 					<Route
 						path={ROUTES.SINGLE_PIECE_PATTERN}
 						element={<SinglePiecePage />}
+					/>
+					<Route
+						path={ROUTES.PROFILE_PATTERN}
+						element={<ProfilePage />}
 					/>
 				</Route>
 			</Route>
@@ -139,27 +159,6 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.MY_APPLICATIONS}
 						element={<MyApplicationsPage />}
-					/>
-					<Route
-						path={ROUTES.AVAILABILITY}
-						element={<div>Set availability</div>}
-					/>
-					<Route
-						path={ROUTES.NOTIFICATIONS}
-						element={<NotificationsPage />}
-					/>
-					<Route
-						path={ROUTES.MESSAGES}
-						element={<MessagesPage />}
-					/>
-					<Route
-						path={ROUTES.MESSAGE_THREAD_PATTERN}
-						element={<MessagesPage />}
-					/>
-
-					<Route
-						path={ROUTES.PROFILE_PATTERN}
-						element={<ProfilePage />}
 					/>
 				</Route>
 				<Route element={<Layout type="form" />}>
@@ -184,20 +183,7 @@ export function AppRoutes() {
 						path={ROUTES.MY_EVENTS}
 						element={<MyEventsPage />}
 					/>
-					<Route
-						path={ROUTES.SINGLE_EVENT_PATTERN}
-						element={<SingleEventPage />}>
-						<Route
-							index
-							element={<SingleEventDetails />}
-						/>
-						<Route
-							path="applications"
-							element={<SingleEventApplications />}
-						/>
-					</Route>
 				</Route>
-				<Route element={<Layout type="form" />}></Route>
 			</Route>
 
 			<Route

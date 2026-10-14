@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation } from "../features/profiles";
 import { useListPiecesQuery } from "../features/pieces";
 import { PieceCard } from "../features/pieces/components";
@@ -22,7 +22,14 @@ type ProfileTab = "posts" | "portfolio" | "availability";
 // RootRedirect/RoleGuard send artists here (their own profile) instead.
 export function ProfilePage() {
 	const { username } = useParams<{ username: string }>();
-	const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+	const [searchParams] = useSearchParams();
+	// ?tab=availability deep-links straight to a tab (used by the mobile "On Air" button)
+	const tabParam = searchParams.get("tab");
+	const urlTab: ProfileTab = tabParam === "availability" || tabParam === "portfolio" ? tabParam : "posts";
+	const [activeTab, setActiveTab] = useState<ProfileTab>(urlTab);
+	useEffect(() => {
+		setActiveTab(urlTab);
+	}, [urlTab, username]);
 
 	const { data, isLoading, error } = useGetProfileQuery(username?.toLowerCase() ?? "", { skip: !username });
 	const profile = data?.profile;

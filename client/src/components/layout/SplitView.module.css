@@ -10,6 +10,7 @@
     gap: 3vh;
     box-sizing: border-box;
     overflow: hidden;
+    overflow: clip; /* unlike hidden, clip can't be scrolled by focus() / scrollIntoView() */
     transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
     &[data-role="artist"] {
@@ -33,7 +34,9 @@
 
         .drawer {
             opacity: 1;
+            visibility: visible;
             transform: translateX(0);
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
         }
     }
 
@@ -79,8 +82,11 @@
         overflow: hidden;
         position: relative;
         opacity: 0;
+        /* hidden drawer must not be focusable: an autoFocus input inside it made the
+           browser scroll the whole layout sideways to reveal it (organizer view only) */
+        visibility: hidden;
         transform: translateX(20px);
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
         display: flex;
         flex-direction: column;
 
@@ -126,7 +132,7 @@
             z-index: 2000;
             transform: translateY(100%) !important;
             opacity: 1 !important;
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.35s;
             border: none;
         }
 
@@ -135,6 +141,7 @@
 
             .drawer {
                 transform: translateY(0) !important;
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
             }
         }
     }

@@ -23,8 +23,6 @@ export function PieceDetails() {
 
 	const { data, isLoading: isLoadingComposition } = useGetCompositionQuery(`${pieceId}`);
 
-	if (!isLoading) console.log(data?.composition);
-
 	const handleAddIntermezzo = () => {
 		if (pieceId) {
 			navigate(`${ROUTES.CREATE_INTERMEZZO}?pieceId=${pieceId}`);
