@@ -7,6 +7,8 @@ import { ROUTES } from "../../../routes/routePaths";
 import styles from "./PieceCard.module.css";
 import { VignetteMedia } from "./VignetteMedia";
 import { Button } from "@components";
+import { Metaballs, SimplexNoise } from "@paper-design/shaders-react";
+import Placeholder from "@components/ui/Placeholder/Placeholder";
 
 interface PieceCardProps {
 	piece: Piece;
@@ -20,7 +22,7 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 	const [deletePiece, { isLoading: isDeleting, error: deleteError }] = useDeletePieceMutation();
 
-	const { data: intermezzosData } = useListIntermezzosQuery(piece.id);
+	const { data: intermezzosData, isLoading: isLoadingIntermezzo } = useListIntermezzosQuery(piece.id);
 	const intermezzosCount = 1 + (intermezzosData?.updates?.length ?? 0);
 
 	const latestIntermezzo = intermezzosData?.updates?.[0];
@@ -76,7 +78,24 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 				to={ROUTES.SINGLE_PIECE(piece.id)}
 				style={{ textDecoration: "none" }}
 				aria-label={`Open Piece #${piece.id}`}>
-				<div className={styles.cardVignette}>{coverVignette && <VignetteMedia vignette={coverVignette} />}</div>
+				<div className={styles.cardVignette}>
+					{coverVignette ? (
+						<VignetteMedia vignette={coverVignette} />
+					) : (
+						<div className={styles.shader}>
+							<Metaballs
+								width={"auto"}
+								height={"100%"}
+								colors={["#f3d66d"]}
+								colorBack="#00000000"
+								count={20}
+								size={0.72}
+								speed={1}
+								scale={2}
+							/>
+						</div>
+					)}
+				</div>
 
 				<div className={styles.cardBody}>
 					<div className={styles.version}>{intermezzosCount}</div>

@@ -6,6 +6,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import styles from "./EventCard.module.css";
 import { Button } from "@components";
 import { UserRole } from "@shared/types/index";
+import { Metaballs } from "@paper-design/shaders-react";
 
 interface EventCardProps {
 	event: any;
@@ -90,7 +91,19 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				to={ROUTES.SINGLE_EVENT(event.id)}
 				style={{ textDecoration: "none" }}
 				aria-label={`Open event ${event.title}`}>
-				<div className={styles.cardVignette}>{formattedDate ? <span>{formattedDate}</span> : <span>Event</span>}</div>
+				{/* <div className={styles.cardVignette}>{formattedDate ? <span>{formattedDate}</span> : <span>Event</span>}</div> */}
+				<div className={styles.cardVignette}>
+					<Metaballs
+						width={"auto"}
+						height={"100%"}
+						colors={["#f3d66d"]}
+						colorBack="#00000000"
+						count={20}
+						size={0.72}
+						speed={1}
+						scale={2}
+					/>
+				</div>
 
 				<div className={styles.cardBody}>
 					<div className={styles.metaTop}>
@@ -151,49 +164,45 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				</div>
 			</Link>
 
-			{isConfirmingDelete && (
-				<div className={styles.confirmDelete}>
-					<p>Delete this Event?</p>
-					<p>This action cannot be undone. All incoming artist applications for this happening will be removed.</p>
-					{deleteError && <p className={styles.errorText}>Failed to delete event. Please try again.</p>}
-					<div className={styles.confirmActions}>
-						<Button
-							className={styles.confirmButton}
-							onClick={handleConfirmDelete}
-							disabled={isDeleting}
-							variant="ghost">
-							{isDeleting ? "Deleting..." : "Delete Event"}
-						</Button>
-						<Button
-							className={styles.cancelButton}
-							variant="solid"
-							onClick={() => setIsConfirmingDelete(false)}>
-							Cancel
-						</Button>
-					</div>
+			<div className={`${styles.confirmDelete} ${isConfirmingDelete ? styles.activePanel : ""}`}>
+				<p>Delete this Event?</p>
+				<p>This action cannot be undone. All incoming artist applications for this happening will be removed.</p>
+				{deleteError && <p className={styles.errorText}>Failed to delete event. Please try again.</p>}
+				<div className={styles.confirmActions}>
+					<Button
+						className={styles.confirmButton}
+						onClick={handleConfirmDelete}
+						disabled={isDeleting}
+						variant="ghost">
+						{isDeleting ? "Deleting..." : "Delete Event"}
+					</Button>
+					<Button
+						className={styles.cancelButton}
+						variant="solid"
+						onClick={() => setIsConfirmingDelete(false)}>
+						Cancel
+					</Button>
 				</div>
-			)}
+			</div>
 
-			{isViewingCoverNote && (
-				<div className={styles.confirmDelete}>
-					<p>Cover Letter Note</p>
-					<div className={styles.scrollableContent}>
-						<p
-							className={styles.coverLetterText}
-							style={{ whiteSpace: "pre-wrap" }}>
-							{coverNoteText}
-						</p>
-					</div>
-					<div className={styles.confirmActions}>
-						<Button
-							className={styles.cancelButton}
-							variant="solid"
-							onClick={() => setIsViewingCoverNote(false)}>
-							Close
-						</Button>
-					</div>
+			<div className={`${styles.confirmDelete} ${isViewingCoverNote ? styles.activePanel : ""}`}>
+				<p>Cover Letter Note</p>
+				<div className={styles.scrollableContent}>
+					<p
+						className={styles.coverLetterText}
+						style={{ whiteSpace: "pre-wrap" }}>
+						{coverNoteText}
+					</p>
 				</div>
-			)}
+				<div className={styles.confirmActions}>
+					<Button
+						className={styles.cancelButton}
+						variant="solid"
+						onClick={() => setIsViewingCoverNote(false)}>
+						Close
+					</Button>
+				</div>
+			</div>
 		</div>
 	);
 }
