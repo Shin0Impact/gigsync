@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react";
 import type { WorkFeedItem } from "@shared/types/social";
 import { useLikeWorkMutation, useUnlikeWorkMutation } from "../../pieces/piecesApi";
-import { usePostQuickView } from "../../pieces/PostQuickViewProvider";
+// import { usePostQuickView } from "../../pieces/PostQuickViewProvider";
 import { ROUTES } from "../../../routes/routePaths";
 import { getMediaUrl } from "../../../shared/mediaUrl";
 import ProfilePicture from "../../../components/user/ProfilePicture";
@@ -18,7 +18,7 @@ interface FeedPostCardProps {
 // per-card queries. Clicking it opens the same PostQuickView popup as
 // everywhere else (see PieceCard.tsx for the original pattern).
 export function FeedPostCard({ work }: FeedPostCardProps) {
-	const { openPost } = usePostQuickView();
+	// const { openPost } = usePostQuickView();
 	const [likeWork] = useLikeWorkMutation();
 	const [unlikeWork] = useUnlikeWorkMutation();
 
@@ -48,13 +48,13 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 			className={styles.card}
 			role="button"
 			tabIndex={0}
-			onClick={() => openPost(work.id)}
-			onKeyDown={(e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					openPost(work.id);
-				}
-			}}
+			// onClick={() => openPost(work.id)}
+			// onKeyDown={(e) => {
+			// 	if (e.key === "Enter" || e.key === " ") {
+			// 		e.preventDefault();
+			// 		openPost(work.id);
+			// 	}
+			// }}
 			aria-label={`Open piece #${work.id} by ${work.author.userName}`}>
 			<header className={styles.header}>
 				<Link

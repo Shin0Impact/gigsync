@@ -1,19 +1,23 @@
 .view {
+    --drawer-size: 27%;
+
     width: 100%;
     height: 100vh;
     background-color: var(--color-background);
-    display: flex;
-    padding: 3vh;
+    display: grid;
+    grid-template-columns: auto 1fr 0rem;
+    padding: 3vh 0 3vh 3vh;
     gap: 3vh;
     box-sizing: border-box;
     overflow: hidden;
+    transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &[data-role="creative"] {
+    &[data-role="artist"] {
         --color-role: var(--color-yellow);
         background-color: var(--color-role);
     }
 
-    &[data-role="supporter"] {
+    &[data-role="fan"] {
         --color-role: var(--color-blue);
         background-color: var(--color-background);
     }
@@ -21,6 +25,16 @@
     &[data-role="organizer"] {
         --color-role: var(--color-blue);
         background-color: var(--color-role);
+    }
+
+    &[data-drawer-open="true"] {
+        grid-template-columns: auto 1fr var(--drawer-size);
+        padding: 3vh;
+
+        .drawer {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
     .content {
@@ -51,27 +65,75 @@
             z-index: 1;
             width: 100%;
             height: 100%;
-            overflow-y: auto;
-            padding-bottom: 6rem;
         }
     }
 
+    .drawer {
+        height: 100%;
+        width: 100%;
+        background-color: var(--color-primary);
+        border: 0.125rem solid var(--color-accent);
+        box-shadow: inset 0 0 0.25rem var(--color-accent);
+        box-sizing: border-box;
+        overflow: hidden;
+        position: relative;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        display: flex;
+        flex-direction: column;
+
+        .drawerDecoration {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 21%;
+        }
+
+        .drawerInner {
+            position: relative;
+            height: 100%;
+            padding: 1.5rem;
+        }
+    }
 }
-/* Below this width the fixed 12rem-wide left Sidebar would eat most of a
-   phone screen - stack it as a bottom bar instead (column-reverse so the
-   Sidebar, first in the DOM, lands visually last/at the bottom without
-   touching Layout.tsx's render order). See Sidebar.module.css for the
-   matching bottom-bar layout. */
-@media (max-width: 48rem) {
+
+
+@media (max-width: 768px) {
     .view {
-        flex-direction: column-reverse;
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: none !important;
         padding: 0;
         gap: 0;
+        height: 100vh;
 
         .content {
-            width: 100%;
-            border-width: 0.125rem 0 0 0;
+            border: none;
             box-shadow: none;
+        }
+
+        .drawer {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 2000;
+            transform: translateY(100%) !important;
+            opacity: 1 !important;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+
+        &[data-drawer-open="true"] {
+            padding: 1rem;
+
+            .drawer {
+                transform: translateY(0) !important;
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useListEventsQuery } from "../../features/events/eventsApi";
-import { useListMyApplicationsQuery } from "../../features/events";
+import { useListEventsQuery, useListMyApplicationsQuery } from "../../features/events/eventsApi";
 import { ApplyToEventModal } from "../../features/events/components/ApplyToEventModal";
 import type { DbEvent } from "@shared/types/index";
 import styles from "./Events.module.css";

@@ -76,9 +76,3 @@
         }
     }
 }
-
-@media (max-width: 36rem) {
-    .hero {
-        padding: 2.5rem 1.25rem;
-    }
-}

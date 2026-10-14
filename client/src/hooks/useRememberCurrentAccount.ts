@@ -10,14 +10,13 @@ import { rememberAccount } from "../features/auth/accountSwitcher";
 export function useRememberCurrentAccount() {
 	const { data } = useMeQuery();
 	const user = data?.user;
-	const profile = data?.profile;
 
 	useEffect(() => {
-		if (!user || !profile) return;
+		if (!user) return;
 		rememberAccount({
-			userName: profile.userName,
+			userName: user.userName,
 			role: user.role,
-			avatarUrl: profile.avatarUrl,
+			avatarUrl: user.avatarUrl,
 		});
-	}, [user, profile]);
+	}, [user]);
 }

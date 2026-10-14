@@ -29,7 +29,7 @@ export default function SettingsPage() {
 	const [confirmingLogout, setConfirmingLogout] = useState(false);
 	const [knownAccounts, setKnownAccounts] = useState<RememberedAccount[]>(() => getRememberedAccounts());
 
-	const profile = data?.profile;
+	const profile = data?.user;
 	const role = data?.user?.role;
 	const otherAccounts = knownAccounts.filter((account) => account.userName !== profile?.userName);
 

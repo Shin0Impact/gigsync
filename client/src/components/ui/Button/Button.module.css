@@ -71,6 +71,23 @@
         }
     }
 
+    &[data-variant="nav"] {
+        background: transparent;
+        border: none !important;
+        outline: none !important;
+        padding: 0;
+        box-shadow: none !important;
+        color: var(--color-white);
+
+        &[data-active="true"] {
+            background: transparent;
+            border: none !important;
+            box-shadow: none !important;
+            color: var(--color-yellow, #f3d66d);
+            /* Only change the color! */
+        }
+    }
+
     &[data-active="true"] {
         background-color: var(--color-primary);
         color: var(--color-accent);

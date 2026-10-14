@@ -15,9 +15,11 @@ import { ArtistSearchPage } from "../pages/ArtistSearchPage";
 import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
 import { FollowingPage } from "../features/explore/FollowingPage";
 import ProfilePage from "../pages/ProfilePage";
-import NotificationsPage from "../pages/NotificationsPage";
 import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
+import NotificationsPage from "../pages/NotificationsPage";
+import { MyPiecesPage } from "../pages/MyPiecesPage";
+import MyApplicationsPage from "../pages/MyApplicationsPage";
 
 export function AppRoutes() {
 	return (
@@ -27,13 +29,7 @@ export function AppRoutes() {
 				element={<RootRedirect />}
 			/>
 			<Route element={<RequireGuest />}>
-				<Route
-					element={
-						<Layout
-							type="form"
-							role="guest"
-						/>
-					}>
+				<Route element={<Layout type="form" />}>
 					<Route
 						path={ROUTES.LOGIN}
 						element={<FormLogin />}
@@ -55,26 +51,35 @@ export function AppRoutes() {
 			/>
 
 			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
-				<Route
-					path={ROUTES.SINGLE_PIECE_PATTERN}
-					element={<PieceDetails />}
-				/>
+				<Route element={<Layout type="page" />}>
+					<Route
+						path={ROUTES.SETTINGS}
+						element={<SettingsPage />}
+					/>
+
+					<Route
+						path={ROUTES.SINGLE_PIECE_PATTERN}
+						element={<PieceDetails />}
+					/>
+				</Route>
 			</Route>
 
 			<Route element={<RoleGuard allowedRoles={["artist"]} />}>
-				<Route
-					element={
-						<Layout
-							type="page"
-							role="creative"
-						/>
-					}>
+				<Route element={<Layout type="page" />}>
 					<Route
-						path={ROUTES.EVENTS}
+						path={ROUTES.MY_PIECES}
+						element={<MyPiecesPage />}
+					/>
+					<Route
+						path={ROUTES.MY_APPLICATIONS}
+						element={<MyApplicationsPage />}
+					/>
+					<Route
+						path={ROUTES.DISCOVERY_HAPPENINGS}
 						element={<Events />}
 					/>
 					<Route
-						path={ROUTES.SEARCH}
+						path={ROUTES.ON_AIR}
 						element={<ArtistSearchPage />}
 					/>
 					<Route
@@ -84,10 +89,6 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.TIMELINE}
 						element={<FollowingPage />}
-					/>
-					<Route
-						path={ROUTES.PROFILE_PATTERN}
-						element={<ProfilePage />}
 					/>
 					<Route
 						path={ROUTES.NOTIFICATIONS}
@@ -101,18 +102,13 @@ export function AppRoutes() {
 						path={ROUTES.MESSAGE_THREAD_PATTERN}
 						element={<MessagesPage />}
 					/>
+
 					<Route
-						path={ROUTES.SETTINGS}
-						element={<SettingsPage />}
+						path={ROUTES.PROFILE_PATTERN}
+						element={<ProfilePage />}
 					/>
 				</Route>
-				<Route
-					element={
-						<Layout
-							type="form"
-							role="creative"
-						/>
-					}>
+				<Route element={<Layout type="form" />}>
 					<Route
 						path={ROUTES.CREATE_PIECE}
 						element={<FormPieceCreate />}

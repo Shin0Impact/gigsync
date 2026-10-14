@@ -121,9 +121,7 @@ export function PostQuickView({ pieceId, onClose }: PostQuickViewProps) {
 						<div className={styles.comments}>
 							<h3 className={styles.commentsTitle}>Comments ({comments.length})</h3>
 
-							{comments.length === 0 && (
-								<p className={styles.noComments}>No comments yet.</p>
-							)}
+							{comments.length === 0 && <p className={styles.noComments}>No comments yet.</p>}
 
 							<ul className={styles.commentList}>
 								{comments.map((comment) => (

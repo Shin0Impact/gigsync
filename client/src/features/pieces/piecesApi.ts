@@ -50,18 +50,13 @@ export const worksApi = api.injectEndpoints({
 			],
 		}),
 
-		addIntermezzo: builder.mutation<
-			AddWorkUpdateResponse,
-			{ pieceId: number | string; body: CreateWorkUpdateInput }
-		>({
+		addIntermezzo: builder.mutation<AddWorkUpdateResponse, { pieceId: number | string; body: CreateWorkUpdateInput }>({
 			query: ({ pieceId, body }) => ({
 				url: `/api/works/${pieceId}/updates`,
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: (_result, _error, { pieceId }) => [
-				{ type: "Intermezzo", id: pieceId },
-			],
+			invalidatesTags: (_result, _error, { pieceId }) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
 		listIntermezzos: builder.query<ListWorkUpdatesResponse, number | string>({
@@ -69,38 +64,26 @@ export const worksApi = api.injectEndpoints({
 			providesTags: (_result, _error, pieceId) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
-		addVignette: builder.mutation<
-			AddUpdateMediaResponse,
-			{ intermezzoId: number | string; body: AddUpdateMediaInput }
-		>({
+		addVignette: builder.mutation<AddUpdateMediaResponse, { intermezzoId: number | string; body: AddUpdateMediaInput }>({
 			query: ({ intermezzoId, body }) => ({
 				url: `/api/works/updates/${intermezzoId}/media`,
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: (_result, _error, { intermezzoId }) => [
-				{ type: "Vignette", id: intermezzoId },
-			],
+			invalidatesTags: (_result, _error, { intermezzoId }) => [{ type: "Vignette", id: intermezzoId }],
 		}),
 
 		listVignettes: builder.query<ListUpdateMediaResponse, number | string>({
 			query: (intermezzoId) => `/api/works/updates/${intermezzoId}/media`,
-			providesTags: (_result, _error, intermezzoId) => [
-				{ type: "Vignette", id: intermezzoId },
-			],
+			providesTags: (_result, _error, intermezzoId) => [{ type: "Vignette", id: intermezzoId }],
 		}),
 
-		deleteVignette: builder.mutation<
-			void,
-			{ intermezzoId: number | string; vignetteId: number | string }
-		>({
+		deleteVignette: builder.mutation<void, { intermezzoId: number | string; vignetteId: number | string }>({
 			query: ({ intermezzoId, vignetteId }) => ({
 				url: `/api/works/updates/${intermezzoId}/media/${vignetteId}`,
 				method: "DELETE",
 			}),
-			invalidatesTags: (_result, _error, { intermezzoId }) => [
-				{ type: "Vignette", id: intermezzoId },
-			],
+			invalidatesTags: (_result, _error, { intermezzoId }) => [{ type: "Vignette", id: intermezzoId }],
 		}),
 		listWorksFeed: builder.query<
 			ListWorksFeedResponse,
@@ -227,10 +210,7 @@ export const worksApi = api.injectEndpoints({
 			providesTags: (_result, _error, workId) => [{ type: "Comment", id: workId }],
 		}),
 
-		addComment: builder.mutation<
-			AddWorkCommentResponse,
-			{ workId: number | string; body: AddWorkCommentInput }
-		>({
+		addComment: builder.mutation<AddWorkCommentResponse, { workId: number | string; body: AddWorkCommentInput }>({
 			query: ({ workId, body }) => ({
 				url: `/api/works/${workId}/comments`,
 				method: "POST",
@@ -239,10 +219,7 @@ export const worksApi = api.injectEndpoints({
 			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
 		}),
 
-		deleteComment: builder.mutation<
-			void,
-			{ workId: number | string; commentId: number | string }
-		>({
+		deleteComment: builder.mutation<void, { workId: number | string; commentId: number | string }>({
 			query: ({ commentId }) => ({
 				url: `/api/works/comments/${commentId}`,
 				method: "DELETE",

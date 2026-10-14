@@ -7,9 +7,6 @@ import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
 import styles from "./LocationPicker.module.css";
 
-// Leaflet's default marker icon references its own relative image paths,
-// which don't resolve through Vite's asset pipeline unless pointed at the
-// bundled URLs explicitly - this is the standard react-leaflet + Vite fix.
 const pinIcon = L.icon({
 	iconUrl: markerIconUrl,
 	iconRetinaUrl: markerIconRetinaUrl,
@@ -29,18 +26,13 @@ interface LocationPickerProps {
 
 function ClickToMove({ onChange }: { onChange: (lat: number, lng: number) => void }) {
 	useMapEvents({
-		click(e) {
+		click(e: L.LeafletMouseEvent) {
 			onChange(e.latlng.lat, e.latlng.lng);
 		},
 	});
 	return null;
 }
 
-// react-leaflet only drives the view from `center` on first mount - once
-// the map exists, panning it again (e.g. after "Use my location" moves
-// lat/lng from outside the map) needs an explicit setView, which this
-// effect does whenever lat/lng changes from something other than a click
-// or drag on the map itself.
 function RecenterOnExternalChange({ lat, lng }: { lat: number; lng: number }) {
 	const map = useMap();
 	useEffect(() => {
@@ -50,11 +42,6 @@ function RecenterOnExternalChange({ lat, lng }: { lat: number; lng: number }) {
 	return null;
 }
 
-// A map with a draggable pin plus a translucent circle showing the search
-// radius around it - click anywhere to move the pin, or drag it directly.
-// Used by ArtistSearchPage.tsx to pick the center of an /api/artists/search
-// call; this component itself knows nothing about artists or search, just
-// "here's a point and a radius, tell me when either changes."
 export function LocationPicker({ lat, lng, radiusKm, onChange }: LocationPickerProps) {
 	return (
 		<div className={styles.mapWrapper}>
@@ -77,7 +64,7 @@ export function LocationPicker({ lat, lng, radiusKm, onChange }: LocationPickerP
 					icon={pinIcon}
 					draggable
 					eventHandlers={{
-						dragend: (e) => {
+						dragend: (e: L.LeafletEvent) => {
 							const position = (e.target as L.Marker).getLatLng();
 							onChange(position.lat, position.lng);
 						},

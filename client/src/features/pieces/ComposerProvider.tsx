@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { CreatePieceModal } from "./components/CreatePieceModal";
+import { CreatePieceModal } from "./components";
 
 interface ComposerContextValue {
 	openComposer: () => void;

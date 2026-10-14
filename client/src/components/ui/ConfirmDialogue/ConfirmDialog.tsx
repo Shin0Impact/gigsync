@@ -1,4 +1,4 @@
-import styles from "./ConfirmDialog.module.css";
+import styles from "./ConfirmDialogue.module.css";
 
 interface ConfirmDialogProps {
 	isOpen: boolean;

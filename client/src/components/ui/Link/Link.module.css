@@ -13,7 +13,8 @@
 
     transition: var(--transition-fast);
 
-    &:hover {
+    &:hover,
+    &[data-active="true"] {
         color: var(--color-link-hover);
         text-decoration-color: var(--color-link-hover);
     }

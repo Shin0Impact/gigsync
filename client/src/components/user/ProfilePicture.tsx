@@ -5,7 +5,7 @@ interface ProfilePictureProps {
 	avatarUrl?: string | null;
 	userName?: string | null;
 	isLoading?: boolean;
-	variant: "nav" | "profile";
+	variant: "nav" | "profile" | "page";
 	className?: string;
 }
 
@@ -14,13 +14,7 @@ function initials(userName?: string | null): string {
 	return userName.trim().slice(0, 2).toUpperCase();
 }
 
-function ProfilePicture({
-	avatarUrl,
-	userName,
-	isLoading = false,
-	variant,
-	className = "",
-}: ProfilePictureProps) {
+function ProfilePicture({ avatarUrl, userName, isLoading = false, variant, className = "" }: ProfilePictureProps) {
 	const combined = `${styles.picture} ${className}`.trim();
 
 	if (isLoading) {

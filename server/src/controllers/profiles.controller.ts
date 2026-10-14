@@ -2,15 +2,11 @@ import { Request, Response } from "express";
 import {
 	follow_profile,
 	get_my_activity,
+	get_profile_by_user_id,
 	get_profile_by_username,
 	unfollow_profile,
 } from "../services/profiles.service";
-import {
-	ErrorResponse,
-	FollowResponse,
-	GetProfileResponse,
-	ListMyActivityResponse,
-} from "../types";
+import { ErrorResponse, FollowResponse, GetProfileResponse, ListMyActivityResponse } from "../types";
 
 const NOT_FOUND_MESSAGES = ["Profile not found"];
 const FORBIDDEN_MESSAGES = ["You cannot follow yourself"];
@@ -41,6 +37,18 @@ export async function get_profile_handler(
 	}
 }
 
+export async function get_profile_by_id_handler(
+	req: Request<{ userId: string }>,
+	res: Response<GetProfileResponse | ErrorResponse>,
+) {
+	try {
+		const profile = await get_profile_by_user_id(req.params.userId, req.user?.userId ?? null);
+		return res.json({ profile });
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to fetch profile");
+	}
+}
+
 export async function follow_profile_handler(
 	req: Request<{ username: string }>,
 	res: Response<FollowResponse | ErrorResponse>,
@@ -65,10 +73,7 @@ export async function unfollow_profile_handler(
 	}
 }
 
-export async function get_my_activity_handler(
-	req: Request,
-	res: Response<ListMyActivityResponse | ErrorResponse>,
-) {
+export async function get_my_activity_handler(req: Request, res: Response<ListMyActivityResponse | ErrorResponse>) {
 	try {
 		const activity = await get_my_activity(req.user!.userId);
 		return res.status(200).json({ activity });

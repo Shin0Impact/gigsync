@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { PostQuickView } from "./components/PostQuickView";
+import { PostQuickView } from "./components";
 
 interface PostQuickViewContextValue {
 	openPost: (pieceId: number) => void;

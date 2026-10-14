@@ -53,7 +53,9 @@ export function ApplyToEventModal({ event, onClose }: ApplyToEventModalProps) {
 
 				{isSuccess ? (
 					<div className={styles.successState}>
-						<p className={styles.successMessage}>Application sent! You can track its status under My Applications.</p>
+						<p className={styles.successMessage}>
+							Application sent! You can track its status under My Applications.
+						</p>
 						<button
 							type="button"
 							className={styles.submitButton}

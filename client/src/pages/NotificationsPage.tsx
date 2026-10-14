@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useGetMyActivityQuery } from "../features/profiles";
-import { usePostQuickView } from "../features/pieces";
+// import { usePostQuickView } from "../features/pieces";
 import { ROUTES } from "../routes/routePaths";
 import ProfilePicture from "../components/user/ProfilePicture";
 import type { ActivityItem } from "@shared/types/index";
@@ -42,7 +42,7 @@ function describe(item: ActivityItem): string {
 // get_my_activity in profiles.service.ts).
 export function NotificationsPage() {
 	const { data, isLoading, error } = useGetMyActivityQuery();
-	const { openPost } = usePostQuickView();
+	// const { openPost } = usePostQuickView();
 	const activity = data?.activity ?? [];
 
 	return (
@@ -78,11 +78,11 @@ export function NotificationsPage() {
 								role={isClickable ? "button" : undefined}
 								tabIndex={isClickable ? 0 : undefined}
 								data-clickable={isClickable}
-								onClick={isClickable ? () => openPost(item.workId!) : undefined}
+								// onClick={isClickable ? () => openPost(item.workId!) : undefined}
 								onKeyDown={(e) => {
 									if (isClickable && (e.key === "Enter" || e.key === " ")) {
 										e.preventDefault();
-										openPost(item.workId!);
+										// openPost(item.workId!);
 									}
 								}}>
 								{item.actor ? (
@@ -97,7 +97,9 @@ export function NotificationsPage() {
 										/>
 									</Link>
 								) : (
-									<div className={styles.systemIcon}>{item.type === "application_accepted" ? "🎉" : "📋"}</div>
+									<div className={styles.systemIcon}>
+										{item.type === "application_accepted" ? "🎉" : "📋"}
+									</div>
 								)}
 
 								<div className={styles.itemBody}>

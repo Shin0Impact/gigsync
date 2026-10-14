@@ -4,12 +4,15 @@ import styles from "./Form.module.css";
 interface FormRootProps extends FormHTMLAttributes<HTMLFormElement> {
 	title?: string;
 	header?: ReactNode;
+	isDrawer?: boolean;
 	children: ReactNode;
 }
 
-function FormRoot({ title, header, children, className = "", ...props }: FormRootProps) {
+function FormRoot({ title, header, isDrawer = false, children, className = "", ...props }: FormRootProps) {
 	return (
-		<div className={styles.formWrapper}>
+		<div
+			className={styles.formWrapper}
+			data-drawer={isDrawer}>
 			{header}
 			<div className={styles.formBody}>
 				{title && <h1 className={styles.title}>{title}</h1>}

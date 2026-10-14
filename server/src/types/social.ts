@@ -35,9 +35,17 @@ export interface IFollowing {
 export interface IWork {
 	id: number;
 	userId: string;
+	title: string | null;
 	description: string | null;
 	createdAt: string;
 	updatedAt: string;
+}
+
+// A single work fetched for the detail page: the work row plus its full
+// update history, each update carrying its media - one round trip is
+// enough to render mezzo.social/<user>/works/<id>.
+export interface IWorkWithUpdates extends IWork {
+	updates: (IWorkUpdate & { media: IUpdateMedia[] })[];
 }
 
 // work_updates table
@@ -93,6 +101,7 @@ export interface IPostEvent {
 // -----------------------------------------------------------------------------
 
 export interface CreateWorkInput {
+	title?: string | null;
 	description?: string | null;
 }
 
@@ -118,6 +127,10 @@ export interface CreateWorkResponse {
 
 export interface ListWorksResponse {
 	works: IWork[];
+}
+
+export interface GetWorkResponse {
+	work: IWorkWithUpdates;
 }
 
 export interface AddWorkUpdateResponse {

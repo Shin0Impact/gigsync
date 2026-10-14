@@ -3,14 +3,16 @@ export const ROUTES = {
 	LOGIN: "/login",
 	SIGNUP: "/signup",
 	ONBOARDING: "/onboarding",
+
+	// ======== FEED =========
+
 	TIMELINE: "/timeline",
 	TIMELINE_PIECES: "/timeline/pieces",
-	TIMELINE_EVENTS: "/timeline/events",
+	TIMELINE_HAPPENINGS: "/timeline/happenings",
 	DISCOVERY: "/discovery",
 	DISCOVERY_PIECES: "/discovery/pieces",
-	DISCOVERY_EVENTS: "/discovery/events",
+	DISCOVERY_HAPPENINGS: "/discovery/happenings",
 
-	EVENTS: "/events",
 	SEARCH: "/search",
 	SETTINGS: "/settings",
 	VERIFICATION: "/verification",
@@ -20,20 +22,36 @@ export const ROUTES = {
 	MESSAGE_THREAD_PATTERN: "/messages/:conversationId",
 	MESSAGE_THREAD: (conversationId: string) => `/messages/${conversationId}`,
 
-	SINGLE_PIECE_PATTERN: "/pieces/:id",
-	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
+	// ======== SELF =========
 
-	// Profile is the single hub for a user's own (or anyone else's) pieces
-	// and portfolio - see ProfilePage.tsx. Studio (/dashboard), /pieces,
-	// /portfolio and /:userId/portfolio used to be separate pages/routes
-	// for slices of this same data; they're gone now.
+	MY_PIECES: "/pieces",
+	MY_HAPPENINGS: "/happenings",
+	MY_APPLICATIONS: "/applications",
+
+	// ======== ON AIR =========
+
+	ON_AIR: "/on-air",
+
+	// ======== PROFILE ========
+
 	PROFILE: (username: string) => `/${username}`,
 	PROFILE_PATTERN: "/:username",
 
 	USER_PIECES: (username: string) => `/${username}/pieces`,
-	USER_EVENTS: (username: string) => `/${username}/events`,
+	USER_PIECES_PATTERN: "/:username/pieces",
+	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
+	USER_PORTFOLIO_PATTERN: "/:username/portfolio",
+	USER_HAPPENINGS: (username: string) => `/${username}/happenings`,
+	USER_HAPPENINGS_PATTERN: "/:username/happenings",
+
+	SINGLE_PIECE_PATTERN: "/pieces/:id",
+	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
+
+	SINGLE_INTERMEZZO_PATTERN: "/pieces/:id/:version",
+	SINGLE_INTERMEZZO: (id: string | number, version: string | number) => `/pieces/${id}/${version}`,
 
 	CREATE_PIECE: "/pieces/new",
 	CREATE_INTERMEZZO: "/intermezzi/new",
 	CREATE_PORTFOLIO_SECTION: "/portfolio/new",
+	CREATE_HAPPENING: "happenings/new",
 } as const;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetProfileQuery, useFollowProfileMutation, useUnfollowProfileMutation } from "../features/profiles";
-import { useListPiecesQuery, useComposer } from "../features/pieces";
+import { useListPiecesQuery } from "../features/pieces";
 import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { AvailabilityCalendar } from "../features/artists";
@@ -24,7 +24,7 @@ export function ProfilePage() {
 	const { username } = useParams<{ username: string }>();
 	const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
 
-	const { data, isLoading, error } = useGetProfileQuery(username ?? "", { skip: !username });
+	const { data, isLoading, error } = useGetProfileQuery(username?.toLowerCase() ?? "", { skip: !username });
 	const profile = data?.profile;
 
 	const { data: piecesData, isLoading: isLoadingPieces } = useListPiecesQuery(profile?.userId ?? "", {
@@ -40,7 +40,7 @@ export function ProfilePage() {
 	const portfolioItems = portfolioData?.items ?? [];
 
 	const [removeFromPortfolio, { isLoading: isRemovingFromPortfolio }] = useRemoveFromPortfolioMutation();
-	const { openComposer } = useComposer();
+	// const { openComposer } = useComposer();
 
 	const [followProfile, { isLoading: isSendingFollow }] = useFollowProfileMutation();
 	const [unfollowProfile, { isLoading: isSendingUnfollow }] = useUnfollowProfileMutation();
@@ -187,13 +187,21 @@ export function ProfilePage() {
 						{!isLoadingPieces && pieces.length === 0 && (
 							<div className={styles.emptyState}>
 								<p className={styles.emptyText}>
-									{profile.isOwnProfile ? "You haven't shared any posts yet." : `${profile.userName} hasn't shared any posts yet.`}
+									{profile.isOwnProfile
+										? "You haven't shared any posts yet."
+										: `${profile.userName} hasn't shared any posts yet.`}
 								</p>
 								{profile.isOwnProfile && (
+									// <button
+									// 	type="button"
+									// 	className={styles.createButton}
+									// 	onClick={openComposer}>
+									// 	Create Your First Post
+									// </button>
 									<button
 										type="button"
 										className={styles.createButton}
-										onClick={openComposer}>
+										onClick={() => 1}>
 										Create Your First Post
 									</button>
 								)}
@@ -273,7 +281,9 @@ export function ProfilePage() {
 												{!isEvent && workPost && (
 													<>
 														<h3 className={styles.portfolioCardTitle}>Work #{workPost.id}</h3>
-														<p className={styles.portfolioCardText}>{workPost.description || "No description provided."}</p>
+														<p className={styles.portfolioCardText}>
+															{workPost.description || "No description provided."}
+														</p>
 														<span className={styles.portfolioCardMeta}>
 															{workPost.updates?.length || 0} updates recorded
 														</span>

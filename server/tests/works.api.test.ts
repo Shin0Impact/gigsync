@@ -17,6 +17,11 @@
  * byte-compare round trip plus proof that deleting media also deletes the
  * R2 object - same real-R2 pattern as the other two media test files.
  *
+ * Also covers the newer surface: works carry an optional title (null when
+ * not given), and GET /api/works/:identifier doubles as "one work with its
+ * updates and media embedded" for numeric ids vs "the user's works list"
+ * for user UUIDs - including 404/400 edges for bad ids.
+ *
  * This only tests the "artist uploads" slice (works/work_updates/
  * update_media). Likes/comments/follows have no write path yet and aren't
  * covered here.
@@ -44,7 +49,7 @@ async function request(
   method: string,
   path: string,
   body?: unknown
-): Promise<{ status: number; body: unknown }> {
+): Promise<{ status: number; body: any }> {
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
@@ -80,23 +85,33 @@ function check(name: string, actual: number, expected: number, body: unknown) {
   }
 }
 
+function checkWorkField(name: string, actual: unknown, expected: unknown) {
+  if (actual === expected) {
+    console.log(`  \x1b[32m✓\x1b[0m ${name} = ${JSON.stringify(actual)}`);
+    passed++;
+  } else {
+    console.log(`  \x1b[31m✗\x1b[0m ${name} - expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    failed++;
+  }
+}
+
 async function main() {
   console.log(`Running works API tests against ${BASE_URL}\n`);
 
   const stamp = Date.now();
 
   await request('artist', 'POST', '/auth/register', {
-    email: `artist_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist_${stamp}`, artists_type: 'musician',
+    email: `artist_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist_${stamp}`, name: `Artist ${stamp}`, artists_type: 'musician',
   });
   await request('artist', 'POST', '/auth/login', { identifier: `artist_${stamp}@example.com`, password: 'TestPass123!' });
 
   await request('artist2', 'POST', '/auth/register', {
-    email: `artist2_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist2_${stamp}`, artists_type: 'painter',
+    email: `artist2_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist2_${stamp}`, name: `Artist Two ${stamp}`, artists_type: 'painter',
   });
   await request('artist2', 'POST', '/auth/login', { identifier: `artist2_${stamp}@example.com`, password: 'TestPass123!' });
 
   await request('org', 'POST', '/auth/register', {
-    email: `org_${stamp}@example.com`, password: 'TestPass123!', role: 'organizer', user_name: `org_${stamp}`,
+    email: `org_${stamp}@example.com`, password: 'TestPass123!', role: 'organizer', user_name: `org_${stamp}`, name: `Organizer ${stamp}`,
   });
   await request('org', 'POST', '/auth/login', { identifier: `org_${stamp}@example.com`, password: 'TestPass123!' });
 
@@ -109,11 +124,31 @@ async function main() {
   r = await request('artist', 'POST', '/works', { description: 'A mural project' });
   check('03 Artist creates a work', r.status, 201, r.body);
   const work = (r.body as { work: { id: number; userId: string } }).work;
+  checkWorkField('03a Work without title has title null', (r.body as { work: { title: string | null } }).work.title, null);
+
+  r = await request('artist', 'POST', '/works', { title: 'Sunset Mural', description: 'A mural with a title' });
+  check('03b Artist creates a work with a title', r.status, 201, r.body);
+  checkWorkField('03c Title is stored and echoed back', (r.body as { work: { title: string | null } }).work.title, 'Sunset Mural');
+  const titledWork = (r.body as { work: { id: number } }).work;
 
   r = await request('anon', 'GET', `/works/${work.userId}`);
   check('04 List works is public', r.status, 200, r.body);
   const works = (r.body as { works: unknown[] }).works;
   check('05 Listed works includes the new one', works.length >= 1 ? 1 : 0, 1, works);
+  checkWorkField('05a List response is keyed by "works"', Array.isArray((r.body as { works?: unknown }).works) ? 1 : 0, 1);
+  checkWorkField('05b Listed works carry their titles', (works as { title: string | null }[]).some((w) => w.title === 'Sunset Mural') ? 1 : 0, 1);
+
+  r = await request('anon', 'GET', `/works/${titledWork.id}`);
+  check('05c Single work by id is public', r.status, 200, r.body);
+  checkWorkField('05d Single work response is keyed by "work"', (r.body as { work?: unknown }).work !== undefined ? 1 : 0, 1);
+  checkWorkField('05e Single work carries its title', (r.body as { work: { title: string | null } }).work.title, 'Sunset Mural');
+  checkWorkField('05f Single work has an updates array', Array.isArray((r.body as { work: { updates: unknown[] } }).work.updates) ? 1 : 0, 1);
+
+  r = await request('anon', 'GET', '/works/999999999');
+  check('05g Unknown work id is 404', r.status, 404, r.body);
+
+  r = await request('anon', 'GET', '/works/not-a-valid-id');
+  check('05h Neither-uuid-nor-number identifier is 400', r.status, 400, r.body);
 
   r = await request('artist2', 'POST', `/works/${work.id}/updates`, { description: 'Day 1 progress' });
   check('06 Different artist cannot add an update to this work', r.status, 403, r.body);
@@ -188,6 +223,16 @@ async function main() {
   r = await request('anon', 'GET', `/works/updates/${update.id}/media`);
   check('16 List update media is public', r.status, 200, r.body);
 
+  // --- Single-work detail: updates + media resolved in one call ----------
+  r = await request('anon', 'GET', `/works/${work.id}`);
+  check('16a Single work includes its updates', r.status, 200, r.body);
+  const detailUpdates = (r.body as { work: { updates: { versionNumber: number; media: unknown[] }[] } }).work.updates;
+  checkWorkField('16b Detail has both updates, newest first', detailUpdates.length, 2);
+  // Updates come back version DESC: v2 (no media) first, v1 (the media
+  // was attached to it earlier) second.
+  checkWorkField('16c Newest update has no media', detailUpdates[0].media.length, 0);
+  checkWorkField('16d Older update has the media embedded', detailUpdates[1].media.length >= 1 ? 1 : 0, 1);
+
   r = await request('artist2', 'DELETE', `/works/updates/${update.id}/media/${media1.id}`);
   check('17 Different artist cannot delete this media', r.status, 403, r.body);
 
@@ -208,6 +253,10 @@ async function main() {
   r = await request('anon', 'GET', `/works/updates/${update.id}/media`);
   const afterDelete = (r.body as { media: unknown[] }).media;
   check('20 Update media list reflects the delete', afterDelete.length === 0 ? 1 : 0, 1, afterDelete);
+
+  r = await request('anon', 'GET', `/works/${work.id}`);
+  const detailAfterDelete = (r.body as { work: { updates: { media: unknown[] }[] } }).work.updates;
+  checkWorkField('20a Detail view reflects the media delete too', detailAfterDelete.every((u) => u.media.length === 0) ? 1 : 0, 1);
 
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) {

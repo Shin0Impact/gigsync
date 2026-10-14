@@ -156,7 +156,9 @@ export function CreatePieceModal({ isOpen, onClose }: CreatePieceModalProps) {
 							htmlFor="composer-attach"
 							className={styles.attachButton}>
 							<AttachIcon />
-							{files.length > 0 ? `${files.length} file${files.length === 1 ? "" : "s"} attached` : "Attach files"}
+							{files.length > 0
+								? `${files.length} file${files.length === 1 ? "" : "s"} attached`
+								: "Attach files"}
 						</label>
 
 						{files.length > 0 && (
