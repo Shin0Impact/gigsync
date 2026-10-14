@@ -289,9 +289,12 @@ export async function createWorkUpdate(workId: number, description: string | nul
 	// computed here rather than via a DB trigger since nothing else writes
 	// to work_updates yet.
 	const result = await query<WorkUpdateRow>(
-		`insert into work_updates (work_id, version_number, description)
-     values ($1, (select count(*) + 1 from work_updates where work_id = $1), $2)
-     returning *`,
+		`with touch_work as (
+			update works set updated_at = now() where id = $1
+		)
+		insert into work_updates (work_id, version_number, description)
+		values ($1, (select count(*) + 1 from work_updates where work_id = $1), $2)
+		returning *`,
 		[workId, description],
 	);
 	const row = result.rows[0];
