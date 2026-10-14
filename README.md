@@ -151,8 +151,10 @@ Simplest path - no GitHub secrets needed: in the
   the Render/Railway backend URL from above
 
 Cloudflare then builds and deploys automatically on every push to `main`.
-`client/public/_redirects` is already in place so client-side routes (e.g.
-`/socket-test`, future `/login`, `/events/:id`) don't 404 on refresh.
+`client/wrangler.jsonc` serves `dist` as a single-page app, so client-side routes
+(e.g. `/login`, `/events/:id`) don't 404 on refresh. The deploy command is
+`npx wrangler deploy`; don't add a `public/_redirects` catch-all, Cloudflare
+rejects it as an infinite loop.
 
 **GitHub Actions alternative:** [`.github/workflows/deploy-frontend.yml`](./.github/workflows/deploy-frontend.yml)
 does the same build + deploy from CI instead, if you'd rather see deploy logs
