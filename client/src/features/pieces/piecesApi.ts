@@ -121,15 +121,61 @@ export const worksApi = api.injectEndpoints({
 			query: (workId) => `/api/works/${workId}/like`,
 			providesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
+
+		// Previously these invalidated the whole feed ({ type: "Feed", id: "LIST" })
+		// on every like/unlike, which refetched listWorksFeed in full - every like
+		// tap re-ran the entire feed query, which could reorder/refresh posts out
+		// from under the user and made the button feel unreliable, especially on
+		// a second tap fired before that refetch had resolved (handleToggleLike
+		// in FeedPostCard/PostQuickView decides like vs. unlike from the LAST
+		// fetched state, so a tap during that window could fire the same
+		// direction twice or the wrong direction). An optimistic update here
+		// instead patches every cached feed page and the single-work like-status
+		// query directly and immediately, with the { type: "Like", id: workId }
+		// tag kept as a narrow (one work, not the whole feed) consistency
+		// safety net in case the optimistic patch and the server ever disagree.
 		likeWork: builder.mutation<ToggleWorkLikeResponse, number | string>({
 			query: (workId) => ({
 				url: `/api/works/${workId}/like`,
 				method: "POST",
 			}),
-			invalidatesTags: (_result, _error, workId) => [
-				{ type: "Like", id: workId },
-				{ type: "Feed", id: "LIST" },
-			],
+			async onQueryStarted(workId, { dispatch, queryFulfilled, getState }) {
+				const patches: { undo: () => void }[] = [];
+				const state = getState();
+				const feedArgs = worksApi.util.selectCachedArgsForQuery(state, "listWorksFeed");
+
+				for (const arg of feedArgs) {
+					patches.push(
+						dispatch(
+							worksApi.util.updateQueryData("listWorksFeed", arg, (draft) => {
+								const work = draft.works.find((w) => String(w.id) === String(workId));
+								if (!work || work.likedByMe === true) return;
+								work.likedByMe = true;
+								work.likeCount += 1;
+							}),
+						),
+					);
+				}
+
+				if (worksApi.util.selectCachedArgsForQuery(state, "getLikeStatus").includes(workId)) {
+					patches.push(
+						dispatch(
+							worksApi.util.updateQueryData("getLikeStatus", workId, (draft) => {
+								if (draft.liked === true) return;
+								draft.liked = true;
+								draft.likeCount += 1;
+							}),
+						),
+					);
+				}
+
+				try {
+					await queryFulfilled;
+				} catch {
+					patches.forEach((patch) => patch.undo());
+				}
+			},
+			invalidatesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
 		unlikeWork: builder.mutation<ToggleWorkLikeResponse, number | string>({
@@ -137,10 +183,43 @@ export const worksApi = api.injectEndpoints({
 				url: `/api/works/${workId}/like`,
 				method: "DELETE",
 			}),
-			invalidatesTags: (_result, _error, workId) => [
-				{ type: "Like", id: workId },
-				{ type: "Feed", id: "LIST" },
-			],
+			async onQueryStarted(workId, { dispatch, queryFulfilled, getState }) {
+				const patches: { undo: () => void }[] = [];
+				const state = getState();
+				const feedArgs = worksApi.util.selectCachedArgsForQuery(state, "listWorksFeed");
+
+				for (const arg of feedArgs) {
+					patches.push(
+						dispatch(
+							worksApi.util.updateQueryData("listWorksFeed", arg, (draft) => {
+								const work = draft.works.find((w) => String(w.id) === String(workId));
+								if (!work || work.likedByMe === false) return;
+								work.likedByMe = false;
+								work.likeCount += -1;
+							}),
+						),
+					);
+				}
+
+				if (worksApi.util.selectCachedArgsForQuery(state, "getLikeStatus").includes(workId)) {
+					patches.push(
+						dispatch(
+							worksApi.util.updateQueryData("getLikeStatus", workId, (draft) => {
+								if (draft.liked === false) return;
+								draft.liked = false;
+								draft.likeCount += -1;
+							}),
+						),
+					);
+				}
+
+				try {
+					await queryFulfilled;
+				} catch {
+					patches.forEach((patch) => patch.undo());
+				}
+			},
+			invalidatesTags: (_result, _error, workId) => [{ type: "Like", id: workId }],
 		}),
 
 		listComments: builder.query<ListWorkCommentsResponse, number | string>({

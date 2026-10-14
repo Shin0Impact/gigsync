@@ -16,6 +16,8 @@ import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
 import { FollowingPage } from "../features/explore/FollowingPage";
 import ProfilePage from "../pages/ProfilePage";
 import NotificationsPage from "../pages/NotificationsPage";
+import MessagesPage from "../pages/MessagesPage";
+import SettingsPage from "../pages/SettingsPage";
 
 export function AppRoutes() {
 	return (
@@ -90,6 +92,18 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.NOTIFICATIONS}
 						element={<NotificationsPage />}
+					/>
+					<Route
+						path={ROUTES.MESSAGES}
+						element={<MessagesPage />}
+					/>
+					<Route
+						path={ROUTES.MESSAGE_THREAD_PATTERN}
+						element={<MessagesPage />}
+					/>
+					<Route
+						path={ROUTES.SETTINGS}
+						element={<SettingsPage />}
 					/>
 				</Route>
 				<Route

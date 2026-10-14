@@ -131,6 +131,37 @@
     color: var(--color-accent);
 }
 
+.actionButtons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.actionButtons .followButton {
+    margin-top: 0;
+}
+
+.messageButton {
+    padding: 0.7rem 1.5rem;
+    background-color: transparent;
+    color: var(--color-accent);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background-color: var(--color-yellow);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
 .avatar {
     width: 4.5rem !important;
     height: 4.5rem !important;

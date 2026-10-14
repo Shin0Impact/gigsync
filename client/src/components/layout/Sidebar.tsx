@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import { ROUTES } from "../../routes/routePaths";
 import { Logo } from "@components/Logo";
 import { LinkNav } from "@components/ui/Link";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import { useMeQuery } from "../../features/auth/authApi";
 import ProfilePicture from "../user/ProfilePicture";
 
@@ -31,6 +33,7 @@ const NAV_ITEMS: Partial<Record<SidebarProps["role"], NavItem[]>> = {
 		{ to: ROUTES.DISCOVERY, label: "Explore" },
 		{ to: ROUTES.EVENTS, label: "Events" },
 		{ to: ROUTES.SEARCH, label: "Find Artists" },
+		{ to: ROUTES.MESSAGES, label: "Messages" },
 		{ to: ROUTES.NOTIFICATIONS, label: "Notifications" },
 	],
 };
@@ -105,6 +108,27 @@ function SidebarGlyph({ role }: { role: SidebarProps["role"] }) {
 	);
 }
 
+// Compact row of the two things every signed-in role needs regardless
+// of which nav items they have: a way to flip the site's theme
+// (ThemeToggle) and a way into Settings (logout, account switching -
+// see SettingsPage.tsx). Guests get neither - there's nothing to log
+// out of or switch yet.
+function SidebarUtility({ role }: { role: SidebarProps["role"] }) {
+	if (role === "guest") return null;
+
+	return (
+		<div className={styles.utilityRow}>
+			<ThemeToggle size="sm" />
+			<Link
+				to={ROUTES.SETTINGS}
+				className={styles.settingsLink}
+				aria-label="Settings">
+				<Settings size={16} />
+			</Link>
+		</div>
+	);
+}
+
 // The shared shell every role gets: a flat black panel (no more full-height
 // logo-mark-as-background - that made the panel's shape depend on the
 // brand glyph's own cutouts, which fought with real nav content laid over
@@ -115,6 +139,7 @@ function SidebarShell({ role, children }: { role: SidebarProps["role"]; children
 		<div className={styles.sidebar}>
 			<SidebarGlyph role={role} />
 			{children}
+			<SidebarUtility role={role} />
 		</div>
 	);
 }

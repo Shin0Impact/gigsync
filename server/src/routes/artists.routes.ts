@@ -6,6 +6,11 @@ import {
   search_artists_handler,
   update_emergency_status_handler,
 } from '../controllers/artists.controller';
+import {
+  add_availability_handler,
+  get_availability_handler,
+  remove_availability_handler,
+} from '../controllers/availability.controller';
 
 const router = Router();
 
@@ -33,5 +38,20 @@ router.get('/:userId/emergency-status', get_emergency_status_handler);
 // sockets/index.ts + artists.service.ts) so organizer-side emergency
 // search views update live without a refresh.
 router.patch('/me/emergency-status', requireAuth, requireRole('artist'), update_emergency_status_handler);
+
+// Card #26 - the availability calendar tab on an artist's profile.
+//
+// GET /api/artists/:userId/availability - all of one artist's marked-
+// available days. Public, same reasoning as emergency-status/search
+// above: anyone viewing a profile should see this without signing in.
+router.get('/:userId/availability', get_availability_handler);
+
+// POST /api/artists/me/availability { date } - mark one day available.
+// One call per day tapped on the calendar, not a bulk replace - see
+// availability.controller.ts.
+router.post('/me/availability', requireAuth, requireRole('artist'), add_availability_handler);
+
+// DELETE /api/artists/me/availability/:date - un-mark one day.
+router.delete('/me/availability/:date', requireAuth, requireRole('artist'), remove_availability_handler);
 
 export default router;

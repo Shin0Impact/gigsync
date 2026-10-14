@@ -1,16 +1,16 @@
-@font-face {
-    font-family: "Coolvetica";
-    font-weight: normal;
-    font-style: normal;
-    src: url("../assets/fonts/Coolvetica Regular.otf");
-}
-
-@font-face {
-    font-family: "Coolvetica";
-    font-weight: normal;
-    font-style: italic;
-    src: url("../assets/fonts/Coolvetica Italic.otf");
-}
+/* "Coolvetica" is still --font-sans in index.css, but its .otf files
+   (client/src/assets/fonts/Coolvetica Regular.otf / Italic.otf) were
+   never actually added to this repo - only the PP Editorial New files
+   below exist. The @font-face rules that used to be here just pointed
+   at files that 404, so every page load failed two font requests and
+   logged "OTS parsing error: invalid sfntVersion" to the console (the
+   browser trying to parse the dev server's HTML 404 fallback page as a
+   font). Removed rather than left failing - --font-sans already falls
+   back to the generic sans-serif in var(--font-sans, sans-serif) (used
+   throughout the CSS modules) exactly as it was silently doing before,
+   just without the failed requests/console noise. If/when the actual
+   Coolvetica files are added to assets/fonts, these @font-face rules
+   should come back pointing at them. */
 
 /* @font-face {
   font-family: "Instrument Serif";

@@ -9,7 +9,6 @@ import {
 	list_pending_verification_requests,
 	list_social_links_for_user,
 	set_profile_verified,
-	VerificationStatus,
 } from "../db/queries/verification.queries";
 import { find_role_by_user_id } from "../db/queries/roles.queries";
 import { list_events } from "../db/queries/events.queries";

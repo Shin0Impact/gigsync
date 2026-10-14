@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { env } from './config/env';
 import { pool } from './config/db';
@@ -15,7 +15,7 @@ app.use(cors({ origin: env.clientOrigin, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.get('/health', (_req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 

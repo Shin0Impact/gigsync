@@ -1,0 +1,19 @@
+{
+	// Static-asset Worker config for the gigsync client (deployed from
+	// client/, which is this project's Root Directory in Cloudflare's
+	// dashboard build settings). Giving wrangler an explicit config here
+	// means it skips its own auto-detection/auto-config step for Vite
+	// projects (which requires Vite 6+) - Vite has already finished
+	// building dist/ by the time `wrangler deploy` runs, so this file
+	// just tells wrangler to serve that folder as static assets.
+	"name": "gigsync",
+	"compatibility_date": "2024-09-23",
+	"assets": {
+		"directory": "./dist",
+		// react-router-dom's BrowserRouter needs deep links like /login or
+		// /settings to fall back to index.html instead of 404ing - this is
+		// the Workers-assets equivalent of Vite's own dev-server SPA
+		// fallback.
+		"not_found_handling": "single-page-application"
+	}
+}

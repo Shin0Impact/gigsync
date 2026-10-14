@@ -11,6 +11,11 @@ import {
 	ErrorResponse,
 } from "../types";
 
+// Matches env.jwt.refreshExpiresIn's 7-day default - kept as a literal
+// here rather than parsed from that string because res.cookie wants a
+// number of milliseconds, not a jsonwebtoken-style duration string.
+const REMEMBER_ME_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
 export async function register(
 	req: Request<Record<string, never>, unknown, RegisterInput>,
 	res: Response<RegisterResponse | ErrorResponse>,
@@ -32,7 +37,7 @@ export async function register(
 			artists_type,
 		});
 
-		const { password_hash, ...safe_user } = result.user;
+		const { password_hash: _password_hash, ...safe_user } = result.user;
 
 		return res.status(201).json({
 			user: safe_user,
@@ -75,7 +80,7 @@ export async function login(
 	res: Response<LoginResponse | ErrorResponse>,
 ) {
 	try {
-		const { identifier, password } = req.body;
+		const { identifier, password, rememberMe = true } = req.body;
 
 		if (!identifier || !password) {
 			return res.status(400).json({
@@ -86,23 +91,34 @@ export async function login(
 		const result = await login_user({
 			identifier,
 			password,
+			rememberMe,
 		});
 
 		res.cookie("access_token", result.access_token, {
 			httpOnly: true,
+			// Frontend (Cloudflare Workers) and API (Render) are different
+			// registrable domains, so this is a cross-site request from the
+			// browser's perspective - SameSite=Lax cookies never get attached to
+			// those fetches, which is why "logged in" kept bouncing back to the
+			// landing page right after a successful login. None is required for
+			// cross-site, and browsers require Secure whenever SameSite=None is
+			// used (true in production, where secure above is also true).
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			maxAge: 15 * 60 * 1000,
 		});
 
+		// "Remember me" unchecked: no maxAge at all makes this a session
+		// cookie, cleared when the browser closes, instead of persisting for
+		// REMEMBER_ME_COOKIE_MAX_AGE_MS regardless of what the user picked.
 		res.cookie("refresh_token", result.refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			maxAge: 7 * 24 * 60 * 60 * 1000,
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+			...(rememberMe ? { maxAge: REMEMBER_ME_COOKIE_MAX_AGE_MS } : {}),
 		});
 
-		const { password_hash, ...safe_user } = result.user;
+		const { password_hash: _password_hash, ...safe_user } = result.user;
 
 		return res.status(200).json({
 			user: safe_user,
@@ -144,15 +160,19 @@ export async function refresh(req: Request, res: Response<RefreshResponse | Erro
 		res.cookie("access_token", result.access_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 			maxAge: 15 * 60 * 1000,
 		});
 
+		// Carries forward whatever "remember me" was chosen at login (see
+		// refresh_tokens in auth.service.ts) - a session that started as
+		// session-only shouldn't quietly become persistent just because its
+		// access token expired and got silently refreshed.
 		res.cookie("refresh_token", result.refresh_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			maxAge: 7 * 24 * 60 * 60 * 1000,
+			sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+			...(result.remember ? { maxAge: REMEMBER_ME_COOKIE_MAX_AGE_MS } : {}),
 		});
 
 		return res.status(200).json({
@@ -180,8 +200,19 @@ export async function refresh(req: Request, res: Response<RefreshResponse | Erro
 }
 
 export async function logout(_req: Request, res: Response<void>) {
-	res.clearCookie("access_token");
-	res.clearCookie("refresh_token");
+	// clearCookie must be called with the same secure/sameSite options the
+	// cookie was originally set with, or the browser won't recognize it as
+	// the same cookie to delete - this was silently no-opping the clear on
+	// the cross-site (Workers <-> Render) deployment, so "logging out" left
+	// the old access/refresh cookies in place and the user stayed signed in.
+	const cookieOptions = {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+	} as const;
+
+	res.clearCookie("access_token", cookieOptions);
+	res.clearCookie("refresh_token", cookieOptions);
 	res.status(204).send();
 }
 
