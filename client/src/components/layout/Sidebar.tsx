@@ -12,24 +12,18 @@ interface NavItem {
 }
 
 const TOP_NAV_ITEMS: NavItem[] = [
-	{ to: ROUTES.TIMELINE, label: "Timeline" },
 	{ to: ROUTES.DISCOVERY, label: "Discovery" },
-	{ to: ROUTES.NOTIFICATIONS, label: "Notifications" },
+	{ to: ROUTES.TIMELINE, label: "Timeline" },
+	{ to: ROUTES.SEARCH, label: "Search" },
 ];
 
 const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
-	artist: [
-		{ to: ROUTES.MY_PIECES, label: "Pieces" },
-		{ to: ROUTES.AVAILABILITY, label: "Availabilty" },
-		{ to: ROUTES.MY_APPLICATIONS, label: "Applications" },
-	],
-	organizer: [
-		{ to: ROUTES.SEARCH, label: "Search" },
-		{ to: ROUTES.MY_EVENTS, label: "Events" },
-	],
+	artist: [{ to: ROUTES.MY_PIECES, label: "Pieces" }],
+	organizer: [{ to: ROUTES.MY_EVENTS, label: "Events" }],
 };
 
 const BOTTOM_NAV_ITEMS: NavItem[] = [
+	{ to: ROUTES.NOTIFICATIONS, label: "Notifications" },
 	{ to: ROUTES.SETTINGS, label: "Settings" },
 	{ to: (username: string) => ROUTES.PROFILE(username), label: "Profile" },
 ];
@@ -58,8 +52,6 @@ export function Sidebar() {
 				</div>
 			</div>
 		);
-
-	console.log(path);
 
 	const role = data.user?.role;
 	const username = data.user?.userName;
