@@ -4,6 +4,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import { EventCard } from "./EventCard";
 import { EmptyState } from "@components/ui/EmptyState/EmptyState";
 import { UserRole } from "@shared/types/index";
+import { Navigate, replace, useNavigate, useSearchParams } from "react-router-dom";
 
 interface UserEventsProps {
 	organizerId?: string;
@@ -12,6 +13,9 @@ interface UserEventsProps {
 }
 
 export function UserEvents({ organizerId, mine = false, userRole = "guest" }: UserEventsProps) {
+	const navigate = useNavigate();
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isDrawerOpen = searchParams.get("drawer") === "open";
 	const {
 		data: eventsData,
 		isLoading: isLoadingEvents,
@@ -25,6 +29,19 @@ export function UserEvents({ organizerId, mine = false, userRole = "guest" }: Us
 	const applications = myAppsData?.applications ?? [];
 
 	const isLoading = isLoadingEvents || (userRole === "artist" && isLoadingApps);
+
+	const handleToggleDrawer = () => {
+		setSearchParams((prev) => {
+			const newParams = new URLSearchParams(prev);
+			if (isDrawerOpen) {
+				newParams.delete("drawer");
+				newParams.delete("form");
+			} else {
+				newParams.set("drawer", "open");
+			}
+			return newParams;
+		});
+	};
 
 	return (
 		<main className={styles.container}>
@@ -42,7 +59,7 @@ export function UserEvents({ organizerId, mine = false, userRole = "guest" }: Us
 								: "Check back soon for upcoming Events."
 						}
 						actionLabel={mine ? "Host an Event" : "Explore Events"}
-						to={ROUTES.DISCOVERY_EVENTS}
+						onAction={mine ? handleToggleDrawer : () => navigate(ROUTES.DISCOVERY_EVENTS)}
 					/>
 				</div>
 			)}

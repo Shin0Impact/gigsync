@@ -4,6 +4,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import { PieceCard } from "./PieceCard";
 import { IWork } from "@shared/types/social";
 import { EmptyState } from "@components/ui/EmptyState/EmptyState";
+import { useSearchParams } from "react-router-dom";
 
 interface UserPiecesProps {
 	userId: string;
@@ -11,6 +12,8 @@ interface UserPiecesProps {
 }
 
 export function UserPieces({ userId, mine = false }: UserPiecesProps) {
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isDrawerOpen = searchParams.get("drawer") === "open";
 	const {
 		data: piecesData,
 		isLoading,
@@ -20,6 +23,20 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 	});
 
 	const pieces = piecesData?.works ?? [];
+
+	const handleToggleDrawer = () => {
+		setSearchParams((prev) => {
+			const newParams = new URLSearchParams(prev);
+			if (isDrawerOpen) {
+				newParams.delete("drawer");
+				newParams.delete("form");
+				newParams.delete("pieceId");
+			} else {
+				newParams.set("drawer", "open");
+			}
+			return newParams;
+		});
+	};
 
 	return (
 		<main className={styles.container}>
@@ -37,7 +54,7 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 								: "Check back soon to see their Pieces."
 						}
 						actionLabel="Start your First Piece"
-						to={ROUTES.CREATE_PIECE}
+						onAction={handleToggleDrawer}
 					/>
 				</div>
 			)}

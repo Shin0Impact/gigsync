@@ -1,7 +1,9 @@
 import { useListMyApplicationsQuery, useListEventsQuery } from "../eventsApi";
 import { EventCard } from "./EventCard";
-import styles from "./Applications.module.css";
+import styles from "./UserApplications.module.css";
 import { useMeQuery } from "../../auth";
+import { EmptyState } from "@components/ui/EmptyState/EmptyState";
+import { ROUTES } from "../../../routes/routePaths";
 
 interface UserApplicationsProps {
 	statusFilter?: "pending" | "accepted" | "rejected";
@@ -16,20 +18,10 @@ export function UserApplications({ statusFilter = "pending" }: UserApplicationsP
 	const applications = myAppsData?.applications ?? [];
 	const allEvents = eventsData?.events ?? [];
 
-	if (isLoadingApps || isLoadingEvents) {
-		return <div className={styles.loading}>Loading applications...</div>;
-	}
+	const isLoading = isLoadingApps || isLoadingEvents;
 
 	// Filter applications by the selected status tab (case-insensitive check)
 	const filteredApps = applications.filter((app) => app.status?.toLowerCase() === statusFilter.toLowerCase());
-
-	if (filteredApps.length === 0) {
-		return (
-			<div className={styles.emptyState}>
-				<p className={styles.emptyText}>No {statusFilter} applications found.</p>
-			</div>
-		);
-	}
 
 	const appliedEvents = filteredApps
 		.map((app) => {
@@ -39,18 +31,33 @@ export function UserApplications({ statusFilter = "pending" }: UserApplicationsP
 		.filter((item) => item.eventObj != null);
 
 	return (
-		<div
-			className={styles.applicationListContainer}
-			style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", alignItems: "center" }}>
-			{appliedEvents.map(({ app, eventObj }) => (
-				<EventCard
-					key={app.id}
-					event={eventObj}
-					isMine={false}
-					userRole={userRole}
-					application={app}
-				/>
-			))}
-		</div>
+		<main className={styles.container}>
+			{isLoading && <div className={styles.loading}>Loading applications...</div>}
+
+			{!isLoading && appliedEvents.length === 0 && (
+				<div className={styles.emptyState}>
+					<EmptyState
+						title={`No ${statusFilter} applications found.`}
+						subtitle="Events you apply for will appear here."
+						actionLabel="Discover upcoming Events"
+						to={ROUTES.DISCOVERY_EVENTS}
+					/>
+				</div>
+			)}
+
+			{!isLoading && appliedEvents.length > 0 && (
+				<section className={styles.applicationList}>
+					{appliedEvents.map(({ app, eventObj }) => (
+						<EventCard
+							key={app.id}
+							event={eventObj}
+							isMine={false}
+							userRole={userRole}
+							application={app}
+						/>
+					))}
+				</section>
+			)}
+		</main>
 	);
 }

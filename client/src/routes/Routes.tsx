@@ -8,7 +8,6 @@ import Layout from "../layouts/Layout";
 import { FormLogin, FormSignup, RequireGuest } from "../features/auth";
 import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
-import { Events } from "../pages/creative/Events";
 import ProfilePage from "../pages/ProfilePage";
 import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
@@ -25,6 +24,8 @@ import { DiscoveryPiecesFeed } from "../features/explore/DiscoveryPiecesFeed";
 import { DiscoveryEventsFeed } from "../features/explore/DiscoveryEventsFeed";
 import { TimelinePiecesFeed } from "../features/explore/TimelinePiecesFeed";
 import { TimelineEventsFeed } from "../features/explore/TimelineEventsFeed";
+import { SingleEventDetails } from "../features/events/components/SingleEventDetails";
+import { SingleEventApplications } from "../features/events/components/SingleEventApplications";
 
 export function AppRoutes() {
 	return (
@@ -59,27 +60,6 @@ export function AppRoutes() {
 			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
 				<Route element={<Layout type="page" />}>
 					<Route
-						path={ROUTES.TIMELINE}
-						element={<TimelinePage />}>
-						<Route
-							index
-							element={
-								<Navigate
-									to={ROUTES.TIMELINE_PIECES}
-									replace
-								/>
-							}
-						/>
-						<Route
-							path={ROUTES.TIMELINE_PIECES}
-							element={<TimelinePiecesFeed />}
-						/>
-						<Route
-							path={ROUTES.TIMELINE_EVENTS}
-							element={<TimelineEventsFeed />}
-						/>
-					</Route>
-					<Route
 						path={ROUTES.DISCOVERY}
 						element={<DiscoveryPage />}>
 						<Route
@@ -100,6 +80,32 @@ export function AppRoutes() {
 							element={<DiscoveryEventsFeed />}
 						/>
 					</Route>
+					<Route
+						path={ROUTES.TIMELINE}
+						element={<TimelinePage />}>
+						<Route
+							index
+							element={
+								<Navigate
+									to={ROUTES.TIMELINE_PIECES}
+									replace
+								/>
+							}
+						/>
+						<Route
+							path={ROUTES.TIMELINE_PIECES}
+							element={<TimelinePiecesFeed />}
+						/>
+						<Route
+							path={ROUTES.TIMELINE_EVENTS}
+							element={<TimelineEventsFeed />}
+						/>
+					</Route>
+
+					<Route
+						path={ROUTES.SEARCH}
+						element={<SearchPage />}
+					/>
 					<Route
 						path={ROUTES.NOTIFICATIONS}
 						element={<NotificationsPage />}
@@ -178,11 +184,18 @@ export function AppRoutes() {
 						path={ROUTES.MY_EVENTS}
 						element={<MyEventsPage />}
 					/>
-
 					<Route
-						path={ROUTES.SEARCH}
-						element={<SearchPage />}
-					/>
+						path={ROUTES.SINGLE_EVENT_PATTERN}
+						element={<SingleEventPage />}>
+						<Route
+							index
+							element={<SingleEventDetails />}
+						/>
+						<Route
+							path="applications"
+							element={<SingleEventApplications />}
+						/>
+					</Route>
 				</Route>
 				<Route element={<Layout type="form" />}></Route>
 			</Route>

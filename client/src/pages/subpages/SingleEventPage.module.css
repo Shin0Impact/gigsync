@@ -1,138 +1,52 @@
 .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
     width: 100%;
-    max-width: 900px;
+    max-width: 60rem;
     margin: 0 auto;
-    padding: 1.5rem 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-}
-
-.actionBtn {
-    font-family: var(--font-sans, sans-serif);
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.eventContent {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    background-color: var(--color-primary);
-    border: 0.125rem solid var(--color-accent);
-    padding: 2rem;
     box-sizing: border-box;
-
-    .metaSection {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-
-        .badge {
-            font-family: var(--font-sans, sans-serif);
-            font-size: 0.85rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            background-color: var(--color-yellow);
-            color: var(--color-accent);
-            padding: 0.25rem 0.75rem;
-            border: 0.125rem solid var(--color-accent);
-        }
-
-        .venue {
-            font-family: var(--font-sans, sans-serif);
-            font-size: 1rem;
-            color: var(--color-accent);
-        }
-    }
-
-    .description {
-        font-family: var(--font-serif, serif);
-        font-size: 1.15rem;
-        color: var(--color-accent);
-        line-height: 1.6;
-        margin: 0;
-        word-break: break-word;
-    }
-}
-
-.applicationsSection {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.sectionTitle {
-    font-family: var(--font-sans, sans-serif);
-    font-size: 1.75rem;
-    color: var(--color-accent);
-    margin: 0;
-}
-
-.applicationsList {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-
-    .applicationCard {
-        background-color: var(--color-primary);
-        border: 0.125rem solid var(--color-accent);
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-
-        .appInfo {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: var(--font-sans, sans-serif);
-
-            .artistName {
-                font-weight: bold;
-                font-size: 1rem;
-                color: var(--color-accent);
-            }
-
-            .appStatus {
-                font-size: 0.9rem;
-                font-style: italic;
-                color: var(--color-accent);
-                opacity: 0.8;
-            }
-        }
-
-        .coverNote {
-            font-family: var(--font-serif, serif);
-            font-size: 1rem;
-            color: var(--color-accent);
-            margin: 0;
-            opacity: 0.9;
-        }
-    }
-}
-
-.emptyState {
-    text-align: center;
-    padding: 2rem;
-    border: 0.125rem dashed var(--color-accent);
-    background-color: var(--color-primary);
-}
-
-.emptyText {
-    font-family: var(--font-serif, serif);
-    font-size: 1.05rem;
-    font-style: italic;
-    color: var(--color-accent);
-    margin: 0;
 }
 
 .loading,
 .error {
-    font-family: var(--font-serif, serif);
-    font-size: 1.1rem;
-    font-style: italic;
-    text-align: center;
     padding: 2rem;
+    text-align: center;
+    font-family: var(--font-sans, sans-serif);
     color: var(--color-accent);
+}
+
+.error {
+    color: #d32f2f;
+}
+
+/* Tab Navigation Styling */
+.tabsContainer {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid var(--color-accent);
+    padding-bottom: 0.75rem;
+}
+
+.tabLink {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--color-accent);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    border: 0.125rem solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-yellow);
+        border-color: var(--color-accent);
+    }
+
+    &.activeTab {
+        background-color: var(--color-yellow);
+        border-color: var(--color-accent);
+        box-shadow: inset 2px 2px 0 0 var(--color-primary), inset -2px -2px 0 0 var(--color-primary);
+    }
 }
