@@ -32,11 +32,14 @@
         overflow: hidden;
         white-space: nowrap;
         opacity: 0;
-        transition: max-width var(--transition-base), opacity var(--transition-base);
+        color: var(--color-accent);
+        transition: max-width var(--transition-fast), opacity var(--transition-fast);
+        /* text-box: trim-both cap alphabetic; */
     }
 
     &:hover,
-    &.isOpen {
+    &.isOpen,
+    &[data-lingering-hover="true"] {
         gap: 1.5rem;
         background-color: var(--color-role, var(--color-yellow));
         border-color: var(--color-accent);
@@ -50,7 +53,7 @@
 
     &.isOpen {
         .icon {
-            transform: rotate(90deg);
+            transform: rotate(135deg);
         }
     }
 }

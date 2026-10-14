@@ -17,6 +17,7 @@ import {
 	list_works_feed_handler,
 	list_works_handler,
 	unlike_work_handler,
+	get_composition_handler,
 } from "../controllers/works.controller";
 
 const router = Router();
@@ -29,15 +30,19 @@ const router = Router();
 // already has for those.
 router.post("/", requireAuth, requireRole("artist"), create_work_handler);
 
+// Explore / following feed - GET /api/works (not /api/works/:userId, so it
+// has to be registered separately; no path collision since it's zero
+// path segments vs. one). ?scope=following requires auth, ?scope=explore
+// (default) is public but still personalizes likedByMe when signed in.
+router.get("/", requireAuth, list_works_feed_handler);
+
 // GET /:identifier - one route, two reads: a user UUID returns that user's
 // works list; a numeric work id returns the single work with updates and
 // media embedded (work detail page). See the controller for the contract.
 router.get("/:identifier", get_work_or_user_works_handler);
 // and showcases).
 //
-// Likes/comments (2026-10-11): implemented below on top of Kareem's
-// read-only scaffolding in server/src/db/social.queries.ts.
-router.post("/", requireAuth, requireRole("artist"), create_work_handler);
+
 router.get("/:userId", list_works_handler);
 router.delete("/:workId", requireAuth, requireRole("artist"), delete_work_handler);
 
@@ -47,12 +52,6 @@ router.get("/:workId/updates", list_work_updates_handler);
 router.post("/updates/:updateId/media", requireAuth, requireRole("artist"), add_update_media_handler);
 router.get("/updates/:updateId/media", list_update_media_handler);
 router.delete("/updates/:updateId/media/:mediaId", requireAuth, requireRole("artist"), delete_update_media_handler);
-
-// Explore / following feed - GET /api/works (not /api/works/:userId, so it
-// has to be registered separately; no path collision since it's zero
-// path segments vs. one). ?scope=following requires auth, ?scope=explore
-// (default) is public but still personalizes likedByMe when signed in.
-router.get("/", list_works_feed_handler);
 
 // Likes - toggle via POST/DELETE rather than a single PATCH, matching the
 // showcase add/delete and event apply patterns already used elsewhere.
@@ -66,5 +65,7 @@ router.delete("/:workId/like", requireAuth, unlike_work_handler);
 router.post("/:workId/comments", requireAuth, add_comment_handler);
 router.get("/:workId/comments", list_comments_handler);
 router.delete("/comments/:commentId", requireAuth, delete_comment_handler);
+
+router.get("/:workId/composition", get_composition_handler);
 
 export default router;

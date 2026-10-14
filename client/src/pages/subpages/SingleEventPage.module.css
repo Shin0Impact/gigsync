@@ -1,0 +1,52 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 60rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.loading,
+.error {
+    padding: 2rem;
+    text-align: center;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--color-accent);
+}
+
+.error {
+    color: #d32f2f;
+}
+
+/* Tab Navigation Styling */
+.tabsContainer {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid var(--color-accent);
+    padding-bottom: 0.75rem;
+}
+
+.tabLink {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--color-accent);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    border: 0.125rem solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-yellow);
+        border-color: var(--color-accent);
+    }
+
+    &.activeTab {
+        background-color: var(--color-yellow);
+        border-color: var(--color-accent);
+        box-shadow: inset 2px 2px 0 0 var(--color-primary), inset -2px -2px 0 0 var(--color-primary);
+    }
+}

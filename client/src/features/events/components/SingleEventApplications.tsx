@@ -1,13 +1,19 @@
+import { useOutletContext } from "react-router-dom";
 import { useListEventApplicationsQuery } from "../eventsApi";
-import { ApplicationRow } from "./ApplicationRow";
-import styles from "./Applications.module.css";
+import styles from "./SingleEventDetails.module.css";
+import { ApplicationCard } from "./ApplicationCard";
 
-interface EventApplicationsProps {
-	eventId: number | string;
-}
+export function SingleEventApplications() {
+	const { event }: { event: any } = useOutletContext();
+	const eventId = event?.id;
 
-export function EventApplications({ eventId }: EventApplicationsProps) {
-	const { data: appsData, isLoading, error } = useListEventApplicationsQuery(eventId);
+	const {
+		data: appsData,
+		isLoading,
+		error,
+	} = useListEventApplicationsQuery(eventId, {
+		skip: !eventId,
+	});
 
 	const applications = appsData?.applications ?? [];
 
@@ -29,8 +35,8 @@ export function EventApplications({ eventId }: EventApplicationsProps) {
 
 	return (
 		<ul className={styles.applicationList}>
-			{applications.map((application) => (
-				<ApplicationRow
+			{applications.map((application: any) => (
+				<ApplicationCard
 					key={application.id}
 					application={application}
 					eventId={eventId}

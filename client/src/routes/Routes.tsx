@@ -1,25 +1,31 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ROUTES } from "./routePaths";
 import { RootRedirect } from "../features/auth/components/RootRedirect";
 import { RequireAuth } from "../features/auth/components/RequireAuth";
-import OnboardingPage from "../pages/OnboardingPage";
 import { RoleGuard } from "../features/auth/components/RoleGuard";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import Layout from "../layouts/Layout";
 import { FormLogin, FormSignup, RequireGuest } from "../features/auth";
 import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/components";
-import { PieceDetails } from "../pages/creative/PieceDetails";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
-import { Events } from "../pages/creative/Events";
-import { ArtistSearchPage } from "../pages/ArtistSearchPage";
-import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
-import { FollowingPage } from "../features/explore/FollowingPage";
 import ProfilePage from "../pages/ProfilePage";
 import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import { MyPiecesPage } from "../pages/MyPiecesPage";
 import MyApplicationsPage from "../pages/MyApplicationsPage";
+import { DiscoveryPage } from "../pages/DiscoveryPage";
+import { TimelinePage } from "../pages/TimelinePage";
+import { MyEventsPage } from "../pages/MyEvents";
+import SearchPage from "../pages/SearchPage";
+import SingleEventPage from "../pages/subpages/SingleEventPage";
+import SinglePiecePage from "../pages/subpages/SinglePiecePage";
+import { DiscoveryPiecesFeed } from "../features/explore/DiscoveryPiecesFeed";
+import { DiscoveryEventsFeed } from "../features/explore/DiscoveryEventsFeed";
+import { TimelinePiecesFeed } from "../features/explore/TimelinePiecesFeed";
+import { TimelineEventsFeed } from "../features/explore/TimelineEventsFeed";
+import { SingleEventDetails } from "../features/events/components/SingleEventDetails";
+import { SingleEventApplications } from "../features/events/components/SingleEventApplications";
 
 export function AppRoutes() {
 	return (
@@ -28,6 +34,7 @@ export function AppRoutes() {
 				path={ROUTES.HOME}
 				element={<RootRedirect />}
 			/>
+
 			<Route element={<RequireGuest />}>
 				<Route element={<Layout type="form" />}>
 					<Route
@@ -45,7 +52,7 @@ export function AppRoutes() {
 				path={ROUTES.ONBOARDING}
 				element={
 					<RequireAuth>
-						<OnboardingPage />
+						<RootRedirect />
 					</RequireAuth>
 				}
 			/>
@@ -53,13 +60,72 @@ export function AppRoutes() {
 			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
 				<Route element={<Layout type="page" />}>
 					<Route
-						path={ROUTES.SETTINGS}
-						element={<SettingsPage />}
+						path={ROUTES.DISCOVERY}
+						element={<DiscoveryPage />}>
+						<Route
+							index
+							element={
+								<Navigate
+									to={ROUTES.DISCOVERY_PIECES}
+									replace
+								/>
+							}
+						/>
+						<Route
+							path={ROUTES.DISCOVERY_PIECES}
+							element={<DiscoveryPiecesFeed />}
+						/>
+						<Route
+							path={ROUTES.DISCOVERY_EVENTS}
+							element={<DiscoveryEventsFeed />}
+						/>
+					</Route>
+					<Route
+						path={ROUTES.TIMELINE}
+						element={<TimelinePage />}>
+						<Route
+							index
+							element={
+								<Navigate
+									to={ROUTES.TIMELINE_PIECES}
+									replace
+								/>
+							}
+						/>
+						<Route
+							path={ROUTES.TIMELINE_PIECES}
+							element={<TimelinePiecesFeed />}
+						/>
+						<Route
+							path={ROUTES.TIMELINE_EVENTS}
+							element={<TimelineEventsFeed />}
+						/>
+					</Route>
+
+					<Route
+						path={ROUTES.SEARCH}
+						element={<SearchPage />}
+					/>
+					<Route
+						path={ROUTES.NOTIFICATIONS}
+						element={<NotificationsPage />}
+					/>
+					<Route
+						path={ROUTES.MESSAGES}
+						element={<MessagesPage />}
 					/>
 
 					<Route
+						path={ROUTES.SETTINGS}
+						element={<SettingsPage />}
+					/>
+					<Route
+						path={ROUTES.SINGLE_EVENT_PATTERN}
+						element={<SingleEventPage />}
+					/>
+					<Route
 						path={ROUTES.SINGLE_PIECE_PATTERN}
-						element={<PieceDetails />}
+						element={<SinglePiecePage />}
 					/>
 				</Route>
 			</Route>
@@ -75,20 +141,8 @@ export function AppRoutes() {
 						element={<MyApplicationsPage />}
 					/>
 					<Route
-						path={ROUTES.DISCOVERY_HAPPENINGS}
-						element={<Events />}
-					/>
-					<Route
-						path={ROUTES.ON_AIR}
-						element={<ArtistSearchPage />}
-					/>
-					<Route
-						path={ROUTES.DISCOVERY}
-						element={<ExplorePiecesPage />}
-					/>
-					<Route
-						path={ROUTES.TIMELINE}
-						element={<FollowingPage />}
+						path={ROUTES.AVAILABILITY}
+						element={<div>Set availability</div>}
 					/>
 					<Route
 						path={ROUTES.NOTIFICATIONS}
@@ -122,6 +176,28 @@ export function AppRoutes() {
 						element={<FormAddToPortfolio />}
 					/>
 				</Route>
+			</Route>
+
+			<Route element={<RoleGuard allowedRoles={["organizer"]} />}>
+				<Route element={<Layout type="page" />}>
+					<Route
+						path={ROUTES.MY_EVENTS}
+						element={<MyEventsPage />}
+					/>
+					<Route
+						path={ROUTES.SINGLE_EVENT_PATTERN}
+						element={<SingleEventPage />}>
+						<Route
+							index
+							element={<SingleEventDetails />}
+						/>
+						<Route
+							path="applications"
+							element={<SingleEventApplications />}
+						/>
+					</Route>
+				</Route>
+				<Route element={<Layout type="form" />}></Route>
 			</Route>
 
 			<Route

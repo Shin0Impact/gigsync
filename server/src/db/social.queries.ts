@@ -505,6 +505,7 @@ interface FeedRow {
 	id: number;
 	user_id: string;
 	title: string;
+	version_number: number;
 	description: string | null;
 	created_at: string;
 	updated_at: string;
@@ -528,6 +529,7 @@ function mapFeedRow(row: FeedRow, likedWorkIds: Set<number>): WorkFeedItem {
 		id: row.id,
 		userId: row.user_id,
 		title: row.title,
+		workVersion: row.version_number,
 		description: row.description,
 		createdAt: row.created_at,
 		updatedAt: row.updated_at,
@@ -557,7 +559,8 @@ function mapFeedRow(row: FeedRow, likedWorkIds: Set<number>): WorkFeedItem {
 
 const FEED_SELECT = `
   select
-    w.id, w.user_id, w.description, w.created_at, w.updated_at,
+    w.id, w.user_id, w.title, w.description, w.created_at, w.updated_at,
+    latest_update.version_number,
     p.user_name, p.avatar_url, p.artists_type,
     coalesce(lc.like_count, 0) as like_count,
     coalesce(cc.comment_count, 0) as comment_count,
@@ -578,7 +581,7 @@ const FEED_SELECT = `
     select work_id, count(*)::int as comment_count from work_comments group by work_id
   ) cc on cc.work_id = w.id
   left join lateral (
-    select wu.id as update_id
+    select wu.id as update_id, wu.version_number
     from work_updates wu
     where wu.work_id = w.id
     order by wu.version_number desc
@@ -754,4 +757,30 @@ export async function deleteWork(workId: number): Promise<boolean> {
 	await query("delete from work_comments where work_id = $1", [workId]);
 	const result = await query("delete from works where id = $1", [workId]);
 	return (result.rowCount ?? 0) > 0;
+}
+
+export interface InteractionWithRoleRow {
+	id: number;
+	work_id: number;
+	user_id: string;
+	created_at: string;
+	interaction_type: "like" | "comment";
+	role: string | null;
+}
+
+export async function getInteractionsWithRolesForWork(workId: number): Promise<InteractionWithRoleRow[]> {
+	const result = await query<InteractionWithRoleRow>(
+		`select wl.id, wl.work_id, wl.user_id, wl.created_at, 'like' as interaction_type, r.role
+     from work_likes wl
+     left join roles r on r.user_id = wl.user_id
+     where wl.work_id = $1
+     union all
+     select wc.id, wc.work_id, wc.user_id, wc.created_at, 'comment' as interaction_type, r.role
+     from work_comments wc
+     left join roles r on r.user_id = wc.user_id
+     where wc.work_id = $1
+     order by created_at asc`,
+		[workId],
+	);
+	return result.rows;
 }

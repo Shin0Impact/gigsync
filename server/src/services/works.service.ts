@@ -20,10 +20,11 @@ import {
 	getWorkUpdates,
 	getWorksByUser,
 	listWorksFeed,
+	getInteractionsWithRolesForWork,
 } from "../db/social.queries";
 import { delete_object } from "./media.service";
 
-import { AddUpdateMediaInput } from "../types/social";
+import { AddUpdateMediaInput, RoleBreakdown, WorkCompositionItem } from "../types/social";
 
 const VALID_MEDIA_TYPES = ["image", "video", "audio"];
 
@@ -107,20 +108,10 @@ async function assert_owns_update(userId: string, updateId: number) {
 	return update;
 }
 
-export async function add_update_media(
-	userId: string,
-	updateId: number,
-	input: AddUpdateMediaInput,
-) {
+export async function add_update_media(userId: string, updateId: number, input: AddUpdateMediaInput) {
 	await assert_owns_update(userId, updateId);
 
-	const {
-		mediaType,
-		objectKey,
-		mimeType = "application/octet-stream",
-		fileSizeBytes = 0,
-		sortOrder = 0,
-	} = input;
+	const { mediaType, objectKey, mimeType = "application/octet-stream", fileSizeBytes = 0, sortOrder = 0 } = input;
 
 	if (!mediaType || !objectKey) {
 		throw new Error("mediaType and objectKey are required");
@@ -166,10 +157,7 @@ export async function remove_update_media(userId: string, updateId: number, medi
 	try {
 		await delete_object(media.r2Key);
 	} catch (err) {
-		console.warn(
-			`Failed to delete R2 object ${media.r2Key} after removing update media ${mediaId}:`,
-			err,
-		);
+		console.warn(`Failed to delete R2 object ${media.r2Key} after removing update media ${mediaId}:`, err);
 	}
 }
 
@@ -197,10 +185,7 @@ export async function remove_work(userId: string, workId: number) {
 		try {
 			await delete_object(item.r2Key);
 		} catch (err) {
-			console.warn(
-				`Failed to delete R2 object ${item.r2Key} after removing work ${workId}:`,
-				err,
-			);
+			console.warn(`Failed to delete R2 object ${item.r2Key} after removing work ${workId}:`, err);
 		}
 	}
 }
@@ -299,4 +284,53 @@ export async function remove_comment(userId: string, commentId: number) {
 		throw new Error("You do not own this comment");
 	}
 	await deleteWorkComment(commentId);
+}
+
+export async function get_work_composition(workId: number): Promise<WorkCompositionItem[]> {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+
+	const updates = (await getWorkUpdates(workId)).sort(
+		(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+	);
+
+	const interactions = await getInteractionsWithRolesForWork(workId);
+
+	const composition: WorkCompositionItem[] = updates.map((update, index) => {
+		const startTime = new Date(update.createdAt).getTime();
+		const endTime = updates[index + 1] ? new Date(updates[index + 1].createdAt).getTime() : Infinity;
+
+		const windowInteractions = interactions.filter((item) => {
+			const itemTime = new Date(item.created_at).getTime();
+			return itemTime >= startTime && itemTime < endTime;
+		});
+
+		const rolesCount: RoleBreakdown = {
+			artist: 0,
+			fan: 0,
+			organizer: 0,
+		};
+
+		windowInteractions.forEach((item) => {
+			const role = (item.role || "fan") as keyof RoleBreakdown;
+			if (role in rolesCount) {
+				rolesCount[role] += 1; // Make sure it increments!
+			} else {
+				rolesCount[role] = 1;
+			}
+		});
+
+		return {
+			id: update.id,
+			versionNumber: update.versionNumber,
+			createdAt: update.createdAt,
+			isCurrent: index === updates.length - 1,
+			roles: rolesCount, // No cast needed anymore!
+			totalInteractions: windowInteractions.length,
+		};
+	});
+
+	return composition.reverse();
 }

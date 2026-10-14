@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { MouseEvent } from "react";
 import type { IWork as Piece } from "@shared/types/social";
 import { useListIntermezzosQuery, useListVignettesQuery, useDeletePieceMutation } from "../piecesApi";
@@ -7,6 +7,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import styles from "./PieceCard.module.css";
 import { VignetteMedia } from "./VignetteMedia";
 import { Button } from "@components";
+import { Metaballs } from "@paper-design/shaders-react";
 
 interface PieceCardProps {
 	piece: Piece;
@@ -14,7 +15,9 @@ interface PieceCardProps {
 }
 
 export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
-	const navigate = useNavigate();
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isDrawerOpen = searchParams.get("drawer") === "open";
+
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 	const [deletePiece, { isLoading: isDeleting, error: deleteError }] = useDeletePieceMutation();
 
@@ -27,8 +30,8 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	});
 	const coverVignette = vignettesData?.media?.[0];
 
-	const formattedDate = piece.createdAt
-		? new Date(piece.createdAt).toLocaleDateString("en-US", {
+	const formattedDate = piece.updatedAt
+		? new Date(piece.updatedAt).toLocaleDateString("en-US", {
 				month: "short",
 				day: "numeric",
 				year: "numeric",
@@ -36,11 +39,21 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 		: null;
 
 	const handleAddIntermezzo = (e: MouseEvent) => {
+		e.preventDefault();
 		e.stopPropagation();
-		navigate(`${ROUTES.CREATE_INTERMEZZO}?pieceId=${piece.id}`);
+		setSearchParams((prev) => {
+			const newParams = new URLSearchParams(prev);
+			if (isDrawerOpen) {
+				newParams.delete("drawer");
+			} else {
+				newParams.set("drawer", "open");
+			}
+			return newParams;
+		});
 	};
 
 	const handleDeleteClick = (e: MouseEvent) => {
+		e.preventDefault();
 		e.stopPropagation();
 		setIsConfirmingDelete(true);
 	};
@@ -58,48 +71,67 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 		<div
 			className={styles.cardWrapper}
 			data-confirm={isConfirmingDelete}>
-			<div
+			<Link
 				className={styles.card}
 				role="button"
-				tabIndex={0}
-				onKeyDown={(e) => {
-					if (e.key === "Enter" || e.key === " ") {
-						e.preventDefault();
-					}
-				}}
+				to={ROUTES.SINGLE_PIECE(piece.id)}
+				style={{ textDecoration: "none" }}
 				aria-label={`Open Piece #${piece.id}`}>
-				{coverVignette && <VignetteMedia vignette={coverVignette} />}
-
-				<header className={styles.header}>
-					<span className={styles.pieceId}>Piece #{piece.id}</span>
+				<div className={styles.cardVignette}>
+					{coverVignette ? (
+						<VignetteMedia vignette={coverVignette} />
+					) : (
+						<div className={styles.shader}>
+							<Metaballs
+								width={"auto"}
+								height={"100%"}
+								colors={["#f3d66d"]}
+								colorBack="#00000000"
+								count={20}
+								size={0.72}
+								speed={1}
+								scale={2}
+							/>
+						</div>
+					)}
 					{formattedDate && <time className={styles.date}>{formattedDate}</time>}
-				</header>
-
-				<p className={`${styles.description} ${!piece.description ? styles.noDescription : ""}`}>
-					{piece.description || "Untitled Piece without description."}
-				</p>
-
-				<div className={styles.updatesSummary}>
-					{intermezzosCount === 1 ? "1 Intermezzo posted" : `${intermezzosCount} Intermezzi posted`}
 				</div>
 
-				{!readOnly && (
-					<div className={styles.actions}>
-						<button
-							type="button"
-							className={`${styles.actionButton} ${styles.addIntermezzoBtn}`}
-							onClick={handleAddIntermezzo}>
-							+ Intermezzo
-						</button>
-						<button
-							type="button"
-							className={`${styles.actionButton} ${styles.deleteBtn}`}
-							onClick={handleDeleteClick}>
-							Delete
-						</button>
+				<div className={styles.cardBody}>
+					<div className={styles.version}>{intermezzosCount}</div>
+
+					<div className={styles.details}>
+						<div className={styles.text}>
+							<header className={styles.header}>
+								<span className={styles.title}>{piece.title}</span>
+							</header>
+
+							<p className={`${styles.description} ${!piece.description ? styles.noDescription : ""}`}>
+								{piece.description || "Untitled Piece without description."}
+							</p>
+						</div>
+
+						{readOnly ? (
+							<div>Like share etc</div>
+						) : (
+							<div className={styles.actions}>
+								<Button
+									variant="solid"
+									className={`${styles.actionButton} ${styles.addIntermezzoBtn}`}
+									onClick={handleAddIntermezzo}>
+									Add Intermezzo
+								</Button>
+								<Button
+									type="button"
+									className={`${styles.actionButton} ${styles.deleteBtn}`}
+									onClick={handleDeleteClick}>
+									Del
+								</Button>
+							</div>
+						)}
 					</div>
-				)}
-			</div>
+				</div>
+			</Link>
 
 			<div className={styles.confirmDelete}>
 				<p>Delete this Piece?</p>
@@ -110,12 +142,14 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 				{deleteError && <p className={styles.errorText}>Failed to delete piece. Please try again.</p>}
 				<div className={styles.confirmActions}>
 					<Button
+						className={styles.confirmButton}
 						onClick={handleConfirmDelete}
 						disabled={isDeleting}
 						variant="ghost">
 						{isDeleting ? "Deleting..." : "Delete Piece"}
 					</Button>
 					<Button
+						className={styles.cancelButton}
 						variant="solid"
 						onClick={() => setIsConfirmingDelete(false)}>
 						Cancel

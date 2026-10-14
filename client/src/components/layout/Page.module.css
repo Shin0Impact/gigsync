@@ -25,6 +25,7 @@
         font-size: 3rem;
         line-height: 1;
         letter-spacing: 1%;
+        text-box: trim-both ex alphabetic;
     }
 
     .actions {
@@ -37,6 +38,13 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
+
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 
     &[data-type="sub"] {

@@ -1,0 +1,43 @@
+.eventContent {
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 60rem;
+
+    .metaSection {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-sans, sans-serif);
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            background-color: var(--color-yellow);
+            border: 1px solid var(--color-accent);
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .venue {
+            font-size: 0.95rem;
+            color: var(--color-accent);
+            opacity: 0.8;
+        }
+    }
+
+    .description {
+        font-family: var(--font-serif, serif);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--color-accent);
+        margin: 0;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+}

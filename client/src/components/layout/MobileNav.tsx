@@ -20,7 +20,7 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 	};
 
 	const isOrganizer = role === "organizer";
-	const secondaryRoute = isOrganizer ? ROUTES.MY_HAPPENINGS : ROUTES.MY_PIECES;
+	const secondaryRoute = isOrganizer ? ROUTES.MY_EVENTS : ROUTES.MY_PIECES;
 	const secondaryActive = path === resolvePath(secondaryRoute);
 
 	return (
@@ -52,8 +52,8 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 			</button>
 
 			<ButtonLink
-				to={ROUTES.ON_AIR}
-				active={path === ROUTES.ON_AIR}
+				to={ROUTES.AVAILABILITY}
+				active={path === ROUTES.AVAILABILITY}
 				aria-label="On Air"
 				className={styles.navButton}
 				variant="nav">

@@ -15,6 +15,7 @@ import {
 	remove_update_media,
 	remove_work,
 	unlike_work,
+	get_work_composition,
 } from "../services/works.service";
 import { ErrorResponse } from "../types";
 import {
@@ -33,6 +34,7 @@ import {
 	AddWorkCommentResponse,
 	ListWorkCommentsResponse,
 	ToggleWorkLikeResponse,
+	GetWorkCompositionResponse,
 } from "../types/social";
 
 const NOT_FOUND_MESSAGES = ["Work not found", "Work update not found", "Media not found", "Comment not found"];
@@ -318,5 +320,21 @@ export async function delete_comment_handler(req: Request<{ commentId: string }>
 		return res.status(204).send();
 	} catch (error) {
 		return handle_known_error(error, res, "Failed to delete comment");
+	}
+}
+
+export async function get_composition_handler(
+	req: Request<{ workId: string }>,
+	res: Response<GetWorkCompositionResponse | ErrorResponse>,
+) {
+	const workId = parse_id(req.params.workId);
+	if (workId === null) {
+		return res.status(400).json({ error: "Invalid work id" });
+	}
+	try {
+		const composition = await get_work_composition(workId);
+		return res.status(200).json({ composition });
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to load piece composition");
 	}
 }

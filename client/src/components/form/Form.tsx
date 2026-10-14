@@ -1,5 +1,13 @@
-import type { FormHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+	FormHTMLAttributes,
+	InputHTMLAttributes,
+	ReactNode,
+	SelectHTMLAttributes,
+	TextareaHTMLAttributes,
+} from "react";
 import styles from "./Form.module.css";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
 
 interface FormRootProps extends FormHTMLAttributes<HTMLFormElement> {
 	title?: string;
@@ -201,6 +209,26 @@ function ToggleButton({ children, className = "", ...props }: React.ButtonHTMLAt
 	);
 }
 
+interface DatePickerProps {
+	selected?: Date;
+	onSelect?: (date: Date | undefined) => void;
+	className?: string;
+	[key: string]: any; // fallback for any other calendar props
+}
+
+function DatePicker({ selected, onSelect, className = "", ...props }: DatePickerProps) {
+	return (
+		<DayPicker
+			animate
+			mode="single"
+			selected={selected}
+			onSelect={onSelect}
+			className={`${styles.rdp} ${className}`.trim()}
+			{...props}
+		/>
+	);
+}
+
 export const Form = Object.assign(FormRoot, {
 	Header,
 	Field,
@@ -215,4 +243,5 @@ export const Form = Object.assign(FormRoot, {
 	ErrorMessage,
 	Submit,
 	ToggleButton,
+	DatePicker,
 });

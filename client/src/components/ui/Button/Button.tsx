@@ -5,16 +5,26 @@ export type ButtonColor = "default" | "white" | "black" | "cream" | "yellow" | "
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	variant?: ButtonVariant;
+	color?: ButtonColor;
 	active?: boolean;
 	hoverText?: string;
 }
 
-export function Button({ variant = "solid", active = false, hoverText, className = "", children, ...rest }: ButtonProps) {
+export function Button({
+	variant = "solid",
+	color = "default",
+	active = false,
+	hoverText,
+	className = "",
+	children,
+	...rest
+}: ButtonProps) {
 	return (
 		<button
 			className={`${styles.button} ${className}`.trim()}
 			data-variant={variant}
 			data-active={active}
+			data-color={color}
 			{...rest}>
 			{variant === "expandable" && hoverText ? (
 				<>

@@ -12,11 +12,43 @@
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid transparent;
     outline: none;
-
-    text-box: trim-both ex alphabetical;
+    text-box: trim-both cap alphabetic;
 
     background-color: var(--color-accent);
     color: var(--color-primary);
+
+    /* --- ADDED: Global data-color support --- */
+    &[data-color="yellow"] {
+        background-color: var(--color-yellow);
+        color: var(--color-black);
+    }
+
+    &[data-color="blue"] {
+        background-color: var(--color-blue);
+        color: var(--color-white);
+    }
+
+    &[data-color="white"] {
+        background-color: var(--color-white);
+        color: var(--color-black);
+    }
+
+    &[data-color="black"] {
+        background-color: var(--color-black);
+        color: var(--color-white);
+    }
+
+    &[data-color="cream"] {
+        background-color: var(--color-cream, #fdfbf7);
+        color: var(--color-accent);
+    }
+
+    &[data-color="moss"] {
+        background-color: var(--color-moss, #4a5d4e);
+        color: var(--color-white);
+    }
+
+    /* -------------------------------------- */
 
     &[data-variant="solid"] {
         &:hover {
@@ -83,8 +115,7 @@
             background: transparent;
             border: none !important;
             box-shadow: none !important;
-            color: var(--color-yellow, #f3d66d);
-            /* Only change the color! */
+            color: var(--color-yellow);
         }
     }
 

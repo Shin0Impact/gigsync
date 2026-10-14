@@ -1,0 +1,77 @@
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.addIntermezzoBtn {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.timelineSection {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sectionTitle {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.75rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.timelineFeed {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+
+    /* Vertical connector line */
+    &::before {
+        content: "";
+        position: absolute;
+        top: 1rem;
+        bottom: 1rem;
+        left: 1.45rem;
+        width: 2px;
+        background-color: var(--color-accent);
+        opacity: 0.3;
+        z-index: 1;
+    }
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border: 0.125rem dashed var(--color-accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--color-primary);
+}
+
+.emptyText {
+    font-family: var(--font-serif, serif);
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.loading,
+.error {
+    font-family: var(--font-serif, serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-accent);
+}

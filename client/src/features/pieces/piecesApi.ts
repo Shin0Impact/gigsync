@@ -13,6 +13,7 @@ import {
 	AddWorkCommentResponse,
 	ListWorkCommentsResponse,
 	ToggleWorkLikeResponse,
+	GetWorkCompositionResponse,
 } from "@shared/types/social";
 import { api } from "../../shared/api";
 
@@ -226,6 +227,11 @@ export const worksApi = api.injectEndpoints({
 			}),
 			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
 		}),
+
+		getComposition: builder.query<GetWorkCompositionResponse, number | string>({
+			query: (workId) => `/api/works/${workId}/composition`,
+			providesTags: (_result, _error, workId) => [{ type: "Composition", id: workId }],
+		}),
 	}),
 });
 
@@ -245,4 +251,5 @@ export const {
 	useListCommentsQuery,
 	useAddCommentMutation,
 	useDeleteCommentMutation,
+	useGetCompositionQuery,
 } = worksApi;

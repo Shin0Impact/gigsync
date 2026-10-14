@@ -8,9 +8,10 @@ import FloatingActionButton from "./FloatingActionButton";
 import { useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../hooks";
 import { MobileNav } from "./MobileNav";
+import FormEventCreate from "../../features/events/components/FormEventCreate";
+import { FormApplyToEvent } from "../../features/events/components/FormApplyToEvent";
 
 interface SplitViewProps {
-	// role: "creative" | "supporter" | "organizer" | "guest";
 	children: ReactNode;
 	contentDecoration?: boolean;
 	className?: string;
@@ -34,9 +35,11 @@ const defaultDecoration = (
 export function SplitView({ children, contentDecoration = false, className = "" }: SplitViewProps) {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const isDrawerOpen = searchParams.get("drawer") === "open";
+	const formParam = searchParams.get("form") || "default";
+	const eventIdParam = searchParams.get("eventId");
 	const isMobile = useMediaQuery("(max-width: 768px)");
 
-	const { data } = useMeQuery();
+	const { data, isLoading } = useMeQuery();
 	const role = data?.user?.role ?? "guest";
 	const username = data?.user?.userName;
 
@@ -45,6 +48,8 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 			const newParams = new URLSearchParams(prev);
 			if (isDrawerOpen) {
 				newParams.delete("drawer");
+				newParams.delete("form");
+				newParams.delete("eventId");
 			} else {
 				newParams.set("drawer", "open");
 			}
@@ -52,8 +57,21 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 		});
 	};
 
-	const renderDrawerContent =
-		role === "artist" ? <FormIntermezzoCreate /> : role === "organizer" ? <div>Craete Happening</div> : <></>;
+	let drawerContent = null;
+	if (!isLoading) {
+		if (formParam === "apply" && eventIdParam) {
+			drawerContent = (
+				<FormApplyToEvent
+					eventId={eventIdParam}
+					onClose={handleToggleDrawer}
+				/>
+			);
+		} else if (role === "artist") {
+			drawerContent = <FormIntermezzoCreate />;
+		} else if (role === "organizer") {
+			drawerContent = <FormEventCreate />;
+		}
+	}
 
 	const createHoverText = role === "artist" ? "New Intermezzo" : role === "organizer" ? "New Happening" : "Create";
 
@@ -80,7 +98,7 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 
 			<aside className={styles.drawer}>
 				<div className={styles.drawerDecoration}>{defaultDecoration}</div>
-				<div className={styles.drawerInner}>{renderDrawerContent}</div>
+				<div className={styles.drawerInner}>{drawerContent}</div>
 			</aside>
 
 			{(role === "artist" || role === "organizer") && (
