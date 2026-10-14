@@ -122,10 +122,10 @@ through its own dashboard.
    choose **New > Blueprint** and point it at this repo. Render reads
    [`render.yaml`](./render.yaml) at the repo root and creates the
    `gigsync-api` web service automatically (root dir `server`, build
-   `npm install && npm run build`, start `npm start`, health check `/health`).
+   `npm ci --include=dev && npm run build`, start `npm start`, health check `/health`).
 2. Render will prompt for the env vars marked `sync: false` in `render.yaml`
-   (`DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
-   `CLIENT_ORIGIN`, the `R2_*` values) - fill these in from `server/.env.example`
+   (`DATABASE_URL`,
+   `CLIENT_ORIGIN`, the `R2_*` values); the two JWT secrets are generated automatically - fill these in from `server/.env.example`
    with real values, never commit them.
 3. `CLIENT_ORIGIN` should be the Cloudflare Pages URL from the section below
    (update it once that URL exists) so CORS + cookies work in production.
