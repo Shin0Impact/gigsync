@@ -8,9 +8,9 @@ import FloatingActionButton from "./FloatingActionButton";
 import { useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../hooks";
 import { MobileNav } from "./MobileNav";
+import FormEventCreate from "../../features/events/components/FormEventCreate";
 
 interface SplitViewProps {
-	// role: "creative" | "supporter" | "organizer" | "guest";
 	children: ReactNode;
 	contentDecoration?: boolean;
 	className?: string;
@@ -36,7 +36,7 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 	const isDrawerOpen = searchParams.get("drawer") === "open";
 	const isMobile = useMediaQuery("(max-width: 768px)");
 
-	const { data } = useMeQuery();
+	const { data, isLoading } = useMeQuery();
 	const role = data?.user?.role ?? "guest";
 	const username = data?.user?.userName;
 
@@ -51,9 +51,13 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 			return newParams;
 		});
 	};
-
-	const renderDrawerContent =
-		role === "artist" ? <FormIntermezzoCreate /> : role === "organizer" ? <div>Craete Happening</div> : <></>;
+	const renderDrawerContent = isLoading ? null : role === "artist" ? (
+		<FormIntermezzoCreate />
+	) : role === "organizer" ? (
+		<FormEventCreate />
+	) : (
+		<></>
+	);
 
 	const createHoverText = role === "artist" ? "New Intermezzo" : role === "organizer" ? "New Happening" : "Create";
 

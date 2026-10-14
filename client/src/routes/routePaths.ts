@@ -25,12 +25,12 @@ export const ROUTES = {
 	// ======== SELF =========
 
 	MY_PIECES: "/pieces",
-	MY_HAPPENINGS: "/happenings",
+	MY_EVENTS: "/events",
 	MY_APPLICATIONS: "/applications",
 
 	// ======== ON AIR =========
 
-	ON_AIR: "/on-air",
+	AVAILABILITY: "/availability",
 
 	// ======== PROFILE ========
 
@@ -41,8 +41,8 @@ export const ROUTES = {
 	USER_PIECES_PATTERN: "/:username/pieces",
 	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
 	USER_PORTFOLIO_PATTERN: "/:username/portfolio",
-	USER_HAPPENINGS: (username: string) => `/${username}/happenings`,
-	USER_HAPPENINGS_PATTERN: "/:username/happenings",
+	USER_EVENTS: (username: string) => `/${username}/events`,
+	USER_EVENTS_PATTERN: "/:username/events",
 
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
@@ -50,8 +50,11 @@ export const ROUTES = {
 	SINGLE_INTERMEZZO_PATTERN: "/pieces/:id/:version",
 	SINGLE_INTERMEZZO: (id: string | number, version: string | number) => `/pieces/${id}/${version}`,
 
+	SINGLE_EVENT_PATTERN: "/events/:id",
+	SINGLE_EVENT: (id: string | number) => `/events/${id}`,
+
 	CREATE_PIECE: "/pieces/new",
 	CREATE_INTERMEZZO: "/intermezzi/new",
 	CREATE_PORTFOLIO_SECTION: "/portfolio/new",
-	CREATE_HAPPENING: "happenings/new",
+	CREATE_EVENT: "events/new",
 } as const;

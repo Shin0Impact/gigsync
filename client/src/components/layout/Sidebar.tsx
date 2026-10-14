@@ -18,18 +18,14 @@ const TOP_NAV_ITEMS: NavItem[] = [
 ];
 
 const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
-	creative: [
-		{ to: ROUTES.ON_AIR, label: "On Air" },
-		{ to: ROUTES.MY_PIECES, label: "Pieces" },
-	],
 	artist: [
-		{ to: ROUTES.ON_AIR, label: "On Air" },
 		{ to: ROUTES.MY_PIECES, label: "Pieces" },
+		{ to: ROUTES.AVAILABILITY, label: "Availabilty" },
 		{ to: ROUTES.MY_APPLICATIONS, label: "Applications" },
 	],
 	organizer: [
-		{ to: ROUTES.ON_AIR, label: "On Air" },
-		{ to: ROUTES.MY_HAPPENINGS, label: "Happenings" },
+		{ to: ROUTES.SEARCH, label: "Search" },
+		{ to: ROUTES.MY_EVENTS, label: "Events" },
 	],
 };
 

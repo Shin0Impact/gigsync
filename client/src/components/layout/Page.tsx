@@ -21,13 +21,14 @@ function PageRoot({ type = "main", children, className = "" }: PageRootProps) {
 interface HeaderProps {
 	title: string;
 	actions?: ReactNode;
+	mode?: "profile" | "button";
 }
 
-function Header({ title }: HeaderProps) {
+function Header({ title, actions, mode = "profile" }: HeaderProps) {
 	return (
 		<header className={styles.header}>
 			<h1 className={styles.title}>{title}</h1>
-			<ProfilePicture variant="page" />
+			{mode === "profile" ? <ProfilePicture variant="page" /> : actions}
 		</header>
 	);
 }

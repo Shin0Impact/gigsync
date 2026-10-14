@@ -24,7 +24,7 @@ function FloatingActionButton({
 			aria-label={currentHoverText}
 			data-hover-text={currentHoverText}>
 			<PlusIcon className={`${styles.icon} ${isOpen ? styles.isOpen : ""}`} />
-			<span className={styles.label}>{isOpen ? "Close" : "Create"}</span>
+			<span className={styles.label}>{isOpen ? closeHoverText : createHoverText}</span>
 		</button>
 	);
 }

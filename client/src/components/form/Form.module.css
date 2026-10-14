@@ -247,6 +247,24 @@
                     cursor: not-allowed;
                 }
             }
+
+            .rdp {
+
+                --rdp-accent-color: var(--color-accent);
+                --rdp-accent-background-color: var(--color-yellow);
+                --rdp-today-color: var(--color-accent);
+                --rdp-day_button-border: 0.125rem solid transparent;
+                --rdp-selected-border: 0.125rem solid var(--color-accent);
+                background-color: var(--color-primary);
+                border: 0.125rem solid var(--color-accent);
+                padding: 1rem;
+                font-family: var(--font-sans, sans-serif);
+                color: var(--color-accent);
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow-x: auto;
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { MouseEvent } from "react";
 import type { IWork as Piece } from "@shared/types/social";
 import { useListIntermezzosQuery, useListVignettesQuery, useDeletePieceMutation } from "../piecesApi";

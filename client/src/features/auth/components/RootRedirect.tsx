@@ -22,7 +22,7 @@ export function RootRedirect() {
 		} else if (user.role === "organizer") {
 			return (
 				<Navigate
-					to={ROUTES.MY_HAPPENINGS}
+					to={ROUTES.MY_EVENTS}
 					replace
 				/>
 			);

@@ -51,7 +51,7 @@
 
     &.isOpen {
         .icon {
-            transform: rotate(90deg);
+            transform: rotate(135deg);
         }
     }
 }

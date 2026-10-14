@@ -1,24 +1,17 @@
+import { Link } from "react-router-dom";
 import type { MouseEvent } from "react";
 import type { WorkFeedItem } from "@shared/types/social";
 import { useLikeWorkMutation, useUnlikeWorkMutation } from "../../pieces/piecesApi";
-// import { usePostQuickView } from "../../pieces/PostQuickViewProvider";
 import { ROUTES } from "../../../routes/routePaths";
 import { getMediaUrl } from "../../../shared/mediaUrl";
 import ProfilePicture from "../../../components/user/ProfilePicture";
-import { Link } from "react-router-dom";
 import styles from "./FeedPostCard.module.css";
 
 interface FeedPostCardProps {
 	work: WorkFeedItem;
 }
 
-// A work as it appears in the Explore / Following feeds - unlike PieceCard
-// (My Pieces), the author, cover media and engagement counts all come
-// pre-computed from listWorksFeed, so this card never fires its own
-// per-card queries. Clicking it opens the same PostQuickView popup as
-// everywhere else (see PieceCard.tsx for the original pattern).
 export function FeedPostCard({ work }: FeedPostCardProps) {
-	// const { openPost } = usePostQuickView();
 	const [likeWork] = useLikeWorkMutation();
 	const [unlikeWork] = useUnlikeWorkMutation();
 
@@ -31,6 +24,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 		: null;
 
 	const handleToggleLike = (e: MouseEvent) => {
+		e.preventDefault();
 		e.stopPropagation();
 		if (work.likedByMe) {
 			unlikeWork(work.id);
@@ -44,76 +38,85 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 	};
 
 	return (
-		<div
-			className={styles.card}
-			role="button"
-			tabIndex={0}
-			// onClick={() => openPost(work.id)}
-			// onKeyDown={(e) => {
-			// 	if (e.key === "Enter" || e.key === " ") {
-			// 		e.preventDefault();
-			// 		openPost(work.id);
-			// 	}
-			// }}
-			aria-label={`Open piece #${work.id} by ${work.author.userName}`}>
-			<header className={styles.header}>
-				<Link
-					to={ROUTES.PROFILE(work.author.userName)}
-					className={styles.author}
-					onClick={handleAuthorClick}>
-					<ProfilePicture
-						avatarUrl={work.author.avatarUrl}
-						userName={work.author.userName}
-						variant="nav"
-					/>
-					<div className={styles.authorMeta}>
-						<span className={styles.authorName}>{work.author.userName}</span>
-						{formattedDate && <time className={styles.date}>{formattedDate}</time>}
-					</div>
-				</Link>
-			</header>
-
-			{work.coverMedia && (
-				<div className={styles.cover}>
-					{work.coverMedia.mediaType === "video" ? (
-						<video
-							src={getMediaUrl(work.coverMedia.r2Key)}
-							className={styles.coverMedia}
-							muted
-							loop
-							playsInline
-							preload="metadata"
-						/>
-					) : work.coverMedia.mediaType === "audio" ? (
-						<div className={styles.coverAudio}>♪</div>
-					) : work.coverMedia.mediaType === "image" ? (
-						<img
-							src={getMediaUrl(work.coverMedia.r2Key)}
-							alt=""
-							className={styles.coverMedia}
-							loading="lazy"
-						/>
+		<div className={styles.cardWrapper}>
+			<Link
+				className={styles.card}
+				role="button"
+				to={ROUTES.SINGLE_PIECE(work.id)}
+				style={{ textDecoration: "none" }}
+				aria-label={`Open piece #${work.id} by ${work.author.userName}`}>
+				{/* 1x1 Cover Vignette on the Left */}
+				<div className={styles.cardVignette}>
+					{work.coverMedia ? (
+						work.coverMedia.mediaType === "video" ? (
+							<video
+								src={getMediaUrl(work.coverMedia.r2Key)}
+								className={styles.coverMedia}
+								muted
+								loop
+								playsInline
+								preload="metadata"
+							/>
+						) : work.coverMedia.mediaType === "audio" ? (
+							<div className={styles.coverAudio}>♪</div>
+						) : (
+							<img
+								src={getMediaUrl(work.coverMedia.r2Key)}
+								alt=""
+								className={styles.coverMedia}
+								loading="lazy"
+							/>
+						)
 					) : (
-						<div className={styles.coverFallback}>Attached file</div>
+						<div className={styles.coverFallback} />
 					)}
 				</div>
-			)}
 
-			<p className={`${styles.description} ${!work.description ? styles.noDescription : ""}`}>
-				{work.description || "Untitled Piece without description."}
-			</p>
+				<div className={styles.cardBody}>
+					{/* Like count badge in top-right */}
+					<div className={styles.version}>{work.likeCount} ♥</div>
 
-			<div className={styles.actions}>
-				<button
-					type="button"
-					className={styles.likeButton}
-					data-liked={work.likedByMe}
-					onClick={handleToggleLike}
-					aria-label={work.likedByMe ? "Unlike" : "Like"}>
-					{work.likedByMe ? "♥" : "♡"} {work.likeCount}
-				</button>
-				<span className={styles.commentCount}>💬 {work.commentCount}</span>
-			</div>
+					<div className={styles.details}>
+						<div className={styles.text}>
+							<header className={styles.header}>
+								<span className={styles.title}>{work.title || `Piece #${work.id}`}</span>
+							</header>
+
+							{/* Author Profile Link with PFP */}
+							<Link
+								to={ROUTES.PROFILE(work.author.userName)}
+								className={styles.authorRow}
+								onClick={handleAuthorClick}>
+								<ProfilePicture
+									avatarUrl={work.author.avatarUrl}
+									userName={work.author.userName}
+									variant="nav"
+								/>
+								<span className={styles.authorName}>{work.author.userName}</span>
+								{formattedDate && <span className={styles.dot}>•</span>}
+								{formattedDate && <time className={styles.date}>{formattedDate}</time>}
+							</Link>
+
+							<p className={`${styles.description} ${!work.description ? styles.noDescription : ""}`}>
+								{work.description || "Untitled Piece without description."}
+							</p>
+						</div>
+
+						{/* Action Bar */}
+						<div className={styles.actions}>
+							<button
+								type="button"
+								className={`${styles.actionButton} ${styles.likeBtn}`}
+								data-liked={work.likedByMe}
+								onClick={handleToggleLike}
+								aria-label={work.likedByMe ? "Unlike" : "Like"}>
+								{work.likedByMe ? "♥ Liked" : "♡ Like"}
+							</button>
+							<span className={styles.commentCount}>💬 {work.commentCount} comments</span>
+						</div>
+					</div>
+				</div>
+			</Link>
 		</div>
 	);
 }

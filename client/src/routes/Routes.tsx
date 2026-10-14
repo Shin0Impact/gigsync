@@ -11,15 +11,18 @@ import { FormIntermezzoCreate, FormPieceCreate } from "../features/pieces/compon
 import { PieceDetails } from "../pages/creative/PieceDetails";
 import { FormAddToPortfolio } from "../features/portfolio/components/FormAddToPortfolio";
 import { Events } from "../pages/creative/Events";
-import { ArtistSearchPage } from "../pages/ArtistSearchPage";
-import { ExplorePiecesPage } from "../features/explore/ExplorePiecesPage";
-import { FollowingPage } from "../features/explore/FollowingPage";
 import ProfilePage from "../pages/ProfilePage";
 import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import { MyPiecesPage } from "../pages/MyPiecesPage";
 import MyApplicationsPage from "../pages/MyApplicationsPage";
+import { DiscoveryPage } from "../pages/DiscoveryPage";
+import { TimelinePage } from "../pages/TimelinePage";
+import { MyEventsPage } from "../pages/MyEvents";
+import SearchPage from "../pages/SearchPage";
+import SingleEventPage from "../pages/subpages/SingleEventPage";
+import SinglePiecePage from "../pages/subpages/SinglePiecePage";
 
 export function AppRoutes() {
 	return (
@@ -53,13 +56,37 @@ export function AppRoutes() {
 			<Route element={<RoleGuard allowedRoles={["artist", "fan", "organizer"]} />}>
 				<Route element={<Layout type="page" />}>
 					<Route
-						path={ROUTES.SETTINGS}
-						element={<SettingsPage />}
+						path={ROUTES.TIMELINE}
+						element={<TimelinePage />}
+					/>
+					<Route
+						path={ROUTES.DISCOVERY}
+						element={<DiscoveryPage />}
+					/>
+					<Route
+						path={ROUTES.DISCOVERY_HAPPENINGS}
+						element={<Events />}
+					/>
+					<Route
+						path={ROUTES.NOTIFICATIONS}
+						element={<NotificationsPage />}
+					/>
+					<Route
+						path={ROUTES.MESSAGES}
+						element={<MessagesPage />}
 					/>
 
 					<Route
+						path={ROUTES.SETTINGS}
+						element={<SettingsPage />}
+					/>
+					<Route
+						path={ROUTES.SINGLE_EVENT_PATTERN}
+						element={<SingleEventPage />}
+					/>
+					<Route
 						path={ROUTES.SINGLE_PIECE_PATTERN}
-						element={<PieceDetails />}
+						element={<SinglePiecePage />}
 					/>
 				</Route>
 			</Route>
@@ -75,20 +102,8 @@ export function AppRoutes() {
 						element={<MyApplicationsPage />}
 					/>
 					<Route
-						path={ROUTES.DISCOVERY_HAPPENINGS}
-						element={<Events />}
-					/>
-					<Route
-						path={ROUTES.ON_AIR}
-						element={<ArtistSearchPage />}
-					/>
-					<Route
-						path={ROUTES.DISCOVERY}
-						element={<ExplorePiecesPage />}
-					/>
-					<Route
-						path={ROUTES.TIMELINE}
-						element={<FollowingPage />}
+						path={ROUTES.AVAILABILITY}
+						element={<div>Set availability</div>}
 					/>
 					<Route
 						path={ROUTES.NOTIFICATIONS}
@@ -122,6 +137,21 @@ export function AppRoutes() {
 						element={<FormAddToPortfolio />}
 					/>
 				</Route>
+			</Route>
+
+			<Route element={<RoleGuard allowedRoles={["organizer"]} />}>
+				<Route element={<Layout type="page" />}>
+					<Route
+						path={ROUTES.MY_EVENTS}
+						element={<MyEventsPage />}
+					/>
+
+					<Route
+						path={ROUTES.SEARCH}
+						element={<SearchPage />}
+					/>
+				</Route>
+				<Route element={<Layout type="form" />}></Route>
 			</Route>
 
 			<Route
