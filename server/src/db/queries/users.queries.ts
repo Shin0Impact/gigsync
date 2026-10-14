@@ -83,3 +83,47 @@ export async function create_user(
 
   return result.rows[0];
 }
+
+// --- Account recovery (change-password / reset-password / verify-email) ---
+
+export async function find_user_by_id(user_id: string): Promise<DbUser | null> {
+  const result = await pool.query<DbUser>(
+    `
+      SELECT
+        id,
+        email,
+        password_hash,
+        created_at,
+        updated_at
+      FROM users
+      WHERE id = $1
+      LIMIT 1
+    `,
+    [user_id],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function update_user_password(
+  user_id: string,
+  password_hash: string,
+): Promise<void> {
+  await pool.query(
+    `UPDATE users
+        SET password_hash = $2,
+            updated_at = now()
+      WHERE id = $1`,
+    [user_id, password_hash],
+  );
+}
+
+export async function mark_user_email_verified(user_id: string): Promise<void> {
+  await pool.query(
+    `UPDATE users
+        SET email_verified = true,
+            updated_at = now()
+      WHERE id = $1`,
+    [user_id],
+  );
+}

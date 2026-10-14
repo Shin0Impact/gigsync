@@ -1,0 +1,382 @@
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.profileHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding-bottom: 2rem;
+    border-bottom: 0.125rem solid var(--color-accent);
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 220px;
+}
+
+.nameRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.name {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 2rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.verifiedBadge {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-primary);
+    background-color: var(--color-accent);
+    padding: 0.3rem 0.6rem;
+}
+
+.userName {
+    font-family: var(--font-serif, serif);
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--color-accent);
+    margin: 0;
+    opacity: 0.75;
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.artistType {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-accent);
+    border: 0.125rem solid var(--color-accent);
+    padding: 0.25rem 0.6rem;
+}
+
+.followersCount {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    color: var(--color-accent);
+}
+
+.socialLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.socialLink {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    border-bottom: 0.0625rem solid var(--color-accent);
+    opacity: 0.85;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.followButton {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background-color: var(--color-yellow);
+        color: var(--color-accent);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.followButton[data-following="true"] {
+    background-color: transparent;
+    color: var(--color-accent);
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.actionButtons .followButton {
+    margin-top: 0;
+}
+
+.messageButton {
+    padding: 0.7rem 1.5rem;
+    background-color: transparent;
+    color: var(--color-accent);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background-color: var(--color-yellow);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.avatar {
+    width: 4.5rem !important;
+    height: 4.5rem !important;
+    font-size: 1.4rem !important;
+}
+
+.tabsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 0.125rem solid var(--color-accent);
+}
+
+.tabButton {
+    padding: 0.75rem 1.25rem;
+    background-color: transparent;
+    border: none;
+    border-bottom: 0.1875rem solid transparent;
+    margin-bottom: -0.125rem;
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+        opacity: 0.85;
+    }
+}
+
+.tabButton[data-active="true"] {
+    opacity: 1;
+    border-bottom-color: var(--color-role);
+}
+
+.tabPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem 2rem;
+    border: 0.125rem dashed var(--color-accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.createButton {
+    padding: 0.875rem 1.5rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-yellow);
+        color: var(--color-accent);
+    }
+}
+
+.emptyText {
+    font-family: var(--font-serif, serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.75;
+    margin: 0;
+}
+
+.portfolioActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.portfolioGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 1.5rem;
+}
+
+.portfolioCard {
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.portfolioCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.portfolioBadge {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-accent);
+    opacity: 0.6;
+}
+
+.unpinButton {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-accent);
+    opacity: 0.5;
+    padding: 0 0.25rem;
+
+    &:hover {
+        opacity: 1;
+        color: #d32f2f;
+    }
+
+    &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+}
+
+.portfolioCardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.portfolioCardTitle {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.1rem;
+    color: var(--color-accent);
+    margin: 0;
+}
+
+.portfolioCardText {
+    font-family: var(--font-serif, serif);
+    font-size: 0.95rem;
+    color: var(--color-accent);
+    opacity: 0.85;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.portfolioCardMeta {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    opacity: 0.6;
+}
+
+.loading,
+.error {
+    font-family: var(--font-serif, serif);
+    font-size: 1.2rem;
+    font-style: italic;
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-accent);
+}
+
+@media (max-width: 36rem) {
+    .container {
+        padding: 1.5rem 1rem;
+        gap: 1.75rem;
+    }
+
+    .profileHeader {
+        gap: 1.25rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .name {
+        font-size: 1.5rem;
+    }
+
+    .tabButton {
+        flex: 1;
+        padding: 0.65rem 0.5rem;
+        font-size: 1rem;
+    }
+
+    .portfolioGrid {
+        grid-template-columns: 1fr;
+    }
+}

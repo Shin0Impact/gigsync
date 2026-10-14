@@ -39,3 +39,16 @@ export const loginRateLimiter = rateLimit({
   legacyHeaders: false,
   handler: tooManyRequestsHandler,
 });
+
+// Password-reset requests and verification-resends both trigger token
+// creation + an email send - exactly the endpoints a script would hammer
+// to flood someone's inbox or fill the tokens table. Same window/cap as
+// login; shared instance between the two routes is fine here (they're the
+// same "trigger an email" operation).
+export const passwordResetRateLimiter = rateLimit({
+  windowMs: WINDOW_MS,
+  max: MAX_REQUESTS,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: tooManyRequestsHandler,
+});

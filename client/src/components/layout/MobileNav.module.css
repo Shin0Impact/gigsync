@@ -1,0 +1,48 @@
+.mobileNav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 4rem;
+    background-color: var(--color-accent);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+    z-index: 1500;
+
+    .navButton,
+    .fabButton {
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--color-primary);
+        transition: color var(--transition-base);
+
+        &[data-active="true"] {
+            color: var(--color-role);
+        }
+
+        .icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            display: block;
+        }
+
+        .profileSquare {
+            width: 1.75rem;
+            height: 1.75rem;
+            border: 0.125rem solid var(--color-primary) inset;
+            background-color: var(--color-primary);
+        }
+    }
+
+    .fabButton {
+        color: var(--color-role);
+    }
+}

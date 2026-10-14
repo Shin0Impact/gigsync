@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/routePaths";
 import styles from "./PieceDetails.module.css";
-import { useListIntermezzosQuery } from "../../features/pieces";
+import { useGetCompositionQuery, useListIntermezzosQuery } from "../../features/pieces";
 import { IntermezzoCard } from "../../features/pieces/components/IntermezzoCard";
+import { Composition } from "../../features/pieces/components/Composition/Composition";
 
 export function PieceDetails() {
 	const { id: pieceId } = useParams<{ id: string }>();
@@ -19,6 +20,10 @@ export function PieceDetails() {
 	});
 
 	const intermezzos = intermezzosData?.updates ?? [];
+
+	const { data, isLoading: isLoadingComposition } = useGetCompositionQuery(`${pieceId}`);
+
+	if (!isLoading) console.log(data?.composition);
 
 	const handleAddIntermezzo = () => {
 		if (pieceId) {
@@ -53,6 +58,8 @@ export function PieceDetails() {
 					<h1 className={styles.title}>Piece #{pieceId}</h1>
 				</div>
 			</header>
+
+			{isLoadingComposition ? <div>Loading Composition...</div> : <Composition items={data?.composition ?? []} />}
 
 			<section className={styles.timelineSection}>
 				<h2 className={styles.sectionTitle}>Intermezzi ({intermezzos.length})</h2>

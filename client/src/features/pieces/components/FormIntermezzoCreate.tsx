@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMeQuery } from "../../auth/authApi";
-import { useListPiecesQuery, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
+import { useListPiecesQuery, useCreatePieceMutation, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
 import { uploadFileToR2 } from "../../../shared/uploadClient";
 import { Form } from "@components";
-
-// const mediaTypeOptions = [
-// 	{ label: "Image", value: "image" },
-// 	{ label: "Video", value: "video" },
-// 	{ label: "Audio", value: "audio" },
-// ] as const;
+import { IWork } from "@shared/types/social";
 
 export function FormIntermezzoCreate() {
 	const navigate = useNavigate();
@@ -20,29 +15,25 @@ export function FormIntermezzoCreate() {
 
 	const initialPieceId = searchParams.get("pieceId") ? Number(searchParams.get("pieceId")) : undefined;
 
+	const { data: userPiecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
+		skip: !userId,
+	});
+
+	const hasPieces = Boolean(userPiecesData?.works && userPiecesData.works.length > 0);
+
+	// Default to empty/unselected unless a query param is provided
 	const [selectedPieceId, setSelectedPieceId] = useState<number | undefined>(initialPieceId);
+	const [isCreatingNewPiece, setIsCreatingNewPiece] = useState(false);
+	const [newPieceTitle, setNewPieceTitle] = useState("");
+
 	const [description, setDescription] = useState("");
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [mediaType, setMediaType] = useState<"image" | "video" | "audio">("image");
 	const [isUploadingFile, setIsUploadingFile] = useState(false);
 
-	const { data: userPiecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
-		skip: !userId,
-	});
-
-	// Auto-select the first (most recently updated) piece if none is specified in query params
-	useEffect(() => {
-		if (!initialPieceId && !selectedPieceId && userPiecesData?.works?.length) {
-			setSelectedPieceId(userPiecesData.works[0].id);
-		}
-	}, [initialPieceId, selectedPieceId, userPiecesData]);
-
+	const [createPiece, { isLoading: isCreatingPiece }] = useCreatePieceMutation();
 	const [addIntermezzo, { isLoading: isAddingIntermezzo, error: intermezzoError }] = useAddIntermezzoMutation();
 	const [addVignette, { isLoading: isAddingVignette }] = useAddVignetteMutation();
-
-	const handleClose = () => {
-		navigate(-1);
-	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files[0]) {
@@ -55,14 +46,44 @@ export function FormIntermezzoCreate() {
 		}
 	};
 
+	const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const val = e.target.value;
+		if (val === "NEW") {
+			setIsCreatingNewPiece(true);
+			setSelectedPieceId(undefined);
+		} else {
+			setIsCreatingNewPiece(false);
+			setSelectedPieceId(val ? Number(val) : undefined);
+		}
+	};
+
+	const handleSwitchToExisting = () => {
+		setIsCreatingNewPiece(false);
+		setNewPieceTitle("");
+		setSelectedPieceId(undefined);
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!selectedPieceId) return;
+		if (!isCreatingNewPiece && !selectedPieceId) return;
+		if (isCreatingNewPiece && !newPieceTitle.trim()) return;
 
 		try {
+			let targetPieceId = selectedPieceId;
+
+			if (isCreatingNewPiece) {
+				const pieceResponse = await createPiece({
+					title: newPieceTitle.trim(),
+					description: null,
+				}).unwrap();
+				targetPieceId = pieceResponse.work.id;
+			}
+
+			if (!targetPieceId) return;
+
 			const intermezzoResponse = await addIntermezzo({
-				pieceId: selectedPieceId,
+				pieceId: targetPieceId,
 				body: {
 					description: description.trim() || undefined,
 				},
@@ -73,7 +94,6 @@ export function FormIntermezzoCreate() {
 			if (selectedFile && createdIntermezzoId) {
 				try {
 					setIsUploadingFile(true);
-
 					const { objectKey } = await uploadFileToR2(selectedFile);
 
 					await addVignette({
@@ -95,48 +115,78 @@ export function FormIntermezzoCreate() {
 
 			navigate(-1);
 		} catch (err) {
-			console.error("Failed to create intermezzo:", err);
+			console.error("Failed to create intermezzo or piece:", err);
 		}
 	};
 
-	const isLoading = isLoadingMe || isLoadingPieces || isAddingIntermezzo || isAddingVignette || isUploadingFile;
+	const isLoading =
+		isLoadingMe || isLoadingPieces || isCreatingPiece || isAddingIntermezzo || isAddingVignette || isUploadingFile;
 
 	return (
 		<Form
 			title="New Intermezzo"
 			onSubmit={handleSubmit}
-			header={
-				<Form.Header
-					right={
-						<Form.ToggleButton
-							onClick={handleClose}
-							disabled={isLoading}>
-							Cancel
-						</Form.ToggleButton>
-					}
-				/>
-			}>
+			isDrawer={true}>
 			{intermezzoError && (
 				<Form.ErrorMessage>Failed to create intermezzo. Please check your inputs and try again.</Form.ErrorMessage>
 			)}
 
 			<Form.Field>
-				<Form.Label htmlFor="pieceId">Select Piece</Form.Label>
-				<Form.Select
-					id="pieceId"
-					value={selectedPieceId ?? ""}
-					onChange={(e) => setSelectedPieceId(Number(e.target.value))}
-					required
-					disabled={isLoading || Boolean(initialPieceId)}>
-					{isLoadingPieces && <option value="">Loading your Pieces...</option>}
-					{userPiecesData?.works?.map((piece) => (
-						<option
-							key={piece.id}
-							value={piece.id}>
-							{piece.description ? piece.description.slice(0, 40) : `Piece #${piece.id}`}
-						</option>
-					))}
-				</Form.Select>
+				<div
+					style={{
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+						marginBottom: "0.25rem",
+					}}>
+					<Form.Label htmlFor="piece">Piece</Form.Label>
+					{isCreatingNewPiece && !initialPieceId && hasPieces && (
+						<button
+							type="button"
+							onClick={handleSwitchToExisting}
+							style={{
+								background: "none",
+								border: "none",
+								cursor: "pointer",
+								color: "var(--color-accent)",
+								fontSize: "0.8rem",
+								textDecoration: "underline",
+								padding: 0,
+							}}>
+							← Choose existing piece
+						</button>
+					)}
+				</div>
+
+				{isCreatingNewPiece ? (
+					<Form.Input
+						id="newPieceTitle"
+						type="text"
+						value={newPieceTitle}
+						onChange={(e) => setNewPieceTitle(e.target.value)}
+						placeholder="Type new piece name..."
+						disabled={isLoading}
+						autoFocus
+						required
+					/>
+				) : (
+					<Form.Select
+						id="pieceId"
+						value={selectedPieceId ?? ""}
+						onChange={handleSelectChange}
+						required
+						disabled={isLoading || Boolean(initialPieceId)}>
+						<option value="">{isLoadingPieces ? "Loading your Pieces..." : "-- Select a Piece --"}</option>
+						<option value="NEW">+ Create New Piece</option>
+						{userPiecesData?.works?.map((piece: IWork) => (
+							<option
+								key={piece.id}
+								value={piece.id}>
+								{piece.title}
+							</option>
+						))}
+					</Form.Select>
+				)}
 			</Form.Field>
 
 			<Form.Field>
@@ -162,18 +212,14 @@ export function FormIntermezzoCreate() {
 				/>
 			</Form.Field>
 
-			{/* <Form.Field>
-				<Form.Label>Media Type</Form.Label>
-				<Form.OptionGroup
-					options={mediaTypeOptions}
-					value={mediaType}
-					onChange={(val) => setMediaType(val)}
-				/>
-			</Form.Field> */}
-
-			<Form.Submit disabled={isLoading || !selectedPieceId}>
+			<Form.Submit
+				disabled={
+					isLoading || (!isCreatingNewPiece && !selectedPieceId) || (isCreatingNewPiece && !newPieceTitle.trim())
+				}>
 				{isLoading ? "Publishing..." : "Post Intermezzo"}
 			</Form.Submit>
 		</Form>
 	);
 }
+
+export default FormIntermezzoCreate;

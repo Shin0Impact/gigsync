@@ -122,10 +122,10 @@ through its own dashboard.
    choose **New > Blueprint** and point it at this repo. Render reads
    [`render.yaml`](./render.yaml) at the repo root and creates the
    `gigsync-api` web service automatically (root dir `server`, build
-   `npm install && npm run build`, start `npm start`, health check `/health`).
+   `npm ci --include=dev && npm run build`, start `npm start`, health check `/health`).
 2. Render will prompt for the env vars marked `sync: false` in `render.yaml`
-   (`DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
-   `CLIENT_ORIGIN`, the `R2_*` values) - fill these in from `server/.env.example`
+   (`DATABASE_URL`,
+   `CLIENT_ORIGIN`, the `R2_*` values); the two JWT secrets are generated automatically - fill these in from `server/.env.example`
    with real values, never commit them.
 3. `CLIENT_ORIGIN` should be the Cloudflare Pages URL from the section below
    (update it once that URL exists) so CORS + cookies work in production.
@@ -155,13 +155,6 @@ Cloudflare then builds and deploys automatically on every push to `main`.
 (e.g. `/login`, `/events/:id`) don't 404 on refresh. The deploy command is
 `npx wrangler deploy`; don't add a `public/_redirects` catch-all, Cloudflare
 rejects it as an infinite loop.
-
-**GitHub Actions alternative:** [`.github/workflows/deploy-frontend.yml`](./.github/workflows/deploy-frontend.yml)
-does the same build + deploy from CI instead, if you'd rather see deploy logs
-in GitHub. It needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` added
-as repo secrets first (Settings > Secrets and variables > Actions) - until
-those are set this workflow just fails harmlessly, it isn't a required CI
-check. Use one approach or the other, not both, to avoid double deploys.
 
 ### Media storage (Cloudflare R2)
 

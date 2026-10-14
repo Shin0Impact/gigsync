@@ -1,15 +1,26 @@
-import type { FormHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+	FormHTMLAttributes,
+	InputHTMLAttributes,
+	ReactNode,
+	SelectHTMLAttributes,
+	TextareaHTMLAttributes,
+} from "react";
 import styles from "./Form.module.css";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
 
 interface FormRootProps extends FormHTMLAttributes<HTMLFormElement> {
 	title?: string;
 	header?: ReactNode;
+	isDrawer?: boolean;
 	children: ReactNode;
 }
 
-function FormRoot({ title, header, children, className = "", ...props }: FormRootProps) {
+function FormRoot({ title, header, isDrawer = false, children, className = "", ...props }: FormRootProps) {
 	return (
-		<div className={styles.formWrapper}>
+		<div
+			className={styles.formWrapper}
+			data-drawer={isDrawer}>
 			{header}
 			<div className={styles.formBody}>
 				{title && <h1 className={styles.title}>{title}</h1>}
@@ -134,6 +145,38 @@ function OptionGroup<T extends string>({ options, value, onChange }: OptionGroup
 	);
 }
 
+interface CheckboxProps {
+	id: string;
+	label: ReactNode;
+	checked: boolean;
+	onChange: (checked: boolean) => void;
+	disabled?: boolean;
+}
+
+// Deliberately its own component rather than reusing Input - the .field
+// input/textarea/select cascade in Form.module.css makes every plain
+// <input> a full-width bordered box, which is right for text fields and
+// wrong for a checkbox. This renders outside that scope with its own
+// (small, inline) styling instead.
+function Checkbox({ id, label, checked, onChange, disabled }: CheckboxProps) {
+	return (
+		<label
+			htmlFor={id}
+			className={styles.checkboxField}
+			data-disabled={disabled}>
+			<input
+				id={id}
+				type="checkbox"
+				className={styles.checkboxInput}
+				checked={checked}
+				onChange={(e) => onChange(e.target.checked)}
+				disabled={disabled}
+			/>
+			<span>{label}</span>
+		</label>
+	);
+}
+
 function ErrorMessage({ children }: { children: ReactNode }) {
 	return (
 		<p
@@ -166,6 +209,26 @@ function ToggleButton({ children, className = "", ...props }: React.ButtonHTMLAt
 	);
 }
 
+interface DatePickerProps {
+	selected?: Date;
+	onSelect?: (date: Date | undefined) => void;
+	className?: string;
+	[key: string]: any; // fallback for any other calendar props
+}
+
+function DatePicker({ selected, onSelect, className = "", ...props }: DatePickerProps) {
+	return (
+		<DayPicker
+			animate
+			mode="single"
+			selected={selected}
+			onSelect={onSelect}
+			className={`${styles.rdp} ${className}`.trim()}
+			{...props}
+		/>
+	);
+}
+
 export const Form = Object.assign(FormRoot, {
 	Header,
 	Field,
@@ -176,7 +239,9 @@ export const Form = Object.assign(FormRoot, {
 	Select,
 	ButtonRow,
 	OptionGroup,
+	Checkbox,
 	ErrorMessage,
 	Submit,
 	ToggleButton,
+	DatePicker,
 });

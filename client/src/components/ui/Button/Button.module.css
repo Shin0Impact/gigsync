@@ -12,11 +12,43 @@
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid transparent;
     outline: none;
+    text-box: trim-both cap alphabetic;
 
-    text-box: trim-both ex alphabetical;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
 
-    background-color: var(--color-black);
-    color: var(--color-white);
+    /* --- ADDED: Global data-color support --- */
+    &[data-color="yellow"] {
+        background-color: var(--color-yellow);
+        color: var(--color-black);
+    }
+
+    &[data-color="blue"] {
+        background-color: var(--color-blue);
+        color: var(--color-white);
+    }
+
+    &[data-color="white"] {
+        background-color: var(--color-white);
+        color: var(--color-black);
+    }
+
+    &[data-color="black"] {
+        background-color: var(--color-black);
+        color: var(--color-white);
+    }
+
+    &[data-color="cream"] {
+        background-color: var(--color-cream, #fdfbf7);
+        color: var(--color-accent);
+    }
+
+    &[data-color="moss"] {
+        background-color: var(--color-moss, #4a5d4e);
+        color: var(--color-white);
+    }
+
+    /* -------------------------------------- */
 
     &[data-variant="solid"] {
         &:hover {
@@ -28,7 +60,7 @@
 
     &[data-variant="ghost"] {
         background-color: transparent;
-        color: var(--color-black);
+        color: var(--color-accent);
         border-color: transparent;
 
         &:hover {
@@ -71,12 +103,28 @@
         }
     }
 
+    &[data-variant="nav"] {
+        background: transparent;
+        border: none !important;
+        outline: none !important;
+        padding: 0;
+        box-shadow: none !important;
+        color: var(--color-white);
+
+        &[data-active="true"] {
+            background: transparent;
+            border: none !important;
+            box-shadow: none !important;
+            color: var(--color-yellow);
+        }
+    }
+
     &[data-active="true"] {
-        background-color: var(--color-white);
-        color: var(--color-black);
+        background-color: var(--color-primary);
+        color: var(--color-accent);
         border-color: var(--color-blue);
         box-shadow: 0 0 0 2px var(--color-blue),
-            inset 2px 2px 0 0 var(--color-white),
-            inset -2px -2px 0 0 var(--color-white);
+            inset 2px 2px 0 0 var(--color-primary),
+            inset -2px -2px 0 0 var(--color-primary);
     }
 }

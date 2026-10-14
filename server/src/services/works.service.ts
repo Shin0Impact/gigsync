@@ -1,33 +1,68 @@
 import {
 	createUpdateMedia,
 	createWork,
+	createWorkComment,
+	createWorkLike,
 	createWorkUpdate,
 	deleteUpdateMedia,
+	deleteWork,
+	deleteWorkComment,
+	deleteWorkLike,
+	getAllMediaForWork,
+	getFollowedUserIds,
+	getLikeCountForWork,
 	getMediaForUpdate,
+	getWorkLikesByUser,
 	getUpdateMediaById,
 	getWorkById,
+	getWorkCommentById,
 	getWorkUpdateById,
 	getWorkUpdates,
 	getWorksByUser,
+	listWorksFeed,
+	getInteractionsWithRolesForWork,
 } from "../db/social.queries";
 import { delete_object } from "./media.service";
 
-import { AddUpdateMediaInput } from "../types/social";
+import { AddUpdateMediaInput, RoleBreakdown, WorkCompositionItem } from "../types/social";
 
-const VALID_MEDIA_TYPES = ["image", "video"];
+const VALID_MEDIA_TYPES = ["image", "video", "audio"];
 
 // "Works" are an artist's portfolio: a Work is a project, each Work has
 // versioned Updates (progress posts), and each Update can carry R2-backed
-// media. This is the "artist uploads" half of card #78's follow-up - the
-// social bits (likes/comments/follows) stay out of scope here, matching
-// Kareem's read-only scaffolding in social.queries.ts/social.ts.
+// media. This is the "artist uploads" half of card #78's follow-up.
+//
+// Likes/comments/feed listing (2026-10-11): previously out of scope, now
+// implemented below on top of Kareem's read-only scaffolding in
+// social.queries.ts - see that file for the write-path query helpers.
 
-export async function create_work(userId: string, description: string | null) {
-	return createWork(userId, description ?? null);
+export async function create_work(userId: string, title: string | null, description: string | null) {
+	return createWork(userId, description ?? null, title ?? null);
 }
 
 export async function get_works_for_user(userId: string) {
 	return getWorksByUser(userId);
+}
+
+// Single-work detail for the work page: the work row plus its full update
+// history with media resolved, so the frontend gets everything in one call.
+export async function get_work_detail(workId: number) {
+	const work = await getWorkById(workId);
+
+	if (!work) {
+		throw new Error("Work not found");
+	}
+
+	const updates = await getWorkUpdates(workId);
+
+	const updatesWithMedia = await Promise.all(
+		updates.map(async (update) => ({
+			...update,
+			media: await getMediaForUpdate(update.id),
+		})),
+	);
+
+	return { ...work, updates: updatesWithMedia };
 }
 
 export async function add_work_update(userId: string, workId: number, description: string | null) {
@@ -73,20 +108,10 @@ async function assert_owns_update(userId: string, updateId: number) {
 	return update;
 }
 
-export async function add_update_media(
-	userId: string,
-	updateId: number,
-	input: AddUpdateMediaInput,
-) {
+export async function add_update_media(userId: string, updateId: number, input: AddUpdateMediaInput) {
 	await assert_owns_update(userId, updateId);
 
-	const {
-		mediaType,
-		objectKey,
-		mimeType = "application/octet-stream",
-		fileSizeBytes = 0,
-		sortOrder = 0,
-	} = input;
+	const { mediaType, objectKey, mimeType = "application/octet-stream", fileSizeBytes = 0, sortOrder = 0 } = input;
 
 	if (!mediaType || !objectKey) {
 		throw new Error("mediaType and objectKey are required");
@@ -132,9 +157,180 @@ export async function remove_update_media(userId: string, updateId: number, medi
 	try {
 		await delete_object(media.r2Key);
 	} catch (err) {
-		console.warn(
-			`Failed to delete R2 object ${media.r2Key} after removing update media ${mediaId}:`,
-			err,
-		);
+		console.warn(`Failed to delete R2 object ${media.r2Key} after removing update media ${mediaId}:`, err);
 	}
+}
+
+// Deletes a work and everything hanging off it: work_updates, their
+// update_media (plus the backing R2 objects, best-effort, same pattern
+// as remove_update_media above), and work_likes/work_comments. Reads the
+// r2Key list before the rows are deleted since deleteWork() removes the
+// update_media rows along with everything else.
+export async function remove_work(userId: string, workId: number) {
+	const work = await getWorkById(workId);
+
+	if (!work) {
+		throw new Error("Work not found");
+	}
+
+	if (work.userId !== userId) {
+		throw new Error("You do not own this work");
+	}
+
+	const media = await getAllMediaForWork(workId);
+
+	await deleteWork(workId);
+
+	for (const item of media) {
+		try {
+			await delete_object(item.r2Key);
+		} catch (err) {
+			console.warn(`Failed to delete R2 object ${item.r2Key} after removing work ${workId}:`, err);
+		}
+	}
+}
+
+const FEED_PAGE_SIZE = 20;
+const MAX_FEED_PAGE_SIZE = 50;
+
+function clamp_limit(requested: number | undefined): number {
+	if (!requested || !Number.isFinite(requested) || requested <= 0) {
+		return FEED_PAGE_SIZE;
+	}
+	return Math.min(requested, MAX_FEED_PAGE_SIZE);
+}
+
+export interface ListWorksFeedParams {
+	limit?: number;
+	offset?: number;
+	// "following" restricts to the works of whoever `viewerId` follows -
+	// requires a viewer (enforced by the route, see works.routes.ts).
+	scope?: "explore" | "following";
+	viewerId?: string | null;
+}
+
+export async function list_works_feed(params: ListWorksFeedParams) {
+	const limit = clamp_limit(params.limit);
+	const offset = Math.max(0, params.offset ?? 0);
+
+	let authorIds: string[] | undefined;
+	if (params.scope === "following") {
+		if (!params.viewerId) {
+			throw new Error("Must be signed in to view the following feed");
+		}
+		authorIds = await getFollowedUserIds(params.viewerId);
+	}
+
+	return listWorksFeed({ limit, offset, authorIds, viewerId: params.viewerId ?? null });
+}
+
+export async function get_like_status(workId: number, viewerId: string | null) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	const [likeCount, likedByMe] = await Promise.all([
+		getLikeCountForWork(workId),
+		viewerId ? getWorkLikesByUser(workId, viewerId).then((row) => row !== null) : Promise.resolve(false),
+	]);
+	return { liked: likedByMe, likeCount };
+}
+
+export async function like_work(userId: string, workId: number) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	await createWorkLike(workId, userId);
+	const count = await getLikeCount(workId);
+	return { liked: true, likeCount: count };
+}
+
+export async function unlike_work(userId: string, workId: number) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	await deleteWorkLike(workId, userId);
+	const count = await getLikeCount(workId);
+	return { liked: false, likeCount: count };
+}
+
+async function getLikeCount(workId: number): Promise<number> {
+	return getLikeCountForWork(workId);
+}
+
+export async function add_comment(userId: string, workId: number, content: string) {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+	const trimmed = content?.trim();
+	if (!trimmed) {
+		throw new Error("content is required");
+	}
+	if (trimmed.length > 2000) {
+		throw new Error("content must be 2000 characters or fewer");
+	}
+	return createWorkComment(workId, userId, trimmed);
+}
+
+export async function remove_comment(userId: string, commentId: number) {
+	const comment = await getWorkCommentById(commentId);
+	if (!comment) {
+		throw new Error("Comment not found");
+	}
+	if (comment.userId !== userId) {
+		throw new Error("You do not own this comment");
+	}
+	await deleteWorkComment(commentId);
+}
+
+export async function get_work_composition(workId: number): Promise<WorkCompositionItem[]> {
+	const work = await getWorkById(workId);
+	if (!work) {
+		throw new Error("Work not found");
+	}
+
+	const updates = (await getWorkUpdates(workId)).sort(
+		(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+	);
+
+	const interactions = await getInteractionsWithRolesForWork(workId);
+
+	const composition: WorkCompositionItem[] = updates.map((update, index) => {
+		const startTime = new Date(update.createdAt).getTime();
+		const endTime = updates[index + 1] ? new Date(updates[index + 1].createdAt).getTime() : Infinity;
+
+		const windowInteractions = interactions.filter((item) => {
+			const itemTime = new Date(item.created_at).getTime();
+			return itemTime >= startTime && itemTime < endTime;
+		});
+
+		const rolesCount: RoleBreakdown = {
+			artist: 0,
+			fan: 0,
+			organizer: 0,
+		};
+
+		windowInteractions.forEach((item) => {
+			const role = (item.role || "fan") as keyof RoleBreakdown;
+			if (role in rolesCount) {
+				rolesCount[role] += 1; // Make sure it increments!
+			} else {
+				rolesCount[role] = 1;
+			}
+		});
+
+		return {
+			id: update.id,
+			versionNumber: update.versionNumber,
+			createdAt: update.createdAt,
+			isCurrent: index === updates.length - 1,
+			roles: rolesCount, // No cast needed anymore!
+			totalInteractions: windowInteractions.length,
+		};
+	});
+
+	return composition.reverse();
 }

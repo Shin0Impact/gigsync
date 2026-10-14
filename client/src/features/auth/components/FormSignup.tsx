@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRegisterMutation } from "../authApi";
+import { useLoginMutation, useRegisterMutation } from "../authApi";
 import { StepIndicator } from "../../../components/StepIndicator";
 import { RegisterInput, UserRole } from "@shared/types/index";
 import { Form } from "@components";
@@ -21,31 +21,42 @@ export function FormSignup() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+	const [userName, setUserName] = useState("");
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [register, { isLoading, error }] = useRegisterMutation();
-	const headers = ["We're Mezzo :)", "Hi, ", "Let's get you started.", "We can keep a secret ;)"];
+	const [login] = useLoginMutation();
+	const headers = ["We're Mezzo :)", "Hi, ", "Let's get you started.", "Pick a password.", "Finally, choose a handle."];
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		setLocalError(null);
 
-		if (password !== confirmPassword) {
-			setLocalError("Passwords don't match.");
-			return;
-		}
-		if (password.length < 8) {
-			setLocalError("Password must be at least 8 characters.");
+		if (!userName.trim()) {
+			setLocalError("Please choose a username.");
 			return;
 		}
 
 		try {
-			await register({ user_name: name, email, password, role } as RegisterInput).unwrap();
-			setTimeout(() => {
-				handleSignupSuccess();
-			}, 50);
+			// 1. Create the account
+			await register({
+				user_name: userName,
+				name,
+				email,
+				password,
+				role: role as UserRole,
+				artists_type: null,
+			} as RegisterInput).unwrap();
+
+			await login({
+				identifier: email,
+				password,
+				rememberMe: true,
+			}).unwrap();
+
+			handleSignupSuccess();
 		} catch {
-			// server-side error tracked by mutation hook
+			// server-side error tracked by mutation hooks or local state
 		}
 	}
 
@@ -60,6 +71,16 @@ export function FormSignup() {
 		if (step === 1 && !name.trim()) return setLocalError("Please enter your name.");
 		if (step === 2 && !role) return setLocalError("Please select a role.");
 		if (step === 3 && !email.trim()) return setLocalError("Please enter a valid email.");
+		if (step === 4) {
+			if (password !== confirmPassword) {
+				setLocalError("Passwords don't match.");
+				return;
+			}
+			if (password.length < 8) {
+				setLocalError("Password must be at least 8 characters.");
+				return;
+			}
+		}
 
 		setStep((prev) => prev + 1);
 	}
@@ -79,16 +100,18 @@ export function FormSignup() {
 	const headerCenter = (
 		<StepIndicator
 			currentStep={step}
-			totalSteps={4}
+			totalSteps={5}
 		/>
 	);
 
-	const headerRight = <Form.ToggleButton onClick={() => navigate(ROUTES.LOGIN)}>Already a member?</Form.ToggleButton>;
+	const headerRight = (
+		<Form.ToggleButton onClick={() => navigate(ROUTES.LOGIN, { replace: true })}>Already a member?</Form.ToggleButton>
+	);
 
 	return (
 		<Form
 			title={step === 2 ? `${headers[1]} ${name}!` : headers[step - 1]}
-			onSubmit={step === 4 ? handleSubmit : handleNext}
+			onSubmit={step === 5 ? handleSubmit : handleNext}
 			header={
 				<Form.Header
 					left={headerLeft}
@@ -98,7 +121,7 @@ export function FormSignup() {
 			}>
 			{step === 1 && (
 				<Form.Field>
-					<Form.Label htmlFor="signup-name">How about you?</Form.Label>
+					<Form.Label htmlFor="signup-name">What's your name?</Form.Label>
 					<Form.Input
 						id="signup-name"
 						name="name"
@@ -170,6 +193,22 @@ export function FormSignup() {
 				</>
 			)}
 
+			{step === 5 && (
+				<Form.Field>
+					<Form.Label htmlFor="signup-username">Choose a username</Form.Label>
+					<Form.Input
+						id="signup-username"
+						name="username"
+						type="text"
+						autoComplete="username"
+						value={userName}
+						onChange={(e) => setUserName(e.target.value)}
+						required
+						autoFocus
+					/>
+				</Form.Field>
+			)}
+
 			{(localError || error) && (
 				<Form.ErrorMessage>
 					{localError ?? "Couldn't create your account. That email or username may already be taken."}
@@ -177,8 +216,10 @@ export function FormSignup() {
 			)}
 
 			<Form.Submit disabled={isLoading || (step === 2 && !role)}>
-				{isLoading ? "Creating account…" : step === 4 ? "Sign up" : "Continue"}
+				{isLoading ? "Creating account…" : step === 5 ? "Sign up" : "Continue"}
 			</Form.Submit>
 		</Form>
 	);
 }
+
+export default FormSignup;

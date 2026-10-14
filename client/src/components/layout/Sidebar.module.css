@@ -9,6 +9,10 @@
     box-sizing: border-box;
     overflow: hidden;
 
+    * {
+        text-box: trim-both cap alphabetic;
+    }
+
     .glyphContainer {
         width: 100%;
         height: 100%;
@@ -30,8 +34,6 @@
                 height: 100%;
             }
         }
-
-
     }
 
     .linkContainer {
@@ -45,8 +47,10 @@
         align-items: flex-start;
         justify-content: space-between;
 
-        .sidebarActions,
-        .sidebarNav {
+        .topNav,
+        .bottomNav,
+        .roleNav,
+        .userNav {
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -57,6 +61,10 @@
             >* {
                 padding: 0.25rem 0;
             }
+        }
+
+        .bottomNav {
+            gap: 1.5rem;
         }
 
         .navLinks {
@@ -78,6 +86,61 @@
             pointer-events: none;
 
             /* padding: 2rem; */
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        order: 3;
+        width: 100% !important;
+        height: 4rem !important;
+        flex-direction: row !important;
+        background-color: var(--color-primary);
+        border: 0;
+        box-shadow: 0;
+        padding: 0 1rem;
+        flex-shrink: 0;
+
+        .glyphContainer {
+            height: 100%;
+            width: auto;
+
+            .glyphArea {
+                height: 2rem;
+
+                .verticalGlyph {
+                    height: 1.75rem;
+                    width: auto;
+                }
+            }
+        }
+
+        .linkContainer {
+            position: static !important;
+            flex-direction: row !important;
+            width: auto !important;
+            height: 100% !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+
+            .topNav,
+            .roleNav {
+                display: none;
+                /* Hide heavy text links on mobile bar for now to avoid overflow, or handle later */
+            }
+
+            .bottomNav {
+                flex-direction: row !important;
+                gap: 1rem !important;
+                padding: 0 !important;
+                height: 100%;
+                align-items: center;
+
+                >* {
+                    padding: 0 !important;
+                }
+            }
         }
     }
 }

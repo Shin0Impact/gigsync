@@ -3,6 +3,9 @@ export const ROUTES = {
 	LOGIN: "/login",
 	SIGNUP: "/signup",
 	ONBOARDING: "/onboarding",
+
+	// ======== FEED =========
+
 	TIMELINE: "/timeline",
 	TIMELINE_PIECES: "/timeline/pieces",
 	TIMELINE_EVENTS: "/timeline/events",
@@ -10,25 +13,51 @@ export const ROUTES = {
 	DISCOVERY_PIECES: "/discovery/pieces",
 	DISCOVERY_EVENTS: "/discovery/events",
 
-	STUDIO: "/studio",
-	DASHBOARD: "/dashboard",
-	PIECES: "/pieces",
-	PORTFOLIO: "/portfolio",
-	EVENTS: "/events",
+	SEARCH: "/search",
+	SETTINGS: "/settings",
 	VERIFICATION: "/verification",
+	NOTIFICATIONS: "/notifications",
+
+	MESSAGES: "/messages",
+	MESSAGE_THREAD_PATTERN: "/messages/:conversationId",
+	MESSAGE_THREAD: (conversationId: string) => `/messages/${conversationId}`,
+
+	// ======== SELF =========
+
+	MY_PIECES: "/pieces",
+	MY_EVENTS: "/events",
+	MY_APPLICATIONS: "/applications",
+
+	// ======== ON AIR =========
+
+	AVAILABILITY: "/availability",
+
+	// ======== PROFILE ========
+
+	PROFILE: (username: string) => `/${username}`,
+	PROFILE_PATTERN: "/:username",
+
+	USER_PIECES: (username: string) => `/${username}/pieces`,
+	USER_PIECES_PATTERN: "/:username/pieces",
+	USER_PORTFOLIO: (username: string) => `/${username}/portfolio`,
+	USER_PORTFOLIO_PATTERN: "/:username/portfolio",
+	USER_EVENTS: (username: string) => `/${username}/events`,
+	USER_EVENTS_PATTERN: "/:username/events",
 
 	SINGLE_PIECE_PATTERN: "/pieces/:id",
 	SINGLE_PIECE: (id: string | number) => `/pieces/${id}`,
 
-	PROFILE: (username: string) => `/${username}`,
+	SINGLE_INTERMEZZO_PATTERN: "/pieces/:id/:version",
+	SINGLE_INTERMEZZO: (id: string | number, version: string | number) => `/pieces/${id}/${version}`,
 
-	USER_PORTFOLIO_PATTERN: "/:userId/portfolio",
-	USER_PORTFOLIO: (userId: string) => `/${userId}/portfolio`,
+	SINGLE_EVENT_PATTERN: "/events/:id",
+	SINGLE_EVENT: (id: string | number) => `/events/${id}`,
 
-	USER_PIECES: (username: string) => `/${username}/pieces`,
-	USER_EVENTS: (username: string) => `/${username}/events`,
+	EVENT_APPLICATIONS_PATTERN: "/events/:id/applications",
+	EVENT_APPLICATIONS: (id: string | number) => `/events/:id/${id}`,
 
 	CREATE_PIECE: "/pieces/new",
 	CREATE_INTERMEZZO: "/intermezzi/new",
 	CREATE_PORTFOLIO_SECTION: "/portfolio/new",
+	CREATE_EVENT: "events/new",
 } as const;

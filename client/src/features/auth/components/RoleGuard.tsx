@@ -24,17 +24,24 @@ export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 	}
 
 	if (!allowedRoles.includes(user.role)) {
-		if (user.role === "artist" || user.role === "organizer") {
+		if (user.role === "artist") {
 			return (
 				<Navigate
-					to={ROUTES.DASHBOARD}
+					to={ROUTES.MY_PIECES}
+					replace
+				/>
+			);
+		} else if (user.role === "organizer") {
+			return (
+				<Navigate
+					to={ROUTES.MY_EVENTS}
 					replace
 				/>
 			);
 		}
 		return (
 			<Navigate
-				to={ROUTES.HOME}
+				to={ROUTES.TIMELINE}
 				replace
 			/>
 		);

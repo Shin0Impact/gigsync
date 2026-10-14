@@ -1,3 +1,3 @@
-export { Navbar } from "./Navbar";
-export { Sidebar } from "./Sidebar";
-export { SplitView } from "./SplitView";
+export * from "./Sidebar";
+export * from "./SplitView";
+export * from "./Page";

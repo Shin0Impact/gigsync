@@ -1,0 +1,77 @@
+.calendarWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* react-day-picker themes itself through CSS custom properties scoped to
+   its own root class - overriding them here (rather than fighting its
+   internal selectors) is the supported way to make the calendar read as
+   part of this site instead of the library's default blue. */
+.rdp {
+    --rdp-accent-color: var(--color-accent);
+    --rdp-accent-background-color: var(--color-yellow);
+    --rdp-today-color: var(--color-accent);
+    --rdp-day_button-border: 0.125rem solid transparent;
+    --rdp-selected-border: 0.125rem solid var(--color-accent);
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    padding: 1rem;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--color-accent);
+}
+
+.availableDay {
+    background-color: var(--color-yellow);
+    border-radius: 100%;
+    font-weight: 600;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-serif, serif);
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.8;
+    margin: 0;
+}
+
+.legendSwatch {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 100%;
+    background-color: var(--color-yellow);
+    flex-shrink: 0;
+}
+
+.hint {
+    font-family: var(--font-serif, serif);
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.75;
+    margin: 0;
+    text-align: center;
+}
+
+.emptyText {
+    font-family: var(--font-serif, serif);
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.75;
+    margin: 0;
+}
+
+.status {
+    font-family: var(--font-serif, serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-accent);
+}

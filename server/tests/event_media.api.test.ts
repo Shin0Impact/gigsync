@@ -87,16 +87,18 @@ async function main() {
 
   await request('org', 'POST', '/auth/register', {
     email: `org_${stamp}@example.com`, password: 'TestPass123!', role: 'organizer', user_name: `org_${stamp}`,
+    name: `User ${stamp}`,
   });
   await request('org', 'POST', '/auth/login', { identifier: `org_${stamp}@example.com`, password: 'TestPass123!' });
 
   await request('org2', 'POST', '/auth/register', {
     email: `org2_${stamp}@example.com`, password: 'TestPass123!', role: 'organizer', user_name: `org2_${stamp}`,
+    name: `User ${stamp}`,
   });
   await request('org2', 'POST', '/auth/login', { identifier: `org2_${stamp}@example.com`, password: 'TestPass123!' });
 
   await request('artist', 'POST', '/auth/register', {
-    email: `artist_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist_${stamp}`, artists_type: 'musician',
+    email: `artist_${stamp}@example.com`, password: 'TestPass123!', role: 'artist', user_name: `artist_${stamp}`, name: `User ${stamp}`, artists_type: 'musician',
   });
   await request('artist', 'POST', '/auth/login', { identifier: `artist_${stamp}@example.com`, password: 'TestPass123!' });
 

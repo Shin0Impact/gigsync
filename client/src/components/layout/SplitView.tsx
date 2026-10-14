@@ -1,10 +1,17 @@
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Voronoi } from "@paper-design/shaders-react";
 import { Sidebar } from "./Sidebar";
 import styles from "./SplitView.module.css";
+import { useMeQuery } from "../../features/auth";
+import { FormIntermezzoCreate } from "../../features/pieces";
+import FloatingActionButton from "./FloatingActionButton";
+import { useSearchParams } from "react-router-dom";
+import { useMediaQuery } from "../../hooks";
+import { MobileNav } from "./MobileNav";
+import FormEventCreate from "../../features/events/components/FormEventCreate";
+import { FormApplyToEvent } from "../../features/events/components/FormApplyToEvent";
 
 interface SplitViewProps {
-	role: "creative" | "supporter" | "organizer" | "guest";
 	children: ReactNode;
 	contentDecoration?: boolean;
 	className?: string;
@@ -25,16 +32,82 @@ const defaultDecoration = (
 	/>
 );
 
-export function SplitView({ role, children, contentDecoration = false, className = "" }: SplitViewProps) {
+export function SplitView({ children, contentDecoration = false, className = "" }: SplitViewProps) {
+	const [searchParams, setSearchParams] = useSearchParams();
+	const isDrawerOpen = searchParams.get("drawer") === "open";
+	const formParam = searchParams.get("form") || "default";
+	const eventIdParam = searchParams.get("eventId");
+	const isMobile = useMediaQuery("(max-width: 768px)");
+
+	const { data, isLoading } = useMeQuery();
+	const role = data?.user?.role ?? "guest";
+	const username = data?.user?.userName;
+
+	const handleToggleDrawer = () => {
+		setSearchParams((prev) => {
+			const newParams = new URLSearchParams(prev);
+			if (isDrawerOpen) {
+				newParams.delete("drawer");
+				newParams.delete("form");
+				newParams.delete("eventId");
+			} else {
+				newParams.set("drawer", "open");
+			}
+			return newParams;
+		});
+	};
+
+	let drawerContent = null;
+	if (!isLoading) {
+		if (formParam === "apply" && eventIdParam) {
+			drawerContent = (
+				<FormApplyToEvent
+					eventId={eventIdParam}
+					onClose={handleToggleDrawer}
+				/>
+			);
+		} else if (role === "artist") {
+			drawerContent = <FormIntermezzoCreate />;
+		} else if (role === "organizer") {
+			drawerContent = <FormEventCreate />;
+		}
+	}
+
+	const createHoverText = role === "artist" ? "New Intermezzo" : role === "organizer" ? "New Happening" : "Create";
+
 	return (
 		<div
 			className={`${styles.view} ${className}`.trim()}
-			data-role={role}>
-			<Sidebar role={role} />
+			data-role={role}
+			data-drawer-open={isDrawerOpen}>
+			{isMobile ? (
+				<MobileNav
+					role={role}
+					username={username}
+					onToggleDrawer={handleToggleDrawer}
+					isDrawerOpen={isDrawerOpen}
+				/>
+			) : (
+				<Sidebar />
+			)}
+
 			<div className={styles.content}>
 				{contentDecoration && <div className={styles.contentDecoration}>{defaultDecoration}</div>}
 				<div className={styles.children}>{children}</div>
 			</div>
+
+			<aside className={styles.drawer}>
+				<div className={styles.drawerDecoration}>{defaultDecoration}</div>
+				<div className={styles.drawerInner}>{drawerContent}</div>
+			</aside>
+
+			{(role === "artist" || role === "organizer") && (
+				<FloatingActionButton
+					isOpen={isDrawerOpen}
+					setDrawerOpen={handleToggleDrawer}
+					createHoverText={createHoverText}
+				/>
+			)}
 		</div>
 	);
 }
