@@ -16,7 +16,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, isMine = false, userRole = "guest", application }: EventCardProps) {
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 	const [isViewingCoverNote, setIsViewingCoverNote] = useState(false);
@@ -29,14 +29,6 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 
 	const myApplication = application || myAppsData?.applications?.find((app) => String(app.event_id) === String(event.id));
 	const coverNoteText = myApplication?.cover_note || myApplication?.coverNote;
-
-	const formattedDate = event.startAt
-		? new Date(event.startAt).toLocaleDateString("en-US", {
-				month: "short",
-				day: "numeric",
-				year: "numeric",
-			})
-		: null;
 
 	const handleDeleteClick = (e: MouseEvent) => {
 		e.preventDefault();

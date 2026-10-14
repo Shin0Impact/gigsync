@@ -117,7 +117,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 								aria-label={work.likedByMe ? "Nodded" : "Nod"}>
 								<NodIcon
 									ref={nodIconRef}
-									size={"1rem"}
+									size={16}
 									color="currentColor"
 								/>
 								<span>{work.likeCount} Nods</span>
@@ -129,7 +129,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 								onClick={handleCommentClick}>
 								<EchoIcon
 									ref={echoIconRef}
-									size={"1rem"}
+									size={16}
 									color="currentColor"
 								/>
 								<span>{work.commentCount} Echoes</span>

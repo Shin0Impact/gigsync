@@ -1,4 +1,4 @@
-import { Outlet, useLocation, Navigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Page, ButtonLink } from "@components";
 import { ROUTES } from "../routes/routePaths";
 

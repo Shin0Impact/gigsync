@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateEventMutation } from "../eventsApi";
-import { StepIndicator } from "../../../components/StepIndicator";
+// import { StepIndicator } from "../../../components/StepIndicator";
 import { Form } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { CreateEventInput } from "@shared/types/index";
@@ -80,26 +80,26 @@ export function FormEventCreate() {
 		setLocalError("Please select valid start and end times.");
 	}
 
-	const headerLeft = (
-		<Form.ToggleButton
-			onClick={() => {
-				setLocalError(null);
-				setStep((prev) => Math.max(prev - 1, 1));
-			}}
-			style={{ opacity: step === 1 ? 0.3 : 0.7 }}
-			disabled={step === 1}>
-			← Back
-		</Form.ToggleButton>
-	);
+	// const headerLeft = (
+	// <Form.ToggleButton
+	// onClick={() => {
+	// setLocalError(null);
+	// setStep((prev) => Math.max(prev - 1, 1));
+	// }}
+	// style={{ opacity: step === 1 ? 0.3 : 0.7 }}
+	// disabled={step === 1}>
+	// ← Back
+	// </Form.ToggleButton>
+	// );
 
-	const headerCenter = (
-		<StepIndicator
-			currentStep={step}
-			totalSteps={4}
-		/>
-	);
+	// const headerCenter = (
+	// <StepIndicator
+	// currentStep={step}
+	// totalSteps={4}
+	// />
+	// );
 
-	const headerRight = <Form.ToggleButton onClick={() => navigate(-1)}>Cancel</Form.ToggleButton>;
+	// const headerRight = <Form.ToggleButton onClick={() => navigate(-1)}>Cancel</Form.ToggleButton>;
 
 	return (
 		<Form

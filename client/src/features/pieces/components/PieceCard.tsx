@@ -7,8 +7,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import styles from "./PieceCard.module.css";
 import { VignetteMedia } from "./VignetteMedia";
 import { Button } from "@components";
-import { Metaballs, SimplexNoise } from "@paper-design/shaders-react";
-import Placeholder from "@components/ui/Placeholder/Placeholder";
+import { Metaballs } from "@paper-design/shaders-react";
 
 interface PieceCardProps {
 	piece: Piece;
@@ -22,7 +21,7 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 	const [deletePiece, { isLoading: isDeleting, error: deleteError }] = useDeletePieceMutation();
 
-	const { data: intermezzosData, isLoading: isLoadingIntermezzo } = useListIntermezzosQuery(piece.id);
+	const { data: intermezzosData } = useListIntermezzosQuery(piece.id);
 	const intermezzosCount = 1 + (intermezzosData?.updates?.length ?? 0);
 
 	const latestIntermezzo = intermezzosData?.updates?.[0];

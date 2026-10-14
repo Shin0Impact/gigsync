@@ -1,6 +1,5 @@
-import { Button, Page } from "@components";
+import { Page } from "@components";
 import { ArtistSearch } from "../features/search";
-import { useState } from "react";
 
 export function SearchPage() {
 	return (
