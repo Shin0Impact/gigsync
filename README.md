@@ -154,13 +154,6 @@ Cloudflare then builds and deploys automatically on every push to `main`.
 `client/public/_redirects` is already in place so client-side routes (e.g.
 `/socket-test`, future `/login`, `/events/:id`) don't 404 on refresh.
 
-**GitHub Actions alternative:** [`.github/workflows/deploy-frontend.yml`](./.github/workflows/deploy-frontend.yml)
-does the same build + deploy from CI instead, if you'd rather see deploy logs
-in GitHub. It needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` added
-as repo secrets first (Settings > Secrets and variables > Actions) - until
-those are set this workflow just fails harmlessly, it isn't a required CI
-check. Use one approach or the other, not both, to avoid double deploys.
-
 ### Media storage (Cloudflare R2)
 
 1. In the Cloudflare dashboard, **R2 > Create bucket**, name it
