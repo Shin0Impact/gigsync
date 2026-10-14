@@ -37,6 +37,7 @@
             height: 100%;
             aspect-ratio: 1;
             flex-shrink: 0;
+            position: relative;
 
             .shader {
                 border: 0.125rem solid var(--color-accent);
@@ -48,6 +49,12 @@
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+            }
+
+            .date {
+                position: absolute;
+                bottom: 0;
+                z-index: 20;
             }
         }
 

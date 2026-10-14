@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { MouseEvent, FormEvent } from "react";
 import type { WorkFeedItem } from "@shared/types/social";
@@ -8,7 +8,8 @@ import ProfilePicture from "../../../components/user/ProfilePicture";
 import styles from "./FeedPostCard.module.css";
 import { VignetteMedia } from "../../pieces/components/VignetteMedia";
 import { Button, Form } from "@components";
-import NodIcon from "../../../assets/icons/NodIcon";
+import { LaughIcon as NodIcon, type LaughIconHandle as NodIconHandle } from "@animateicons/react/huge";
+import { Message01Icon as EchoIcon, type Message01IconHandle as EchoIconHandle } from "@animateicons/react/huge";
 
 interface FeedPostCardProps {
 	work: WorkFeedItem & { workVersion?: number | null };
@@ -19,7 +20,9 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 	const [unlikeWork] = useUnlikeWorkMutation();
 	const [isCommenting, setIsCommenting] = useState(false);
 	const [commentText, setCommentText] = useState("");
-	const [isNodding, setIsNodding] = useState(false);
+
+	const nodIconRef = useRef<NodIconHandle>(null);
+	const echoIconRef = useRef<EchoIconHandle>(null);
 
 	const formattedDate = work.updatedAt
 		? new Date(work.updatedAt).toLocaleDateString("en-US", {
@@ -32,10 +35,9 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 	const handleToggleLike = (e: MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setIsNodding(true);
-		setTimeout(() => {
-			setIsNodding(false);
-		}, 400);
+
+		nodIconRef.current?.startAnimation();
+
 		if (work.likedByMe) {
 			unlikeWork(work.id);
 		} else {
@@ -46,6 +48,9 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 	const handleCommentClick = (e: MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
+
+		// Trigger the echo icon animation and toggle the comment drawer
+		echoIconRef.current?.startAnimation();
 		setIsCommenting((prev) => !prev);
 	};
 
@@ -98,52 +103,61 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 							</Link>
 
 							<p className={`${styles.description} ${!work.description ? styles.noDescription : ""}`}>
-								{work.description || "Untitled Piece without description."}
+								{work.description || "This Piece has no description."}
 							</p>
 						</div>
 
-						{/* Action Bar */}
 						<div className={styles.actions}>
-							<div className={styles.actions}>
-								<button
-									type="button"
-									className={`${styles.actionButton} ${styles.likeBtn}`}
-									data-liked={work.likedByMe}
-									onClick={handleToggleLike}
-									aria-label={work.likedByMe ? "Nodded" : "Nod"}>
-									<NodIcon isNodding={isNodding} />
-									<span>{work.likedByMe ? `Nodded (${work.likeCount})` : `Nod (${work.likeCount})`}</span>
-								</button>
-							</div>
+							{/* <span>{work.updatedAt}</span> */}
 							<button
 								type="button"
-								className={styles.commentTrigger}
+								className={styles.nodButton}
+								data-liked={work.likedByMe}
+								onClick={handleToggleLike}
+								aria-label={work.likedByMe ? "Nodded" : "Nod"}>
+								<NodIcon
+									ref={nodIconRef}
+									size={"1rem"}
+									color="currentColor"
+								/>
+								<span>{work.likeCount} Nods</span>
+							</button>
+
+							<button
+								type="button"
+								className={styles.echoButton}
 								onClick={handleCommentClick}>
-								💬 {work.commentCount} comments
+								<EchoIcon
+									ref={echoIconRef}
+									size={"1rem"}
+									color="currentColor"
+								/>
+								<span>{work.commentCount} Echoes</span>
 							</button>
 						</div>
 					</div>
 				</div>
 			</Link>
 
-			{/* Slide-out Comment Drawer */}
 			<div className={styles.confirmDelete}>
-				<p>Reply to Post</p>
-				<form
+				<p>Your Echo</p>
+				<Form
 					onSubmit={handleCommentSubmit}
-					style={{ display: "flex", flexDirection: "column", gap: "0.75rem", height: "100%" }}>
-					<Form.Input
-						value={commentText}
-						onChange={(e: any) => setCommentText(e.target.value)}
-						placeholder="Write a comment..."
-					/>
+					style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+					<Form.Field>
+						<Form.Input
+							id="newCommentInput"
+							type="text"
+							value={commentText}
+							onChange={(e: any) => setCommentText(e.target.value)}
+							placeholder="Share your thoughts..."
+							autoFocus
+							required
+						/>
+					</Form.Field>
+
 					<div className={styles.confirmActions}>
-						<Button
-							type="submit"
-							className={styles.confirmButton}
-							variant="ghost">
-							Post Comment
-						</Button>
+						<Form.Submit className={styles.confirmButton}>Post Comment</Form.Submit>
 						<Button
 							type="button"
 							className={styles.cancelButton}
@@ -152,7 +166,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 							Cancel
 						</Button>
 					</div>
-				</form>
+				</Form>
 			</div>
 		</div>
 	);

@@ -20,24 +20,24 @@ export function RootRedirect({ onboarding = false }: RootRedirectProps) {
 			return <OnboardingPage />;
 		}
 
-		if (user.role === "artist") {
-			return (
-				<Navigate
-					to={ROUTES.MY_PIECES}
-					replace
-				/>
-			);
-		} else if (user.role === "organizer") {
-			return (
-				<Navigate
-					to={ROUTES.MY_EVENTS}
-					replace
-				/>
-			);
-		}
+		// if (user.role === "artist") {
+		// 	return (
+		// 		<Navigate
+		// 			to={ROUTES.MY_PIECES}
+		// 			replace
+		// 		/>
+		// 	);
+		// } else if (user.role === "organizer") {
+		// 	return (
+		// 		<Navigate
+		// 			to={ROUTES.MY_EVENTS}
+		// 			replace
+		// 		/>
+		// 	);
+		// }
 		return (
 			<Navigate
-				to={ROUTES.TIMELINE}
+				to={ROUTES.DISCOVERY}
 				replace
 			/>
 		);

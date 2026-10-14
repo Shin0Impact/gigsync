@@ -31,13 +31,13 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	});
 	const coverVignette = vignettesData?.media?.[0];
 
-	// const formattedDate = piece.createdAt
-	// 	? new Date(piece.createdAt).toLocaleDateString("en-US", {
-	// 			month: "short",
-	// 			day: "numeric",
-	// 			year: "numeric",
-	// 		})
-	// 	: null;
+	const formattedDate = piece.updatedAt
+		? new Date(piece.updatedAt).toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+				year: "numeric",
+			})
+		: null;
 
 	const handleAddIntermezzo = (e: MouseEvent) => {
 		e.preventDefault();
@@ -95,6 +95,7 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 							/>
 						</div>
 					)}
+					{formattedDate && <time className={styles.date}>{formattedDate}</time>}
 				</div>
 
 				<div className={styles.cardBody}>
@@ -105,7 +106,6 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 							<header className={styles.header}>
 								<span className={styles.title}>{piece.title}</span>
 							</header>
-							{/* {formattedDate && <time className={styles.date}>{formattedDate}</time>} */}
 
 							<p className={`${styles.description} ${!piece.description ? styles.noDescription : ""}`}>
 								{piece.description || "Untitled Piece without description."}
