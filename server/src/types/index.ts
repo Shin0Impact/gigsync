@@ -72,6 +72,8 @@ export interface DbEvent {
 	categories_needed: ArtistCategory[] | null;
 	created_at: Date;
 	updated_at: Date | null;
+	// Only present on list queries that were given a search centre.
+	distance_km?: number | null;
 }
 
 export interface DbEventApplication {

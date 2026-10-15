@@ -250,23 +250,67 @@ export async function find_recurring_events_ready_to_generate(): Promise<DbEvent
 	return result.rows;
 }
 
+export type EventSort = "date" | "newest" | "title" | "distance";
+
 export interface ListEventsFilters {
 	status?: EventStatus;
 	organizerId?: string;
 	category?: ArtistCategory;
+	// Free-text search across title, venue name and description.
+	q?: string;
+	sort?: EventSort;
+	// Optional "near me" centre. Required for sort=distance and radiusKm.
+	lat?: number;
+	lng?: number;
+	radiusKm?: number;
+}
+
+// Escape LIKE wildcards so a user typing "50%" or "_" searches literally.
+function escape_like(value: string): string {
+	return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
 }
 
 export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]> {
+	const hasCentre = filters.lat !== undefined && filters.lng !== undefined;
+	const pattern = filters.q ? `%${escape_like(filters.q)}%` : null;
+
+	// Distance is only meaningful when the caller supplied a centre point;
+	// events without a stored location get NULL and sort last.
+	// Always references $5/$6 (Postgres can't infer unreferenced params).
+	const distanceExpr = `CASE WHEN $5::float8 IS NULL OR $6::float8 IS NULL THEN NULL::float8
+      ELSE ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($6::float8, $5::float8), 4326)::geography) / 1000 END`;
+
+	const orderBy =
+		filters.sort === "newest"
+			? "created_at DESC"
+			: filters.sort === "title"
+				? "LOWER(title) ASC, start_at ASC"
+				: filters.sort === "distance" && hasCentre
+					? "distance_km ASC NULLS LAST, start_at ASC"
+					: "start_at ASC";
+
 	const result = await pool.query<DbEvent>(
 		`
-      SELECT ${EVENT_COLUMNS}
-      FROM event
-      WHERE ($1::event_status IS NULL OR status = $1)
-        AND ($2::uuid IS NULL OR organizer_id = $2)
-        AND ($3::"ArtistCategory" IS NULL OR $3::"ArtistCategory" = ANY(categories_needed))
-      ORDER BY start_at ASC
+      SELECT * FROM (
+        SELECT ${EVENT_COLUMNS}, ${distanceExpr} AS distance_km
+        FROM event
+        WHERE ($1::event_status IS NULL OR status = $1)
+          AND ($2::uuid IS NULL OR organizer_id = $2)
+          AND ($3::"ArtistCategory" IS NULL OR $3::"ArtistCategory" = ANY(categories_needed))
+          AND ($4::text IS NULL OR title ILIKE $4 OR venue_name ILIKE $4 OR descriptions ILIKE $4)
+      ) matched
+      WHERE ($7::float8 IS NULL OR distance_km <= $7)
+      ORDER BY ${orderBy}
     `,
-		[filters.status ?? null, filters.organizerId ?? null, filters.category ?? null],
+		[
+			filters.status ?? null,
+			filters.organizerId ?? null,
+			filters.category ?? null,
+			pattern,
+			hasCentre ? filters.lat : null,
+			hasCentre ? filters.lng : null,
+			hasCentre ? (filters.radiusKm ?? null) : null,
+		],
 	);
 
 	return result.rows;

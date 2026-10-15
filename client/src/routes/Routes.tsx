@@ -17,6 +17,7 @@ import { DiscoveryPage } from "../pages/DiscoveryPage";
 import { TimelinePage } from "../pages/TimelinePage";
 import { MyEventsPage } from "../pages/MyEvents";
 import SearchPage from "../pages/SearchPage";
+import { ArtistSearch, EventSearch } from "../features/search";
 import SingleEventPage from "../pages/subpages/SingleEventPage";
 import SinglePiecePage from "../pages/subpages/SinglePiecePage";
 import { DiscoveryPiecesFeed } from "../features/explore/DiscoveryPiecesFeed";
@@ -104,8 +105,16 @@ export function AppRoutes() {
 
 					<Route
 						path={ROUTES.SEARCH}
-						element={<SearchPage />}
-					/>
+						element={<SearchPage />}>
+						<Route
+							index
+							element={<ArtistSearch />}
+						/>
+						<Route
+							path={ROUTES.SEARCH_EVENTS}
+							element={<EventSearch />}
+						/>
+					</Route>
 					<Route
 						path={ROUTES.INBOX}
 						element={<InboxPage />}>

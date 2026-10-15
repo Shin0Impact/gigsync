@@ -100,7 +100,7 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				<div className={styles.cardBody}>
 					<div className={styles.metaTop}>
 						<span>{event.status || "Upcoming"}</span>
-						{event.isRecurring && <span>🔄 Recurring</span>}
+						{(event.isRecurring ?? event.is_recurring) && <span>🔄 Recurring</span>}
 					</div>
 
 					<div className={styles.details}>
@@ -108,10 +108,13 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 							<header className={styles.header}>
 								<span className={styles.title}>{event.title}</span>
 							</header>
-							{event.venueName && <span className={styles.venue}>📍 {event.venueName}</span>}
+							{(event.venueName ?? event.venue_name) && (
+								<span className={styles.venue}>📍 {event.venueName ?? event.venue_name}</span>
+							)}
 
-							<p className={`${styles.description} ${!event.description ? styles.noDescription : ""}`}>
-								{event.description || "No description provided for this happening."}
+							<p
+								className={`${styles.description} ${!(event.description ?? event.descriptions) ? styles.noDescription : ""}`}>
+								{event.description ?? event.descriptions ?? "No description provided for this happening."}
 							</p>
 						</div>
 
