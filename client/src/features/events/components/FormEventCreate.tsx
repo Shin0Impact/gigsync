@@ -1,13 +1,16 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCreateEventMutation } from "../eventsApi";
-// import { StepIndicator } from "../../../components/StepIndicator";
 import { Form } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { CreateEventInput } from "@shared/types/index";
 
+const DEFAULT_CENTER = { lat: 40.7128, lng: -74.006 };
+
 export function FormEventCreate() {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const isDrawerOpen = searchParams.get("drawer") === "open";
 
 	const [step, setStep] = useState<number>(1);
 	const [title, setTitle] = useState("");
@@ -15,19 +18,39 @@ export function FormEventCreate() {
 	const [startAt, setStartAt] = useState("");
 	const [endAt, setEndAt] = useState("");
 	const [venueName, setVenueName] = useState("");
-	const [lat, setLat] = useState<string>("0");
-	const [lng, setLng] = useState<string>("0");
+	const [location, setLocation] = useState(DEFAULT_CENTER);
+	const [hasPickedLocation, setHasPickedLocation] = useState(false);
+
 	const [isRecurring, setIsRecurring] = useState(false);
 	const [recurringRule, setRecurringRule] = useState("");
-
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [createEvent, { isLoading, error }] = useCreateEventMutation();
-	const headers = ["Let's host an event.", "When is it happening?", "Where is the venue?", "Final details & rules."];
+	const headers = ["Create new Event.", "When is it?", "Where will it be?", "Final details."];
+
+	useEffect(() => {
+		if (!isDrawerOpen) {
+			setStep(1);
+			setTitle("");
+			setDescription("");
+			setStartAt("");
+			setEndAt("");
+			setVenueName("");
+			setLocation(DEFAULT_CENTER);
+			setHasPickedLocation(false);
+			setIsRecurring(false);
+			setRecurringRule("");
+			setLocalError(null);
+		}
+	}, [isDrawerOpen]);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		setLocalError(null);
+
+		if (!hasPickedLocation) {
+			return setLocalError("Please select a location for your event.");
+		}
 
 		try {
 			const payload: CreateEventInput = {
@@ -36,19 +59,13 @@ export function FormEventCreate() {
 				startAt: new Date(startAt).toISOString(),
 				endAt: new Date(endAt).toISOString(),
 				venueName: venueName.trim(),
-				location: {
-					lat: parseFloat(lat) || 0,
-					lng: parseFloat(lng) || 0,
-				},
+				location,
 				isRecurring,
 				recurringRule: isRecurring ? recurringRule.trim() || null : null,
 			};
 
 			const response = await createEvent(payload).unwrap();
-			const eventId = response.event.id;
-
-			// Navigate to the newly created event page or happenings list
-			navigate(ROUTES.SINGLE_EVENT(eventId), { replace: true });
+			navigate(ROUTES.SINGLE_EVENT(response.event.id), { replace: true });
 		} catch (err) {
 			console.error("Failed to create event:", err);
 			setLocalError("Failed to create event. Please check your inputs and try again.");
@@ -64,55 +81,24 @@ export function FormEventCreate() {
 			if (!description.trim()) return setLocalError("Please enter a description.");
 		}
 		if (step === 2) {
-			if (!startAt || !endAt) return setValidDateError();
+			if (!startAt || !endAt) return setLocalError("Please select valid start and end times.");
 			if (new Date(startAt) >= new Date(endAt)) {
 				return setLocalError("End time must be after start time.");
 			}
 		}
 		if (step === 3) {
 			if (!venueName.trim()) return setLocalError("Please enter a venue name.");
+			if (!hasPickedLocation) return setLocalError("Please pick a location on the map or search.");
 		}
 
 		setStep((prev) => prev + 1);
 	}
 
-	function setValidDateError() {
-		setLocalError("Please select valid start and end times.");
-	}
-
-	// const headerLeft = (
-	// <Form.ToggleButton
-	// onClick={() => {
-	// setLocalError(null);
-	// setStep((prev) => Math.max(prev - 1, 1));
-	// }}
-	// style={{ opacity: step === 1 ? 0.3 : 0.7 }}
-	// disabled={step === 1}>
-	// ← Back
-	// </Form.ToggleButton>
-	// );
-
-	// const headerCenter = (
-	// <StepIndicator
-	// currentStep={step}
-	// totalSteps={4}
-	// />
-	// );
-
-	// const headerRight = <Form.ToggleButton onClick={() => navigate(-1)}>Cancel</Form.ToggleButton>;
-
 	return (
 		<Form
 			title={headers[step - 1]}
 			onSubmit={step === 4 ? handleSubmit : handleNext}
-			// header={
-			// 	<Form.Header
-			// 		left={headerLeft}
-			// 		center={headerCenter}
-			// 		right={headerRight}
-			// 	/>
-			// }
-		>
+			isDrawer={true}>
 			{step === 1 && (
 				<>
 					<Form.Field>
@@ -185,26 +171,13 @@ export function FormEventCreate() {
 					</Form.Field>
 
 					<Form.Field>
-						<Form.Label htmlFor="event-lat">Latitude</Form.Label>
-						<Form.Input
-							id="event-lat"
-							type="number"
-							step="any"
-							value={lat}
-							onChange={(e) => setLat(e.target.value)}
-							placeholder="40.7128"
-						/>
-					</Form.Field>
-
-					<Form.Field>
-						<Form.Label htmlFor="event-lng">Longitude</Form.Label>
-						<Form.Input
-							id="event-lng"
-							type="number"
-							step="any"
-							value={lng}
-							onChange={(e) => setLng(e.target.value)}
-							placeholder="-74.0060"
+						<Form.Label>Location & Map Coordinates</Form.Label>
+						<Form.LocationPicker
+							value={location}
+							onChange={(coords) => {
+								setLocation(coords);
+								setHasPickedLocation(true);
+							}}
 						/>
 					</Form.Field>
 				</>
