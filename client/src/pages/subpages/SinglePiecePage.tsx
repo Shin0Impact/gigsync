@@ -133,7 +133,6 @@ export function SinglePiecePage() {
 									<IntermezzoCard
 										key={intermezzo.id}
 										intermezzo={intermezzo}
-										pieceId={numericPieceId}
 										canDelete={canDelete}
 									/>
 								))}

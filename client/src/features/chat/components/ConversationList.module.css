@@ -138,3 +138,13 @@
         border-bottom: 0.125rem solid var(--color-accent);
     }
 }
+
+/* Text inside a yellow (active/hover) row must stay dark in dark mode */
+.item[data-active="true"] .name,
+.item[data-active="true"] .time,
+.item[data-active="true"] .preview,
+.item:hover .name,
+.item:hover .time,
+.item:hover .preview {
+    color: var(--color-ink);
+}

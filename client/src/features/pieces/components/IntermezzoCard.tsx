@@ -6,17 +6,16 @@ import styles from "./IntermezzoCard.module.css";
 
 interface IntermezzoCardProps {
 	intermezzo: Intermezzo;
-	pieceId: number | string;
 	canDelete?: boolean;
 }
 
-export function IntermezzoCard({ intermezzo, pieceId, canDelete = false }: IntermezzoCardProps) {
+export function IntermezzoCard({ intermezzo, canDelete = false }: IntermezzoCardProps) {
 	const [isConfirming, setIsConfirming] = useState(false);
 	const [deleteIntermezzo, { isLoading: isDeleting, isError: deleteFailed }] = useDeleteIntermezzoMutation();
 
 	const handleDelete = async () => {
 		try {
-			await deleteIntermezzo({ pieceId, intermezzoId: intermezzo.id }).unwrap();
+			await deleteIntermezzo({ pieceId: intermezzo.workId, intermezzoId: intermezzo.id }).unwrap();
 		} catch (err) {
 			console.error("Failed to delete Intermezzo:", err);
 		}
