@@ -102,7 +102,10 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 				aria-label={`Open ${work.title} by ${work.author.userName}`}>
 				<div className={styles.cardVignette}>
 					{work.coverMedia ? (
-						<VignetteMedia vignette={work.coverMedia} />
+						<VignetteMedia
+							vignette={work.coverMedia}
+							fill
+						/>
 					) : (
 						<div className={styles.shader}>
 							<LazyShader

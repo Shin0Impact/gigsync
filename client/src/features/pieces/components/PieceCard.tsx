@@ -87,7 +87,10 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 				aria-label={`Open Piece #${piece.id}`}>
 				<div className={styles.cardVignette}>
 					{coverVignette ? (
-						<VignetteMedia vignette={coverVignette} />
+						<VignetteMedia
+							vignette={coverVignette}
+							fill
+						/>
 					) : (
 						<div className={styles.shader}>
 							<LazyShader

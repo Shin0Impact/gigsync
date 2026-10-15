@@ -20,6 +20,13 @@
     gap: 2rem;
 }
 
+.tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
 .sectionHeader {
     display: flex;
     align-items: center;

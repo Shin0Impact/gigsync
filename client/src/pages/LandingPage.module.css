@@ -8,3 +8,12 @@
     padding: 3vh;
     gap: 3vh;
 }
+
+/* When the nav wraps on narrow screens the page must be allowed to
+   grow instead of squishing the hero. */
+@media (max-width: 48rem) {
+    .landingPage {
+        height: auto;
+        min-height: 100vh;
+    }
+}

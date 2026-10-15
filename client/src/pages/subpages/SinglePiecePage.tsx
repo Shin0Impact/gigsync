@@ -24,7 +24,7 @@ export function SinglePiecePage() {
 	const { data, isLoading: isLoadingComposition } = useGetCompositionQuery(`${pieceId}`);
 
 	const tabParam = searchParams.get("tab");
-	const activeTab: "composition" | "intermezzi" = tabParam === "intermezzi" ? "intermezzi" : "composition";
+	const activeTab: "composition" | "intermezzi" = tabParam === "composition" ? "composition" : "intermezzi";
 
 	const setTab = (tab: "composition" | "intermezzi") => {
 		setSearchParams(
@@ -66,14 +66,9 @@ export function SinglePiecePage() {
 				// subtitle="Explore intermezzi and the composition timeline"
 				mode="button"
 				actions={
-					<>
-						<Button
-							role="tab"
-							aria-selected={activeTab === "composition"}
-							variant={activeTab === "composition" ? "solid" : "ghost"}
-							onClick={() => setTab("composition")}>
-							Composition
-						</Button>
+					<div
+						className={styles.tabs}
+						role="tablist">
 						<Button
 							role="tab"
 							aria-selected={activeTab === "intermezzi"}
@@ -81,7 +76,14 @@ export function SinglePiecePage() {
 							onClick={() => setTab("intermezzi")}>
 							Intermezzi ({intermezzos.length})
 						</Button>
-					</>
+						<Button
+							role="tab"
+							aria-selected={activeTab === "composition"}
+							variant={activeTab === "composition" ? "solid" : "ghost"}
+							onClick={() => setTab("composition")}>
+							Composition
+						</Button>
+					</div>
 				}
 			/>
 			<Page.Body>
