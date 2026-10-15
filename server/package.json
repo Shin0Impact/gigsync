@@ -21,7 +21,12 @@
     "test:sockets": "tsx tests/sockets.conversation-auth.test.ts",
     "test:rate-limit": "tsx tests/rateLimit.api.test.ts",
     "test:login-timing": "tsx tests/loginTiming.api.test.ts",
-    "test:verification": "tsx tests/verification.api.test.ts"
+    "test:verification": "tsx tests/verification.api.test.ts",
+    "test:recurrence": "tsx tests/recurrence.service.test.ts",
+    "demo:media": "tsx scripts/demo/fetchDemoMedia.ts",
+    "demo:wipe": "tsx scripts/demo/wipeDemoData.ts",
+    "demo:seed": "tsx scripts/demo/seedDemoData.ts",
+    "demo:availability": "tsx scripts/demo/fillAvailability.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.629.0",
