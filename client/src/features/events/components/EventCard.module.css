@@ -329,3 +329,75 @@
         animation: none;
     }
 }
+
+/* Mobile: the desktop card is a fixed 40rem wide row that overflows a
+   phone screen. Fill the viewport width, shrink the media square and
+   keep the action buttons inside the card. */
+@media (max-width: 48rem) {
+    .cardWrapper,
+    .cardWrapper[data-confirm="true"] {
+        grid-template-columns: minmax(0, 1fr) 0rem;
+        gap: 0;
+
+        .card {
+            height: auto;
+            min-height: 0;
+            padding: 1rem;
+            gap: 1rem;
+
+            .cardVignette {
+                height: auto;
+                width: 7.5rem;
+                aspect-ratio: 1;
+                align-self: flex-start;
+            }
+
+            .cardBody {
+                min-width: 0;
+
+                .details {
+                    gap: 0.75rem;
+
+                    .text .header .title {
+                        font-size: 1.3rem;
+                    }
+
+                    .actions {
+                        gap: 0.75rem;
+
+                        .actionButton {
+                            font-size: 0.85rem;
+                        }
+                    }
+                }
+            }
+        }
+
+        .confirmDelete {
+            height: auto;
+            min-height: 0;
+        }
+    }
+
+    /* Delete confirmation / cover-letter panel takes the full width
+       when open on mobile */
+    .cardWrapper[data-confirm="true"] {
+        grid-template-columns: 0rem minmax(0, 1fr);
+
+        .confirmDelete.activePanel {
+            width: 100%;
+        }
+    }
+}
+.urgentBadge {
+    display: inline-block;
+    margin-right: 0.5rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background-color: #d32f2f;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}

@@ -73,8 +73,7 @@
     background-color: transparent;
     border: 0.125rem solid #d32f2f;
     color: #d32f2f;
-    font-family: var(--font-sans, sans-serif);
-    font-size: 0.95rem;
+    font-family: var(--font-sans, sans-serif);    font-size: 0.95rem;
     font-weight: 500;
     padding: 0.6rem 1rem;
     cursor: pointer;
@@ -88,6 +87,17 @@
     &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+}
+
+/* Dark mode: the stock red is too dark against the dark surface */
+:root[data-theme="dark"] .logoutButton {
+    border-color: #ef5350;
+    color: #ef5350;
+
+    &:hover {
+        background-color: #ef5350;
+        color: #16151a;
     }
 }
 

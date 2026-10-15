@@ -22,3 +22,27 @@
     margin: 0;
     padding: 0;
 }
+
+/* Phones: stack the nav into centered rows so the logo, About /
+   Mission / Features and "Start creating" all fit the frame. */
+@media (max-width: 48rem) {
+    .navbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem 1.25rem;
+    }
+
+    .logoLink {
+        flex-basis: 100%;
+        justify-content: center;
+
+        /* shrink the 10vh logo so the links fit below it */
+        &>*[data-size] {
+            height: 2.25rem;
+        }
+    }
+
+    .links {
+        gap: 1.25rem;
+    }
+}

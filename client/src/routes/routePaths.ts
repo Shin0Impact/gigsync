@@ -58,7 +58,7 @@ export const ROUTES = {
 	SINGLE_EVENT: (id: string | number) => `/events/${id}`,
 
 	EVENT_APPLICATIONS_PATTERN: "/events/:id/applications",
-	EVENT_APPLICATIONS: (id: string | number) => `/events/:id/${id}`,
+	EVENT_APPLICATIONS: (id: string | number) => `/events/${id}/applications`,
 
 	CREATE_PIECE: "/pieces/new",
 	CREATE_INTERMEZZO: "/intermezzi/new",

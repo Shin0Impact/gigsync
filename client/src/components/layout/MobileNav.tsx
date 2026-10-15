@@ -2,7 +2,7 @@ import { useLocation } from "react-router-dom";
 import { ROUTES } from "../../routes/routePaths";
 import styles from "./MobileNav.module.css";
 import { ButtonLink } from "@components/ui";
-import { HappeningIcon, HomeIcon, OnAirIcon, PieceIcon, PlusIcon } from "../../assets/icons";
+import { HappeningIcon, HomeIcon, PieceIcon, PlusIcon, SearchIcon } from "../../assets/icons";
 
 interface MobileNavProps {
 	role: string;
@@ -43,24 +43,24 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 				{isOrganizer ? <HappeningIcon className={styles.icon} /> : <PieceIcon className={styles.icon} />}
 			</ButtonLink>
 
-			<button
-				type="button"
-				onClick={onToggleDrawer}
-				className={`${styles.fabButton} ${isDrawerOpen ? styles.isOpen : ""}`}
-				aria-label="Create new">
-				<PlusIcon className={`${styles.icon} ${styles.plusIcon}`} />
-			</button>
-
-			{role === "artist" && username && (
-				<ButtonLink
-					to={ROUTES.AVAILABILITY(username)}
-					active={path === ROUTES.PROFILE(username) && location.search.includes("tab=availability")}
-					aria-label="On Air"
-					className={styles.navButton}
-					variant="nav">
-					<OnAirIcon className={styles.icon} />
-				</ButtonLink>
+			{(role === "artist" || role === "organizer") && (
+				<button
+					type="button"
+					onClick={onToggleDrawer}
+					className={`${styles.fabButton} ${isDrawerOpen ? styles.isOpen : ""}`}
+					aria-label="Create new">
+					<PlusIcon className={`${styles.icon} ${styles.plusIcon}`} />
+				</button>
 			)}
+
+			<ButtonLink
+				to={ROUTES.SEARCH}
+				active={path === ROUTES.SEARCH}
+				aria-label="Search"
+				className={styles.navButton}
+				variant="nav">
+				<SearchIcon className={styles.icon} />
+			</ButtonLink>
 
 			<ButtonLink
 				to={username ? ROUTES.PROFILE(username) : ROUTES.HOME}
