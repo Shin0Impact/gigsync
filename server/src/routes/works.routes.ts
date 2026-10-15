@@ -15,7 +15,6 @@ import {
 	list_update_media_handler,
 	list_work_updates_handler,
 	list_works_feed_handler,
-	list_works_handler,
 	unlike_work_handler,
 	get_composition_handler,
 } from "../controllers/works.controller";
@@ -43,7 +42,6 @@ router.get("/:identifier", get_work_or_user_works_handler);
 // and showcases).
 //
 
-router.get("/:userId", list_works_handler);
 router.delete("/:workId", requireAuth, requireRole("artist"), delete_work_handler);
 
 router.post("/:workId/updates", requireAuth, requireRole("artist"), add_work_update_handler);

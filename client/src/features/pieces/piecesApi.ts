@@ -217,6 +217,23 @@ export const worksApi = api.injectEndpoints({
 				method: "POST",
 				body,
 			}),
+			// Keep the "N Echoes" count on feed cards in sync without refetching (and
+			// reordering) the whole feed - same reasoning as the like mutations above.
+			async onQueryStarted({ workId }, { dispatch, queryFulfilled, getState }) {
+				try {
+					await queryFulfilled;
+				} catch {
+					return;
+				}
+				for (const arg of worksApi.util.selectCachedArgsForQuery(getState(), "listWorksFeed")) {
+					dispatch(
+						worksApi.util.updateQueryData("listWorksFeed", arg, (draft) => {
+							const work = draft.works.find((w) => String(w.id) === String(workId));
+							if (work) work.commentCount += 1;
+						}),
+					);
+				}
+			},
 			invalidatesTags: (_result, _error, { workId }) => [{ type: "Comment", id: workId }],
 		}),
 

@@ -75,8 +75,12 @@ export async function list_social_links_handler(
 	req: Request<{ userId: string }>,
 	res: Response<ListSocialLinksResponse | ErrorResponse>,
 ) {
-	const links = await get_social_links_for_user(req.params.userId);
-	return res.status(200).json({ links });
+	try {
+		const links = await get_social_links_for_user(req.params.userId);
+		return res.status(200).json({ links });
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to list social links");
+	}
 }
 
 // Any authenticated user can request an ID-document upload URL - the file
@@ -111,16 +115,24 @@ export async function get_verification_status_handler(
 	req: Request<{ userId: string }>,
 	res: Response<VerificationStatusResult | ErrorResponse>,
 ) {
-	const status = await get_verification_status_for_user(req.params.userId);
-	return res.status(200).json(status);
+	try {
+		const status = await get_verification_status_for_user(req.params.userId);
+		return res.status(200).json(status);
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to load verification status");
+	}
 }
 
 export async function list_pending_verification_requests_handler(
 	_req: Request,
 	res: Response<ListPendingVerificationRequestsResponse | ErrorResponse>,
 ) {
-	const requests = await get_pending_verification_requests();
-	return res.status(200).json({ requests });
+	try {
+		const requests = await get_pending_verification_requests();
+		return res.status(200).json({ requests });
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to list pending verification requests");
+	}
 }
 
 // Moderator/admin only (route-gated). Returns a short-lived (5 min)

@@ -22,13 +22,15 @@ export function UserFeed({ scope, emptyTitle, emptyText, actionLabel = "" }: Use
 
 			{error && <div className={styles.error}>Unable to load this feed right now. Please try refreshing.</div>}
 
-			{!isLoading && !error && works.length === 0 && scope === "following" && (
+			{!isLoading && !error && works.length === 0 && (
 				<div className={styles.emptyState}>
 					<EmptyState
 						title={emptyTitle}
 						subtitle={emptyText}
 						actionLabel={actionLabel}
-						to={ROUTES.DISCOVERY}
+						// Timeline (following) -> go find people to follow; Discovery is already
+						// that page, so point its empty state at events instead of back at itself
+						to={scope === "following" ? ROUTES.DISCOVERY : ROUTES.DISCOVERY_EVENTS}
 					/>
 				</div>
 			)}
