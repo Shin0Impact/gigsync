@@ -1,19 +1,29 @@
-import React, { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams, useLocation, matchPath } from "react-router-dom";
 import { useMeQuery } from "../../auth/authApi";
 import { useListPiecesQuery, useCreatePieceMutation, useAddIntermezzoMutation, useAddVignetteMutation } from "../piecesApi";
 import { uploadFileToR2 } from "../../../shared/uploadClient";
 import { Form } from "@components";
 import { IWork } from "@shared/types/social";
+import { ROUTES } from "../../../routes/routePaths";
 
 export function FormIntermezzoCreate() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
+	const location = useLocation();
+
+	const isDrawerOpen = searchParams.get("drawer") === "open";
+	const queryPieceId = searchParams.get("pieceId") ? Number(searchParams.get("pieceId")) : undefined;
+
+	// Match path against /pieces/:id to read ID from URL params if present
+	const match = matchPath({ path: "/pieces/:id", end: true }, location.pathname);
+	const paramPieceId = match?.params.id ? Number(match.params.id) : undefined;
+
+	// Priority: URL query param -> route param -> undefined
+	const initialPieceId = queryPieceId ?? paramPieceId;
 
 	const { data: meData, isLoading: isLoadingMe } = useMeQuery();
 	const userId = meData?.user?.userId;
-
-	const initialPieceId = searchParams.get("pieceId") ? Number(searchParams.get("pieceId")) : undefined;
 
 	const { data: userPiecesData, isLoading: isLoadingPieces } = useListPiecesQuery(userId!, {
 		skip: !userId,
@@ -21,15 +31,25 @@ export function FormIntermezzoCreate() {
 
 	const hasPieces = Boolean(userPiecesData?.works && userPiecesData.works.length > 0);
 
-	// Default to empty/unselected unless a query param is provided
 	const [selectedPieceId, setSelectedPieceId] = useState<number | undefined>(initialPieceId);
 	const [isCreatingNewPiece, setIsCreatingNewPiece] = useState(false);
 	const [newPieceTitle, setNewPieceTitle] = useState("");
-
 	const [description, setDescription] = useState("");
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [mediaType, setMediaType] = useState<"image" | "video" | "audio">("image");
 	const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+	// Reset form data completely when the drawer parameter transitions from open to closed
+	useEffect(() => {
+		if (!isDrawerOpen) {
+			setSelectedPieceId(initialPieceId);
+			setIsCreatingNewPiece(false);
+			setNewPieceTitle("");
+			setDescription("");
+			setSelectedFile(null);
+			setMediaType("image");
+		}
+	}, [isDrawerOpen, initialPieceId]);
 
 	const [createPiece, { isLoading: isCreatingPiece }] = useCreatePieceMutation();
 	const [addIntermezzo, { isLoading: isAddingIntermezzo, error: intermezzoError }] = useAddIntermezzoMutation();
@@ -60,7 +80,7 @@ export function FormIntermezzoCreate() {
 	const handleSwitchToExisting = () => {
 		setIsCreatingNewPiece(false);
 		setNewPieceTitle("");
-		setSelectedPieceId(undefined);
+		setSelectedPieceId(initialPieceId);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +133,8 @@ export function FormIntermezzoCreate() {
 				}
 			}
 
-			navigate(-1);
+			// navigate(-1);
+			navigate(ROUTES.SINGLE_PIECE(intermezzoResponse.update.workId));
 		} catch (err) {
 			console.error("Failed to create intermezzo or piece:", err);
 		}
@@ -140,7 +161,7 @@ export function FormIntermezzoCreate() {
 						marginBottom: "0.25rem",
 					}}>
 					<Form.Label htmlFor="piece">Piece</Form.Label>
-					{isCreatingNewPiece && !initialPieceId && hasPieces && (
+					{isCreatingNewPiece && hasPieces && (
 						<button
 							type="button"
 							onClick={handleSwitchToExisting}
@@ -175,7 +196,7 @@ export function FormIntermezzoCreate() {
 						value={selectedPieceId ?? ""}
 						onChange={handleSelectChange}
 						required
-						disabled={isLoading || Boolean(initialPieceId)}>
+						disabled={isLoading}>
 						<option value="">{isLoadingPieces ? "Loading your Pieces..." : "-- Select a Piece --"}</option>
 						<option value="NEW">+ Create New Piece</option>
 						{userPiecesData?.works?.map((piece: IWork) => (

@@ -7,6 +7,8 @@ import type { RootState } from "../../../app/store";
 import type { ConversationParticipantSummary, MessageDto } from "@shared/types/index";
 import ProfilePicture from "../../../components/user/ProfilePicture";
 import styles from "./MessageThread.module.css";
+import { Link } from "react-router-dom";
+import { ROUTES } from "../../../routes/routePaths";
 
 interface MessageThreadProps {
 	conversationId: string;
@@ -71,13 +73,15 @@ export function MessageThread({ conversationId, otherParticipant }: MessageThrea
 	return (
 		<div className={styles.thread}>
 			<header className={styles.header}>
-				<ProfilePicture
-					avatarUrl={otherParticipant?.avatarUrl}
-					userName={otherParticipant?.userName}
-					variant="nav"
-					className={styles.headerAvatar}
-				/>
-				<span className={styles.headerName}>{otherParticipant?.userName ?? "Conversation"}</span>
+				<Link to={ROUTES.PROFILE(otherParticipant?.userName!)}>
+					<ProfilePicture
+						avatarUrl={otherParticipant?.avatarUrl}
+						userName={otherParticipant?.userName}
+						variant="chat"
+						className={styles.headerAvatar}
+					/>
+					<span className={styles.headerName}>{otherParticipant?.userName ?? "Conversation"}</span>
+				</Link>
 			</header>
 
 			<div className={styles.messages}>
@@ -119,6 +123,7 @@ export function MessageThread({ conversationId, otherParticipant }: MessageThrea
 				<button
 					type="submit"
 					className={styles.sendButton}
+					onClick={handleSend}
 					disabled={!draft.trim()}>
 					Send
 				</button>

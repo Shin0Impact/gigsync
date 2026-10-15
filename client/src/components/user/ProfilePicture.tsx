@@ -5,7 +5,7 @@ interface ProfilePictureProps {
 	avatarUrl?: string | null;
 	userName?: string | null;
 	isLoading?: boolean;
-	variant: "nav" | "profile" | "page";
+	variant: "nav" | "profile" | "page" | "chat";
 	className?: string;
 }
 

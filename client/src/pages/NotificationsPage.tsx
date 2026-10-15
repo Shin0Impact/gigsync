@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { useGetMyActivityQuery } from "../features/profiles";
-// import { usePostQuickView } from "../features/pieces";
 import { ROUTES } from "../routes/routePaths";
 import ProfilePicture from "../components/user/ProfilePicture";
 import type { ActivityItem } from "@shared/types/index";
 import styles from "./NotificationsPage.module.css";
+import { EmptyState } from "@components/ui/EmptyState/EmptyState";
+import { HandshakeIcon } from "@animateicons/react/huge";
+import { useMeQuery } from "../features/auth";
 
 function formatRelativeTime(isoDate: string): string {
 	const then = new Date(isoDate).getTime();
@@ -36,14 +38,15 @@ function describe(item: ActivityItem): string {
 	}
 }
 
-// Derived/synthesized on the server from likes, comments, followings and
-// event_applications - there is no notifications table, so nothing here
-// can be marked read/unread, it is just a feed of recent activity (see
-// get_my_activity in profiles.service.ts).
 export function NotificationsPage() {
 	const { data, isLoading, error } = useGetMyActivityQuery();
-	// const { openPost } = usePostQuickView();
+	const { data: dataMe } = useMeQuery();
 	const activity = data?.activity ?? [];
+	const role = dataMe?.user?.role;
+	const subtitle =
+		role === "fan"
+			? "Nods, Echoes, and new followers will show up here."
+			: "Nods, Echoes, new followers and application updates will show up here.";
 
 	return (
 		<main className={styles.container}>
@@ -59,12 +62,12 @@ export function NotificationsPage() {
 			{error && <div className={styles.error}>Unable to load notifications right now. Please try refreshing.</div>}
 
 			{!isLoading && !error && activity.length === 0 && (
-				<div className={styles.emptyState}>
-					<h2 className={styles.emptyTitle}>All quiet for now</h2>
-					<p className={styles.emptyText}>
-						Likes, comments, new followers and application updates will show up here.
-					</p>
-				</div>
+				<EmptyState
+					title="All quiet for now."
+					subtitle={subtitle}
+					actionLabel="Discover Events and Pieces"
+					to={ROUTES.DISCOVERY}
+				/>
 			)}
 
 			{!isLoading && activity.length > 0 && (
@@ -78,11 +81,9 @@ export function NotificationsPage() {
 								role={isClickable ? "button" : undefined}
 								tabIndex={isClickable ? 0 : undefined}
 								data-clickable={isClickable}
-								// onClick={isClickable ? () => openPost(item.workId!) : undefined}
 								onKeyDown={(e) => {
 									if (isClickable && (e.key === "Enter" || e.key === " ")) {
 										e.preventDefault();
-										// openPost(item.workId!);
 									}
 								}}>
 								{item.actor ? (
@@ -98,7 +99,14 @@ export function NotificationsPage() {
 									</Link>
 								) : (
 									<div className={styles.systemIcon}>
-										{item.type === "application_accepted" ? "🎉" : "📋"}
+										{item.type === "application_accepted" ? (
+											<HandshakeIcon
+												size={18}
+												color="currentColor"
+											/>
+										) : (
+											"📋"
+										)}
 									</div>
 								)}
 

@@ -35,9 +35,9 @@ export function ConversationList({ activeConversationId }: ConversationListProps
 
 	return (
 		<aside className={styles.list}>
-			<header className={styles.header}>
+			{/* <header className={styles.header}>
 				<h1 className={styles.title}>Messages</h1>
-			</header>
+			</header> */}
 
 			{isLoading && <div className={styles.status}>Loading conversations…</div>}
 

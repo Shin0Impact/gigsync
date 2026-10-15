@@ -16,11 +16,13 @@ export const ROUTES = {
 	SEARCH: "/search",
 	SETTINGS: "/settings",
 	VERIFICATION: "/verification",
-	NOTIFICATIONS: "/notifications",
 
-	MESSAGES: "/messages",
-	MESSAGE_THREAD_PATTERN: "/messages/:conversationId",
-	MESSAGE_THREAD: (conversationId: string) => `/messages/${conversationId}`,
+	INBOX: "/inbox",
+	NOTIFICATIONS: "/inbox/notifications",
+	MESSAGES: "/inbox/messages",
+
+	MESSAGE_THREAD_PATTERN: "/inbox/messages/:conversationId",
+	MESSAGE_THREAD: (conversationId: string) => `/inbox/messages/${conversationId}`,
 
 	// ======== SELF =========
 

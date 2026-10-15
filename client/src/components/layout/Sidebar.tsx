@@ -23,7 +23,7 @@ const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
 };
 
 const BOTTOM_NAV_ITEMS: NavItem[] = [
-	{ to: ROUTES.NOTIFICATIONS, label: "Notifications" },
+	{ to: ROUTES.INBOX, label: "Inbox" },
 	{ to: ROUTES.SETTINGS, label: "Settings" },
 	{ to: (username: string) => ROUTES.PROFILE(username), label: "Profile" },
 ];
@@ -86,7 +86,7 @@ export function Sidebar() {
 							key={item.label}
 							to={resolvePath(item.to)}
 							color="invert"
-							active={resolvePath(item.to) === path}>
+							active={path.startsWith(resolvePath(item.to))}>
 							{item.label}
 						</LinkNav>
 					))}
@@ -100,7 +100,7 @@ export function Sidebar() {
 									key={item.label}
 									to={resolvePath(item.to)}
 									color="invert"
-									active={resolvePath(item.to) === path}>
+									active={path.startsWith(resolvePath(item.to))}>
 									{item.label}
 								</LinkNav>
 							))}

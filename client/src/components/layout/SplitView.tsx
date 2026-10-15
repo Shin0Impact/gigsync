@@ -5,11 +5,12 @@ import styles from "./SplitView.module.css";
 import { useMeQuery } from "../../features/auth";
 import { FormIntermezzoCreate } from "../../features/pieces";
 import FloatingActionButton from "./FloatingActionButton";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { useMediaQuery } from "../../hooks";
 import { MobileNav } from "./MobileNav";
 import FormEventCreate from "../../features/events/components/FormEventCreate";
 import { FormApplyToEvent } from "../../features/events/components/FormApplyToEvent";
+import { ROUTES } from "../../routes/routePaths";
 
 interface SplitViewProps {
 	children: ReactNode;
@@ -32,8 +33,11 @@ const defaultDecoration = (
 	/>
 );
 
+const HIDDEN_FAB_ROUTES = [ROUTES.MESSAGES, ROUTES.MESSAGE_THREAD_PATTERN, ROUTES.SETTINGS];
+
 export function SplitView({ children, contentDecoration = false, className = "" }: SplitViewProps) {
 	const [searchParams, setSearchParams] = useSearchParams();
+	const location = useLocation();
 	const isDrawerOpen = searchParams.get("drawer") === "open";
 	const formParam = searchParams.get("form") || "default";
 	const eventIdParam = searchParams.get("eventId");
@@ -43,18 +47,30 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 	const role = data?.user?.role ?? "guest";
 	const username = data?.user?.userName;
 
+	const shouldHideFab = HIDDEN_FAB_ROUTES.some((route) => {
+		if (route.includes(":")) {
+			const basePath = route.split(":")[0];
+			return location.pathname.startsWith(basePath);
+		}
+		return location.pathname === route;
+	});
+
 	const handleToggleDrawer = () => {
-		setSearchParams((prev) => {
-			const newParams = new URLSearchParams(prev);
-			if (isDrawerOpen) {
-				newParams.delete("drawer");
-				newParams.delete("form");
-				newParams.delete("eventId");
-			} else {
-				newParams.set("drawer", "open");
-			}
-			return newParams;
-		});
+		setSearchParams(
+			(prev) => {
+				const newParams = new URLSearchParams(prev);
+				if (isDrawerOpen) {
+					newParams.delete("drawer");
+					newParams.delete("form");
+					newParams.delete("eventId");
+					newParams.delete("pieceId");
+				} else {
+					newParams.set("drawer", "open");
+				}
+				return newParams;
+			},
+			{ replace: true },
+		);
 	};
 
 	let drawerContent = null;
@@ -101,7 +117,7 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 				<div className={styles.drawerInner}>{drawerContent}</div>
 			</aside>
 
-			{(role === "artist" || role === "organizer") && (
+			{(role === "artist" || role === "organizer") && !shouldHideFab && (
 				<FloatingActionButton
 					isOpen={isDrawerOpen}
 					setDrawerOpen={handleToggleDrawer}

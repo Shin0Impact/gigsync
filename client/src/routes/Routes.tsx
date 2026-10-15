@@ -26,6 +26,7 @@ import { TimelinePiecesFeed } from "../features/explore/TimelinePiecesFeed";
 import { TimelineEventsFeed } from "../features/explore/TimelineEventsFeed";
 import { SingleEventDetails } from "../features/events/components/SingleEventDetails";
 import { SingleEventApplications } from "../features/events/components/SingleEventApplications";
+import InboxPage from "../pages/InboxPage";
 
 export function AppRoutes() {
 	return (
@@ -107,13 +108,30 @@ export function AppRoutes() {
 						element={<SearchPage />}
 					/>
 					<Route
-						path={ROUTES.NOTIFICATIONS}
-						element={<NotificationsPage />}
-					/>
-					<Route
-						path={ROUTES.MESSAGES}
-						element={<MessagesPage />}
-					/>
+						path={ROUTES.INBOX}
+						element={<InboxPage />}>
+						<Route
+							index
+							element={
+								<Navigate
+									to={ROUTES.NOTIFICATIONS}
+									replace
+								/>
+							}
+						/>
+						<Route
+							path="notifications"
+							element={<NotificationsPage />}
+						/>
+						<Route
+							path="messages"
+							element={<MessagesPage />}
+						/>
+						<Route
+							path={ROUTES.MESSAGE_THREAD_PATTERN}
+							element={<MessagesPage />}
+						/>
+					</Route>
 
 					<Route
 						path={ROUTES.SETTINGS}
@@ -147,14 +165,6 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.NOTIFICATIONS}
 						element={<NotificationsPage />}
-					/>
-					<Route
-						path={ROUTES.MESSAGES}
-						element={<MessagesPage />}
-					/>
-					<Route
-						path={ROUTES.MESSAGE_THREAD_PATTERN}
-						element={<MessagesPage />}
 					/>
 
 					<Route
