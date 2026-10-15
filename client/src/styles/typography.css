@@ -67,3 +67,17 @@
     font-style: italic;
     src: url("../assets/fonts/PPEditorialNew-UltraboldItalic.otf");
 }
+
+@font-face {
+    font-family: "Coolvetica";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../assets/fonts/coolvetica\ rg.otf");
+}
+
+@font-face {
+    font-family: "Coolvetica";
+    font-weight: normal;
+    font-style: italic;
+    src: url("../assets/fonts/coolvetica\ rg\ it.otf");
+}
