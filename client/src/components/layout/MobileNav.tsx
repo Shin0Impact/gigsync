@@ -20,7 +20,7 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 	};
 
 	const isOrganizer = role === "organizer";
-	const secondaryRoute = isOrganizer ? ROUTES.MY_HAPPENINGS : ROUTES.MY_PIECES;
+	const secondaryRoute = isOrganizer ? ROUTES.MY_EVENTS : ROUTES.MY_PIECES;
 	const secondaryActive = path === resolvePath(secondaryRoute);
 
 	return (
@@ -51,18 +51,20 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 				<PlusIcon className={`${styles.icon} ${styles.plusIcon}`} />
 			</button>
 
-			<ButtonLink
-				to={ROUTES.ON_AIR}
-				active={path === ROUTES.ON_AIR}
-				aria-label="On Air"
-				className={styles.navButton}
-				variant="nav">
-				<OnAirIcon className={styles.icon} />
-			</ButtonLink>
+			{role === "artist" && username && (
+				<ButtonLink
+					to={ROUTES.AVAILABILITY(username)}
+					active={path === ROUTES.PROFILE(username) && location.search.includes("tab=availability")}
+					aria-label="On Air"
+					className={styles.navButton}
+					variant="nav">
+					<OnAirIcon className={styles.icon} />
+				</ButtonLink>
+			)}
 
 			<ButtonLink
 				to={username ? ROUTES.PROFILE(username) : ROUTES.HOME}
-				active={username ? path === resolvePath(ROUTES.PROFILE(username)) : false}
+				active={username ? path === resolvePath(ROUTES.PROFILE(username)) && !location.search.includes("tab=availability") : false}
 				aria-label="Profile"
 				className={styles.navButton}
 				variant="nav">

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { WorkCompositionItem, RoleBreakdown } from "@shared/types/social";
 import styles from "./Composition.module.css";
 

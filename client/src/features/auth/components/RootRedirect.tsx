@@ -1,4 +1,4 @@
-import { Navigate, Routes } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useMeQuery } from "../authApi";
 import { ROUTES } from "../../../routes/routePaths";
 import { LandingPage } from "../../../pages/LandingPage";

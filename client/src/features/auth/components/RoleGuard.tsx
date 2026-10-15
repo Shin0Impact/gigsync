@@ -34,7 +34,7 @@ export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 		} else if (user.role === "organizer") {
 			return (
 				<Navigate
-					to={ROUTES.MY_HAPPENINGS}
+					to={ROUTES.MY_EVENTS}
 					replace
 				/>
 			);

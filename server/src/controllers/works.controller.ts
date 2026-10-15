@@ -74,11 +74,6 @@ export async function create_work_handler(
 	}
 }
 
-export async function list_works_handler(req: Request<{ userId: string }>, res: Response<ListWorksResponse | ErrorResponse>) {
-	const works = await get_works_for_user(req.params.userId);
-	return res.status(200).json({ works });
-}
-
 // GET /api/works/:identifier serves two reads off one route, distinguished
 // by the identifier's shape (user ids are UUIDs, work ids are positive
 // integers - they can never collide):

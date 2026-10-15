@@ -4,7 +4,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import { EventCard } from "./EventCard";
 import { EmptyState } from "@components/ui/EmptyState/EmptyState";
 import { UserRole } from "@shared/types/index";
-import { Navigate, replace, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface UserEventsProps {
 	organizerId?: string;

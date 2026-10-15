@@ -206,8 +206,9 @@
     .confirmDelete {
         overflow: hidden;
         opacity: 0;
+        visibility: hidden;
         transform: translateX(-1rem);
-        transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s;
+        transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s, visibility 0s linear 0.3s;
         background-color: var(--color-primary);
         border: 0.125rem solid var(--color-accent);
         padding: 1.25rem;
@@ -250,7 +251,9 @@
 
     &[data-confirm="true"] .confirmDelete {
         opacity: 1;
+        visibility: visible;
         transform: translateX(0);
+        transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s, visibility 0s;
     }
 }
 

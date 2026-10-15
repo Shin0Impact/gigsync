@@ -7,7 +7,7 @@ import {
 	list_showcase_items_for_user,
 	ShowcaseSourceType,
 } from "../db/queries/showcase.queries";
-import { find_event_by_id } from "../db/queries/events.queries";
+import { find_event_by_id, list_applications_for_artist } from "../db/queries/events.queries";
 import { list_event_media } from "../db/queries/event_media.queries";
 import { getMediaForUpdate, getWorkById, getWorkUpdates } from "../db/social.queries";
 import { AddShowcaseItemInput } from "../types";
@@ -19,9 +19,11 @@ const VALID_SOURCE_TYPES: ShowcaseSourceType[] = ["event", "work"];
 // changes; there's nothing else tying the number to 3.
 const MAX_SHOWCASE_ITEMS = 3;
 
-// Pinning is self-ownership only: an organizer can pin one of their own
-// events, an artist can pin one of their own works (a project). No
-// cross-user pinning yet.
+// Pinning is limited to things that are genuinely yours: an organizer can pin
+// one of their own events, an artist can pin one of their own works (a
+// project), and an artist can pin an event they were ACCEPTED to perform at.
+// Pending/rejected applications don't count, and there's no other cross-user
+// pinning.
 async function assert_owns_source(
 	userId: string,
 	sourceType: ShowcaseSourceType,
@@ -32,7 +34,14 @@ async function assert_owns_source(
 		if (!event) {
 			throw new Error("Source not found");
 		}
-		if (event.organizer_id !== userId) {
+		if (event.organizer_id === userId) {
+			return;
+		}
+		const applications = await list_applications_for_artist(userId);
+		const wasAccepted = applications.some(
+			(application) => application.event_id === sourceId && application.status === "accepted",
+		);
+		if (!wasAccepted) {
 			throw new Error("You do not own this");
 		}
 		return;

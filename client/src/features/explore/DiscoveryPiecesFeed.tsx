@@ -14,7 +14,7 @@ export function DiscoveryPiecesFeed() {
 			scope="explore"
 			emptyTitle="No pieces in the feed yet."
 			emptyText="Explore works shared by other creatives."
-			actionLabel="Explore More"
+			actionLabel="Browse Events"
 		/>
 	);
 }

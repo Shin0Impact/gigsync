@@ -1,4 +1,4 @@
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Page, Button } from "@components";
 import { useGetCompositionQuery, useListIntermezzosQuery } from "../../features/pieces";
 import { IntermezzoCard } from "../../features/pieces/components/IntermezzoCard";
@@ -7,7 +7,6 @@ import styles from "./SinglePiecePage.module.css";
 
 export function SinglePiecePage() {
 	const { id: pieceId } = useParams<{ id: string }>();
-	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const isDrawerOpen = searchParams.get("drawer") === "open";
 

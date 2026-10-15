@@ -32,7 +32,8 @@ export const ROUTES = {
 
 	// ======== ON AIR =========
 
-	AVAILABILITY: "/availability",
+	// opens the Availability tab on the artist's own profile
+	AVAILABILITY: (username: string) => `/${username}?tab=availability`,
 
 	// ======== PROFILE ========
 

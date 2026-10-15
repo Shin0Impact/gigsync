@@ -25,7 +25,7 @@ export function FormSignup() {
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [register, { isLoading, error }] = useRegisterMutation();
-	const [login, { isLoading: isLoadingLogin, error: errorLogin }] = useLoginMutation();
+	const [login] = useLoginMutation();
 	const headers = ["We're Mezzo :)", "Hi, ", "Let's get you started.", "Pick a password.", "Finally, choose a handle."];
 
 	async function handleSubmit(e: FormEvent) {

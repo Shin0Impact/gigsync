@@ -9,6 +9,12 @@ import apiRoutes from './routes';
 import { initSocketServer } from './sockets';
 import { start_recurring_events_job } from './jobs/recurring-events.job';
 
+// Safety net: a stray rejected promise (e.g. a DB error inside an async Express 4
+// handler, which Express doesn't catch) would otherwise terminate the process.
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection:', reason);
+});
+
 const app = express();
 
 app.use(cors({ origin: env.clientOrigin, credentials: true }));

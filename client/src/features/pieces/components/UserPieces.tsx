@@ -1,6 +1,5 @@
 import { useListPiecesQuery } from "../piecesApi";
 import styles from "./UserPieces.module.css";
-import { ROUTES } from "../../../routes/routePaths";
 import { PieceCard } from "./PieceCard";
 import { IWork } from "@shared/types/social";
 import { EmptyState } from "@components/ui/EmptyState/EmptyState";

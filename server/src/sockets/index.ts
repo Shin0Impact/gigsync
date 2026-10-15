@@ -82,17 +82,24 @@ export function initSocketServer(httpServer: HttpServer) {
 				return;
 			}
 
-			const isParticipant = await isConversationParticipant(
-				conversationId,
-				socket.data.userId as string,
-			);
-			if (!isParticipant) {
-				socket.emit("socket_error", { message: "Not a participant of this conversation" });
-				return;
-			}
+			try {
+				const isParticipant = await isConversationParticipant(
+					conversationId,
+					socket.data.userId as string,
+				);
+				if (!isParticipant) {
+					socket.emit("socket_error", { message: "Not a participant of this conversation" });
+					return;
+				}
 
-			socket.join(conversationId);
-			socket.emit("joined_conversation", { conversationId });
+				socket.join(conversationId);
+				socket.emit("joined_conversation", { conversationId });
+			} catch (error) {
+				// Express 4 / socket.io don't catch async rejections - an uncaught DB
+				// error here would crash the whole API process.
+				console.error("[socket] join_conversation failed", error);
+				socket.emit("socket_error", { message: "Failed to join conversation" });
+			}
 		});
 
 		socket.on("leave_conversation", (conversationId: string) => {
@@ -112,25 +119,30 @@ export function initSocketServer(httpServer: HttpServer) {
 					return;
 				}
 
-				// Same membership gate as join_conversation above - without this, a
-				// non-participant who already knows/guesses a conversationId could
-				// send messages into a conversation they were never added to, and
-				// persistMessage's FK-failure fallback (see below) would make it
-				// look like it worked even for a made-up id.
-				const isParticipant = await isConversationParticipant(
-					payload.conversationId,
-					socket.data.userId as string,
-				);
-				if (!isParticipant) {
-					socket.emit("socket_error", {
-						message: "Not a participant of this conversation",
-					});
-					return;
-				}
+				try {
+					// Same membership gate as join_conversation above - without this, a
+					// non-participant who already knows/guesses a conversationId could
+					// send messages into a conversation they were never added to, and
+					// persistMessage's FK-failure fallback (see below) would make it
+					// look like it worked even for a made-up id.
+					const isParticipant = await isConversationParticipant(
+						payload.conversationId,
+						socket.data.userId as string,
+					);
+					if (!isParticipant) {
+						socket.emit("socket_error", {
+							message: "Not a participant of this conversation",
+						});
+						return;
+					}
 
-				const message = await persistMessage(payload, socket.data.userId as string);
-				io.to(payload.conversationId).emit("receive_message", message);
-				ack?.(message);
+					const message = await persistMessage(payload, socket.data.userId as string);
+					io.to(payload.conversationId).emit("receive_message", message);
+					ack?.(message);
+				} catch (error) {
+					console.error("[socket] send_message failed", error);
+					socket.emit("socket_error", { message: "Failed to send message" });
+				}
 			},
 		);
 

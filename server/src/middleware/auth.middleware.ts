@@ -5,7 +5,7 @@ import { AuthTokenPayload, UserRole } from '../types';
 import { ApiError } from './errorHandler';
 
 // Verifies the access-token JWT (read from an HTTP-only cookie) and attaches
-// the decoded payload to req.user. TODO: implement refresh-token rotation.
+// the decoded payload to req.user (refresh-token rotation lives in auth.controller's /refresh).
 export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   const token = req.cookies?.access_token;
 
