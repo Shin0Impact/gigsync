@@ -73,7 +73,7 @@ export function MessageThread({ conversationId, otherParticipant }: MessageThrea
 	return (
 		<div className={styles.thread}>
 			<header className={styles.header}>
-				<Link to={ROUTES.PROFILE(otherParticipant?.userName!)}>
+				<Link to={otherParticipant?.userName ? ROUTES.PROFILE(otherParticipant.userName) : ROUTES.MESSAGES}>
 					<ProfilePicture
 						avatarUrl={otherParticipant?.avatarUrl}
 						userName={otherParticipant?.userName}

@@ -15,7 +15,6 @@ const TOP_NAV_ITEMS: NavItem[] = [
 	{ to: ROUTES.DISCOVERY, label: "Discovery" },
 	{ to: ROUTES.TIMELINE, label: "Timeline" },
 	{ to: ROUTES.SEARCH, label: "Search" },
-	{ to: ROUTES.MESSAGES, label: "Messages" },
 ];
 
 const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
