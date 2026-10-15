@@ -28,6 +28,19 @@
         text-box: trim-both ex alphabetic;
     }
 
+    .titleButton {
+        all: inherit;
+        cursor: pointer;
+        padding: 0;
+        border-bottom: 0.1875rem solid var(--color-accent);
+        transition: opacity 0.15s ease;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 0.65;
+        }
+    }
+
     .actions {
         display: flex;
         align-items: center;

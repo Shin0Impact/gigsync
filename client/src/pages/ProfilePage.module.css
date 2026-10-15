@@ -50,6 +50,34 @@
     padding: 0.3rem 0.6rem;
 }
 
+.headerIconButtons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.headerIconButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.15rem;
+    color: var(--color-accent);
+    background: transparent;
+    border: 0.125rem solid var(--color-accent);
+    border-radius: 0.4rem;
+    padding: 0;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--color-accent);
+        color: var(--color-primary);
+    }
+}
+
 .userName {
     font-family: var(--font-serif, serif);
     font-size: 1.1rem;

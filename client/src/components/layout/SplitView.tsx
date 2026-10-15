@@ -117,7 +117,9 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 				<div className={styles.drawerInner}>{drawerContent}</div>
 			</aside>
 
-			{(role === "artist" || role === "organizer") && !shouldHideFab && (
+			{/* On mobile the MobileNav bar already has its own create button -
+			    showing the floating one too would double the "+" on screen */}
+			{!isMobile && (role === "artist" || role === "organizer") && !shouldHideFab && (
 				<FloatingActionButton
 					isOpen={isDrawerOpen}
 					setDrawerOpen={handleToggleDrawer}

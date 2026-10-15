@@ -22,12 +22,27 @@ interface HeaderProps {
 	title: string;
 	actions?: ReactNode;
 	mode?: "profile" | "button";
+	/** When provided, the title renders as a button (e.g. Discovery ⇄ Timeline feed switch) */
+	titleOnClick?: () => void;
+	titleOnClickLabel?: string;
 }
 
-function Header({ title, actions, mode = "profile" }: HeaderProps) {
+function Header({ title, actions, mode = "profile", titleOnClick, titleOnClickLabel }: HeaderProps) {
 	return (
 		<header className={styles.header}>
-			<h1 className={styles.title}>{title}</h1>
+			<h1 className={styles.title}>
+				{titleOnClick ? (
+					<button
+						type="button"
+						className={styles.titleButton}
+						onClick={titleOnClick}
+						aria-label={titleOnClickLabel ?? title}>
+						{title}
+					</button>
+				) : (
+					title
+				)}
+			</h1>
 			{mode === "profile" ? <ProfilePicture variant="page" /> : actions}
 		</header>
 	);

@@ -7,6 +7,7 @@ import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../feature
 import { AvailabilityCalendar } from "../features/artists";
 import { useStartConversationMutation } from "../features/chat";
 import { Button, ButtonLink } from "@components";
+import { BellIcon, SettingsIcon } from "../assets/icons";
 import { UserApplications } from "../features/events/components/UserApplications";
 import { ROUTES } from "../routes/routePaths";
 import ProfilePicture from "../components/user/ProfilePicture";
@@ -107,6 +108,22 @@ export function ProfilePage() {
 								title="Verified artist">
 								✓ Verified
 							</span>
+						)}
+						{profile.isOwnProfile && (
+							<div className={styles.headerIconButtons}>
+								<ButtonLink
+									to={ROUTES.NOTIFICATIONS}
+									aria-label="Notifications"
+									className={styles.headerIconButton}>
+									<BellIcon />
+								</ButtonLink>
+								<ButtonLink
+									to={ROUTES.SETTINGS}
+									aria-label="Settings"
+									className={styles.headerIconButton}>
+									<SettingsIcon />
+								</ButtonLink>
+							</div>
 						)}
 					</div>
 
