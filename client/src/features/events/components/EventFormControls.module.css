@@ -45,6 +45,7 @@
 
 .switchRow[aria-checked="true"] {
     background-color: var(--color-yellow);
+    color: var(--color-ink);
 }
 
 .switchText {
@@ -93,6 +94,7 @@
 .switchRow[aria-checked="true"] .knob {
     left: calc(100% - 1.25rem);
     background-color: var(--color-yellow);
+    color: var(--color-ink);
 }
 
 /* ---- Layout helpers ---- */
@@ -200,6 +202,7 @@
 
 .card[aria-checked="true"] {
     background-color: var(--color-yellow);
+    color: var(--color-ink);
     box-shadow: 0.2rem 0.2rem 0 var(--color-accent);
 }
 

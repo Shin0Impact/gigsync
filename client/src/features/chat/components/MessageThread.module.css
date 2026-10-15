@@ -64,6 +64,7 @@
 
 .messageRow[data-mine="true"] .bubble {
     background-color: var(--color-yellow);
+    color: var(--color-ink);
 }
 
 .bubbleText {
@@ -114,6 +115,7 @@
     &:focus {
         outline: none;
         background-color: var(--color-yellow);
+        color: var(--color-ink);
     }
 }
 

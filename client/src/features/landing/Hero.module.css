@@ -72,6 +72,7 @@
 
             &:hover::after {
                 background-color: var(--color-blue);
+                color: var(--color-ink);
             }
         }
     }

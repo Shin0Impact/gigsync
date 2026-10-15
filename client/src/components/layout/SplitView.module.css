@@ -16,16 +16,19 @@
     &[data-role="artist"] {
         --color-role: var(--color-yellow);
         background-color: var(--color-role);
+        color: var(--color-ink);
     }
 
     &[data-role="fan"] {
         --color-role: var(--color-green);
         background-color: var(--color-green);
+        color: var(--color-ink);
     }
 
     &[data-role="organizer"] {
         --color-role: var(--color-blue);
         background-color: var(--color-role);
+        color: var(--color-ink);
     }
 
     &[data-drawer-open="true"] {

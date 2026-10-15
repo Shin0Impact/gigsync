@@ -24,6 +24,7 @@
 
 .availableDay {
     background-color: var(--color-yellow);
+    color: var(--color-ink);
     border-radius: 100%;
     font-weight: 600;
 }
@@ -45,6 +46,7 @@
     height: 0.9rem;
     border-radius: 100%;
     background-color: var(--color-yellow);
+    color: var(--color-ink);
     flex-shrink: 0;
 }
 

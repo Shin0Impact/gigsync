@@ -41,12 +41,14 @@
 
     &:hover {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
     }
 }
 
 .item[data-active="true"] {
     border-color: var(--color-accent);
     background-color: var(--color-yellow);
+    color: var(--color-ink);
 }
 
 .avatar {

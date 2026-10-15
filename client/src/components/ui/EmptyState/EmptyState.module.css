@@ -72,7 +72,7 @@
     transform: translate(-2px, -2px);
     box-shadow: 8px 8px 0px var(--color-yellow);
     background-color: var(--color-yellow);
-    color: var(--color-accent);
+    color: var(--color-ink);
 }
 
 .arrow {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { MouseEvent, FormEvent } from "react";
 import type { WorkFeedItem } from "@shared/types/social";
 import { useLikeWorkMutation, useUnlikeWorkMutation, useAddCommentMutation } from "../../pieces/piecesApi";
@@ -66,8 +66,11 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 		setIsCommenting((prev) => !prev);
 	};
 
+	const navigate = useNavigate();
 	const handleAuthorClick = (e: MouseEvent) => {
+		e.preventDefault();
 		e.stopPropagation();
+		navigate(ROUTES.PROFILE(work.author.userName));
 	};
 
 	const handleCommentSubmit = async (e: FormEvent) => {
@@ -127,8 +130,9 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 								<span className={styles.title}>{work.title || `Piece #${work.id}`}</span>
 							</header>
 
-							<Link
-								to={ROUTES.PROFILE(work.author.userName)}
+							<span
+								role="link"
+								tabIndex={0}
 								className={styles.authorRow}
 								onClick={handleAuthorClick}>
 								<ProfilePicture
@@ -139,7 +143,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 								<span className={styles.authorName}>{work.author.userName}</span>
 								{formattedDate && <span className={styles.dot}>•</span>}
 								{formattedDate && <time className={styles.date}>{formattedDate}</time>}
-							</Link>
+							</span>
 
 							<p className={`${styles.description} ${!work.description ? styles.noDescription : ""}`}>
 								{work.description || "This Piece has no description."}

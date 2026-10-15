@@ -44,7 +44,7 @@
             font-family: var(--font-sans, sans-serif);
             font-size: 1.25rem;
             font-weight: bold;
-            color: var(--color-accent);
+            color: var(--color-ink);
             text-align: center;
             padding: 0.5rem;
             box-sizing: border-box;
@@ -157,6 +157,7 @@
 
                             &:hover {
                                 background-color: var(--color-yellow);
+                                color: var(--color-ink);
                             }
                         }
                     }

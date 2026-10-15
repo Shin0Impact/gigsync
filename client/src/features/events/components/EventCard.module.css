@@ -78,7 +78,7 @@
 
                 .tag {
                     background-color: var(--color-blue);
-                    color: var(--color-accent);
+                    color: var(--color-ink);
                     border: 0.1rem solid var(--color-accent);
                     padding: 0.15rem 0.5rem;
                     display: inline-flex;
@@ -205,13 +205,13 @@
 
                             &[data-applied="true"] {
                                 background-color: var(--color-blue);
-                                color: var(--color-accent);
+                                color: var(--color-ink);
                                 border-color: var(--color-accent);
                             }
 
                             &:hover {
                                 background-color: var(--color-yellow);
-                                color: var(--color-accent);
+                                color: var(--color-ink);
                             }
                         }
 

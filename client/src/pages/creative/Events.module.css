@@ -130,7 +130,7 @@
 
     &:hover:not(:disabled) {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 
     &:disabled {
@@ -215,7 +215,7 @@
 
 .statusBadge[data-status="pending"] {
     background-color: var(--color-yellow);
-    color: var(--color-accent);
+    color: var(--color-ink);
 }
 
 .emptyState {

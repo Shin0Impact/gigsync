@@ -117,7 +117,7 @@
 
     &:hover:not(:disabled) {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 
     &:disabled {
@@ -154,6 +154,7 @@
 
     &:hover:not(:disabled) {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
     }
 
     &:disabled {
@@ -242,7 +243,7 @@
 
     &:hover {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 }
 

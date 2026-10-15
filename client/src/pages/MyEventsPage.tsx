@@ -19,9 +19,10 @@ export function MyEventsPage() {
 				title="My Events"
 				mode="button"
 				actions={
-					<div style={{ display: "flex", gap: "1rem" }}>
+					<div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
 						{statuses.map((s) => (
 							<Button
+								key={s}
 								onClick={() => {
 									setSearchParams(
 										(prev) => {

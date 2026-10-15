@@ -54,7 +54,7 @@
 
     &:hover {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 }
 
@@ -294,7 +294,7 @@
 
     &:hover {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 }
 
@@ -395,7 +395,7 @@
 
     &:hover {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 }
 
@@ -423,6 +423,6 @@
 
     &:hover {
         background-color: var(--color-yellow);
-        color: var(--color-accent);
+        color: var(--color-ink);
     }
 }

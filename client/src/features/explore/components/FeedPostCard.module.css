@@ -187,6 +187,7 @@
 
                         &[data-liked="true"] {
                             background-color: var(--color-yellow);
+                            color: var(--color-ink);
                         }
 
                         &:hover {

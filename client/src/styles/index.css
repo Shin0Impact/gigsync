@@ -12,6 +12,7 @@
 	--color-blue: #8eabee;
 	--color-gray: #605f5d;
 	--color-black: #272727;
+	--color-ink: #272727; /* text on yellow/blue/green fills - stays dark in both themes */
 
 	--color-creative: var(--color-yellow);
 	--color-supporter: var(--color-green);

@@ -53,7 +53,7 @@
 .secondary:hover,
 .secondary[aria-expanded="true"] {
     background-color: var(--color-yellow);
-    color: var(--color-accent);
+    color: var(--color-ink);
 }
 
 .primary:disabled {
@@ -114,6 +114,7 @@
 
 .activeChip {
     background-color: var(--color-yellow);
+    color: var(--color-ink);
 }
 
 .chipClear {

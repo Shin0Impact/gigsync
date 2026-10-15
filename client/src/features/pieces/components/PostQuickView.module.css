@@ -58,6 +58,7 @@
 
     &:hover {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
     }
 }
 
@@ -116,6 +117,7 @@
 
     &:hover:not(:disabled) {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
     }
 
     &:disabled {
@@ -126,6 +128,7 @@
 
 .likeButton[data-liked="true"] {
     background-color: var(--color-yellow);
+    color: var(--color-ink);
 }
 
 .comments {
@@ -191,6 +194,7 @@
 
     &:hover:not(:disabled) {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
     }
 
     &:disabled {

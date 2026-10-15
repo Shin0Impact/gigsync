@@ -41,11 +41,13 @@
 
     &:hover {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
         border-color: var(--color-accent);
     }
 
     &.activeTab {
         background-color: var(--color-yellow);
+        color: var(--color-ink);
         border-color: var(--color-accent);
         box-shadow: inset 2px 2px 0 0 var(--color-primary), inset -2px -2px 0 0 var(--color-primary);
     }
