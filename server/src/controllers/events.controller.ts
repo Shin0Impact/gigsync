@@ -88,17 +88,50 @@ export async function list_events(
 		Record<string, never>,
 		unknown,
 		unknown,
-		{ status?: string; organizerId?: string; category?: string }
+		{
+			status?: string;
+			organizerId?: string;
+			category?: string;
+			q?: string;
+			sort?: string;
+			lat?: string;
+			lng?: string;
+			radiusKm?: string;
+		}
 	>,
 	res: Response<ListEventsResponse | ErrorResponse>,
 ) {
 	try {
-		const { status, organizerId, category } = req.query;
+		const { status, organizerId, category, q, sort, lat, lng, radiusKm } = req.query;
+
+		const parse_num = (v: unknown) => (typeof v === "string" && v.trim() !== "" ? Number(v) : undefined);
+		const latNum = parse_num(lat);
+		const lngNum = parse_num(lng);
+		const radiusNum = parse_num(radiusKm);
+
+		if (
+			[latNum, lngNum, radiusNum].some((n) => n !== undefined && !Number.isFinite(n)) ||
+			(latNum !== undefined && (latNum < -90 || latNum > 90)) ||
+			(lngNum !== undefined && (lngNum < -180 || lngNum > 180))
+		) {
+			return res.status(400).json({ error: "Invalid lat, lng or radiusKm" });
+		}
+		if ((latNum === undefined) !== (lngNum === undefined)) {
+			return res.status(400).json({ error: "lat and lng must be provided together" });
+		}
+		if (typeof sort === "string" && !["date", "newest", "title", "distance"].includes(sort)) {
+			return res.status(400).json({ error: "Invalid sort" });
+		}
 
 		const events = await list_events_for_discovery({
 			status: typeof status === "string" ? (status as never) : undefined,
 			organizerId: typeof organizerId === "string" ? organizerId : undefined,
 			category: typeof category === "string" ? (category as never) : undefined,
+			q: typeof q === "string" && q.trim() ? q.trim().slice(0, 100) : undefined,
+			sort: typeof sort === "string" ? (sort as never) : undefined,
+			lat: latNum,
+			lng: lngNum,
+			radiusKm: radiusNum,
 		});
 
 		return res.status(200).json({ events });

@@ -17,6 +17,11 @@ export interface ListEventsParams {
 	status?: string;
 	organizerId?: string;
 	category?: string;
+	q?: string;
+	sort?: "date" | "newest" | "title" | "distance";
+	lat?: number;
+	lng?: number;
+	radiusKm?: number;
 }
 
 export const eventsApi = api.injectEndpoints({
@@ -28,6 +33,13 @@ export const eventsApi = api.injectEndpoints({
 				if (params?.status) search.set("status", params.status);
 				if (params?.organizerId) search.set("organizerId", params.organizerId);
 				if (params?.category) search.set("category", params.category);
+				if (params?.q) search.set("q", params.q);
+				if (params?.sort) search.set("sort", params.sort);
+				if (params?.lat !== undefined && params?.lng !== undefined) {
+					search.set("lat", String(params.lat));
+					search.set("lng", String(params.lng));
+					if (params.radiusKm !== undefined) search.set("radiusKm", String(params.radiusKm));
+				}
 				const qs = search.toString();
 				return `/api/events${qs ? `?${qs}` : ""}`;
 			},
