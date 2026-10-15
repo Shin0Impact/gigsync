@@ -24,7 +24,9 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 	const secondaryActive = path === resolvePath(secondaryRoute);
 
 	return (
-		<nav className={styles.mobileNav}>
+		<nav
+			className={styles.mobileNav}
+			data-drawer-open={isDrawerOpen}>
 			<ButtonLink
 				to={ROUTES.HOME}
 				active={path === ROUTES.HOME || path === ROUTES.TIMELINE || path === ROUTES.DISCOVERY}
@@ -48,7 +50,8 @@ export function MobileNav({ role, username, onToggleDrawer, isDrawerOpen }: Mobi
 					type="button"
 					onClick={onToggleDrawer}
 					className={`${styles.fabButton} ${isDrawerOpen ? styles.isOpen : ""}`}
-					aria-label="Create new">
+					aria-label={isDrawerOpen ? "Close" : "Create new"}
+					aria-expanded={isDrawerOpen}>
 					<PlusIcon className={`${styles.icon} ${styles.plusIcon}`} />
 				</button>
 			)}

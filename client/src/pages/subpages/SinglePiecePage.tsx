@@ -4,6 +4,7 @@ import { useGetCompositionQuery, useListIntermezzosQuery, useGetPieceQuery } fro
 import { useMeQuery } from "../../features/auth";
 import { IntermezzoCard } from "../../features/pieces/components/IntermezzoCard";
 import { Composition } from "../../features/pieces/components/Composition/Composition";
+import { CompositionComments } from "../../features/pieces/components/Composition/CompositionComments";
 import styles from "./SinglePiecePage.module.css";
 
 export function SinglePiecePage() {
@@ -91,12 +92,20 @@ export function SinglePiecePage() {
 				}
 			/>
 			<Page.Body>
-				<div className={styles.container}>
+				<div className={`${styles.container} ${activeTab === "composition" ? styles.wide : ""}`}>
 					{activeTab === "composition" &&
 						(isLoadingComposition ? (
 							<div className={styles.loading}>Loading Composition...</div>
 						) : (
-							<Composition items={data?.composition ?? []} />
+							<div className={styles.compositionLayout}>
+								<div className={styles.compositionMain}>
+									<Composition items={data?.composition ?? []} />
+								</div>
+								<CompositionComments
+									pieceId={numericPieceId}
+									intermezzos={intermezzos}
+								/>
+							</div>
 						))}
 
 					{activeTab === "intermezzi" && (

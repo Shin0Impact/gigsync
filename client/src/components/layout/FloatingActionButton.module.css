@@ -58,7 +58,7 @@
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1010px) {
     .fab {
         position: absolute;
         height: 3rem;

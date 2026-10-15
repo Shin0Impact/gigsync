@@ -8,6 +8,7 @@ import FloatingActionButton from "./FloatingActionButton";
 import { useSearchParams, useLocation } from "react-router-dom";
 import { useMediaQuery } from "../../hooks";
 import { MobileNav } from "./MobileNav";
+import { MobileTopBar } from "./MobileTopBar";
 import FormEventCreate from "../../features/events/components/FormEventCreate";
 import { FormApplyToEvent } from "../../features/events/components/FormApplyToEvent";
 import { ROUTES } from "../../routes/routePaths";
@@ -41,7 +42,7 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 	const isDrawerOpen = searchParams.get("drawer") === "open";
 	const formParam = searchParams.get("form") || "default";
 	const eventIdParam = searchParams.get("eventId");
-	const isMobile = useMediaQuery("(max-width: 768px)");
+	const isMobile = useMediaQuery("(max-width: 1010px)");
 
 	const { data, isLoading } = useMeQuery();
 	const role = data?.user?.role ?? "guest";
@@ -96,6 +97,12 @@ export function SplitView({ children, contentDecoration = false, className = "" 
 			className={`${styles.view} ${className}`.trim()}
 			data-role={role}
 			data-drawer-open={isDrawerOpen}>
+			{isMobile && (
+				<MobileTopBar
+					role={role}
+					username={username}
+				/>
+			)}
 			{isMobile ? (
 				<MobileNav
 					role={role}

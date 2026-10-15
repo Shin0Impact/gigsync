@@ -86,3 +86,9 @@ body,
 	box-sizing: border-box;
 	/* text-box: trim-both cap alphabetic; */
 }
+
+/* Smallest width the layout is designed for - below this the page scrolls sideways */
+html,
+body {
+    min-width: 410px;
+}

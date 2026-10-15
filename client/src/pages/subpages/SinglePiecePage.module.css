@@ -99,3 +99,25 @@
     padding: 3rem;
     color: var(--color-accent);
 }
+
+/* Composition tab: existing bars on the left, comments on the right */
+.container.wide {
+    max-width: 1300px;
+}
+
+.compositionLayout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.compositionMain {
+    min-width: 0;
+}
+
+@media (max-width: 56rem) {
+    .compositionLayout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

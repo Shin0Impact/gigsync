@@ -90,7 +90,7 @@
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1010px) {
     .sidebar {
         order: 3;
         width: 100% !important;

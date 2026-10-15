@@ -6,23 +6,23 @@ import { LinkNav } from "@components/ui/Link";
 import { useMeQuery } from "../../features/auth";
 import { useMediaQuery } from "../../hooks";
 
-interface NavItem {
+export interface NavItem {
 	to: string | ((username: string) => string);
 	label: string;
 }
 
-const TOP_NAV_ITEMS: NavItem[] = [
+export const TOP_NAV_ITEMS: NavItem[] = [
 	{ to: ROUTES.DISCOVERY, label: "Discovery" },
 	{ to: ROUTES.TIMELINE, label: "Timeline" },
 	{ to: ROUTES.SEARCH, label: "Search" },
 ];
 
-const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
+export const ROLE_NAV_ITEMS: Record<string, NavItem[]> = {
 	artist: [{ to: ROUTES.MY_PIECES, label: "Pieces" }],
 	organizer: [{ to: ROUTES.MY_EVENTS, label: "Events" }],
 };
 
-const BOTTOM_NAV_ITEMS: NavItem[] = [
+export const BOTTOM_NAV_ITEMS: NavItem[] = [
 	{ to: ROUTES.INBOX, label: "Inbox" },
 	{ to: ROUTES.SETTINGS, label: "Settings" },
 	{ to: (username: string) => ROUTES.PROFILE(username), label: "Profile" },
@@ -30,7 +30,7 @@ const BOTTOM_NAV_ITEMS: NavItem[] = [
 
 export function Sidebar() {
 	const { data, isLoading } = useMeQuery();
-	const isMobile = useMediaQuery("(max-width: 768px)");
+	const isMobile = useMediaQuery("(max-width: 1010px)");
 	const location = useLocation();
 	const path = location.pathname;
 

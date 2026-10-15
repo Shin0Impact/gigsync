@@ -46,3 +46,17 @@
         color: var(--color-role);
     }
 }
+
+/* The create button turns into an X in the same spot while the drawer is
+   open, and the bar is lifted above the drawer so it can always close it. */
+.mobileNav .fabButton .plusIcon {
+    transition: transform 0.25s ease;
+}
+
+.mobileNav .fabButton.isOpen .plusIcon {
+    transform: rotate(45deg);
+}
+
+.mobileNav[data-drawer-open="true"] {
+    z-index: 2100;
+}

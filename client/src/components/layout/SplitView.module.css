@@ -113,7 +113,7 @@
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 1010px) {
     .view {
         display: flex;
         flex-direction: column;
@@ -147,5 +147,18 @@
                 transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
             }
         }
+    }
+}
+
+@media (max-width: 1010px) {
+    /* keep drawer content clear of the bottom bar that sits above it */
+    .view .drawer .drawerInner {
+        padding-bottom: 5.5rem;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .view .content {
+        padding-bottom: 4.5rem;
     }
 }

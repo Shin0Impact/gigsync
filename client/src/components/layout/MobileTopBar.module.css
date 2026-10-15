@@ -1,0 +1,78 @@
+.bar {
+    position: relative;
+    flex-shrink: 0;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    z-index: 1400;
+}
+
+.brand {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.6rem;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.line {
+    display: block;
+    height: 0.18rem;
+    width: 100%;
+    background-color: var(--color-primary);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.lineTop {
+    transform: translateY(0.48rem) rotate(45deg);
+}
+
+.lineMid {
+    opacity: 0;
+}
+
+.lineBot {
+    transform: translateY(-0.48rem) rotate(-45deg);
+}
+
+.menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-accent);
+    border-top: 1px solid var(--color-primary);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35);
+}
+
+.menuLink {
+    padding: 0.9rem 1rem;
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.menuLink[data-active="true"] {
+    color: var(--color-role);
+}
