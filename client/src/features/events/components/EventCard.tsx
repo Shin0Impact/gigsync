@@ -1,12 +1,20 @@
-import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import type { MouseEvent, KeyboardEvent } from "react";
 import { useDeleteEventMutation, useListMyApplicationsQuery } from "../eventsApi";
 import { ROUTES } from "../../../routes/routePaths";
 import styles from "./EventCard.module.css";
 import { Button } from "@components";
 import { UserRole } from "@shared/types/index";
-import { Metaballs } from "@paper-design/shaders-react";
+import { useDrawer } from "../../../hooks/useDrawer";
+import {
+	UndoIcon as RecurringIcon,
+	type UndoIconHandle,
+	Clock01Icon as TimeIcon,
+	type Clock01IconHandle as TimeIconHandle,
+} from "@animateicons/react/huge";
+import { MapPinIcon, AlarmClockIcon, type MapPinIconHandle, type AlarmClockIconHandle } from "@animateicons/react/lucide";
+import { LazyShader } from "@components/shader/LazyShader";
 import ProfilePicture from "@components/user/ProfilePicture";
 import { getMediaUrl } from "../../../shared/mediaUrl";
 
@@ -18,10 +26,16 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, isMine = false, userRole = "guest", application }: EventCardProps) {
-	const [, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
+	const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+	const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
 	const [isViewingCoverNote, setIsViewingCoverNote] = useState(false);
+
+	const recurringIconRef = useRef<UndoIconHandle>(null);
+	const mapPinIconRef = useRef<MapPinIconHandle>(null);
+	const alarmClockIconRef = useRef<AlarmClockIconHandle>(null);
+	const timeIconRef = useRef<TimeIconHandle>(null);
 
 	const [deleteEvent, { isLoading: isDeleting, error: deleteError }] = useDeleteEventMutation();
 
@@ -32,17 +46,23 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 	const myApplication = application || myAppsData?.applications?.find((app) => String(app.event_id) === String(event.id));
 	const coverNoteText = myApplication?.cover_note || myApplication?.coverNote;
 
-	const handleDeleteClick = (e: MouseEvent) => {
+	const { toggleDrawer } = useDrawer();
+
+	const handleOptionsClick = (e: MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
 		setIsViewingCoverNote(false);
-		setIsConfirmingDelete(true);
+		setIsConfirmingDelete(false);
+		setIsConfirmingCancel(false);
+		setIsOptionsOpen((prev) => !prev);
 	};
 
 	const handleCoverNoteClick = (e: MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
+		setIsOptionsOpen(false);
 		setIsConfirmingDelete(false);
+		setIsConfirmingCancel(false);
 		setIsViewingCoverNote((prev) => !prev);
 	};
 
@@ -55,15 +75,24 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 		}
 	};
 
+	const handleConfirmCancel = async () => {
+		try {
+			setIsConfirmingCancel(false);
+		} catch (err) {
+			console.error("Failed to cancel event:", err);
+		}
+	};
+
 	const handleApplyClick = (e: MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setSearchParams((prev) => {
-			const next = new URLSearchParams(prev);
-			next.set("drawer", "open");
-			next.set("form", "apply");
-			next.set("eventId", String(event.id));
-			return next;
+
+		toggleDrawer({
+			openParams: {
+				form: "apply",
+				eventId: String(event.id),
+			},
+			keysToDeleteOnClose: ["eventId"],
 		});
 	};
 
@@ -73,18 +102,42 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 		navigate(ROUTES.EVENT_APPLICATIONS(event.id));
 	};
 
-	const isDrawerActive = isConfirmingDelete || isViewingCoverNote;
-
+	const isDrawerActive = isOptionsOpen || isConfirmingDelete || isConfirmingCancel || isViewingCoverNote;
+	const isRecurring = Boolean(event.is_recurring ?? event.isRecurring);
+	const isUrgent = Boolean(event.is_urgent ?? event.isUrgent);
+	const venueName = event.venue_name ?? event.venueName;
+	const description = event.descriptions ?? event.description;
 	const coverKey: string | null = event.cover_key ?? event.coverKey ?? null;
 	const organizerUserName: string | null = event.organizer_user_name ?? event.organizerUserName ?? null;
 	const organizerName: string | null = event.organizer_name ?? event.organizerName ?? null;
 	const organizerAvatar: string | null = event.organizer_avatar_url ?? event.organizerAvatarUrl ?? null;
+	const startAt = event.start_at ?? event.startAt;
+	const endAt = event.end_at ?? event.endAt;
+
+	const formatDate = (dateString?: string) => {
+		if (!dateString) return null;
+		try {
+			return new Date(dateString).toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+		} catch {
+			return null;
+		}
+	};
 
 	const handleOrganizerClick = (e: MouseEvent | KeyboardEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
 		if (organizerUserName) navigate(ROUTES.PROFILE(organizerUserName));
 	};
+
+	const eventIdNum = Number(event.id) || 1;
+	const randomCount = 10 + (eventIdNum % 11); // Range: 10 to 20 (max 20)
+	const randomSize = 0.7 + (eventIdNum % 5) * 0.1; // Range: 0.6 to 1.0 (max 1.0)
+	const randomSpeed = 0.8 + (eventIdNum % 7) * 0.2; // Range: 0.8 to 2.0 (max 2.0)
 
 	return (
 		<div
@@ -96,8 +149,7 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				to={ROUTES.SINGLE_EVENT(event.id)}
 				style={{ textDecoration: "none" }}
 				aria-label={`Open event ${event.title}`}>
-				{/* <div className={styles.cardVignette}>{formattedDate ? <span>{formattedDate}</span> : <span>Event</span>}</div> */}
-				<div className={`${styles.cardVignette} ${coverKey ? styles.hasCover : ""}`}>
+				<div className={styles.cardVignette}>
 					{coverKey ? (
 						<img
 							src={getMediaUrl(coverKey)}
@@ -105,26 +157,46 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 							loading="lazy"
 						/>
 					) : (
-						<Metaballs
-							width={"auto"}
-							height={"100%"}
-							colors={["#f3d66d"]}
-							colorBack="#00000000"
-							count={20}
-							size={0.72}
-							speed={1}
-							scale={2}
-						/>
+						<div className={styles.shader}>
+							<LazyShader
+								count={randomCount}
+								size={randomSize}
+								speed={randomSpeed}
+								color="#8eabee"
+							/>
+						</div>
 					)}
 				</div>
 
 				<div className={styles.cardBody}>
 					<div className={styles.metaTop}>
-						<span>
-							{(event.isUrgent ?? event.is_urgent) && <span className={styles.urgentBadge}>Urgent</span>}
-							{event.status || "Upcoming"}
-						</span>
-						{(event.isRecurring ?? event.is_recurring) && <span>🔄 Recurring</span>}
+						{isUrgent && (
+							<span
+								className={styles.tag}
+								onMouseEnter={() => alarmClockIconRef.current?.startAnimation()}
+								onMouseLeave={() => alarmClockIconRef.current?.stopAnimation()}>
+								<AlarmClockIcon
+									ref={alarmClockIconRef}
+									size={14}
+									style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.2rem" }}
+								/>
+								Urgent
+							</span>
+						)}
+						{isRecurring && (
+							<span
+								className={styles.tag}
+								onMouseEnter={() => recurringIconRef.current?.startAnimation()}
+								onMouseLeave={() => recurringIconRef.current?.stopAnimation()}>
+								<RecurringIcon
+									ref={recurringIconRef}
+									size={14}
+									style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.2rem" }}
+								/>
+								Recurring
+							</span>
+						)}
+						<span className={styles.tag}>{event.status || "Upcoming"}</span>
 					</div>
 
 					<div className={styles.details}>
@@ -132,6 +204,7 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 							<header className={styles.header}>
 								<span className={styles.title}>{event.title}</span>
 							</header>
+
 							{organizerUserName && (
 								<span
 									className={styles.organizer}
@@ -153,13 +226,38 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 									</span>
 								</span>
 							)}
-							{(event.venueName ?? event.venue_name) && (
-								<span className={styles.venue}>📍 {event.venueName ?? event.venue_name}</span>
-							)}
 
-							<p
-								className={`${styles.description} ${!(event.description ?? event.descriptions) ? styles.noDescription : ""}`}>
-								{event.description ?? event.descriptions ?? "No description provided for this happening."}
+							<div className={styles.infoRow}>
+								{venueName && (
+									<span
+										className={styles.venue}
+										onMouseEnter={() => mapPinIconRef.current?.startAnimation()}
+										onMouseLeave={() => mapPinIconRef.current?.stopAnimation()}>
+										<MapPinIcon
+											ref={mapPinIconRef}
+											size={14}
+											style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.2rem" }}
+										/>
+										{venueName}
+									</span>
+								)}
+								{startAt && (
+									<span
+										className={styles.dates}
+										onMouseEnter={() => timeIconRef.current?.startAnimation()}
+										onMouseLeave={() => timeIconRef.current?.stopAnimation()}>
+										<TimeIcon
+											ref={timeIconRef}
+											size={14}
+											style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.2rem" }}
+										/>{" "}
+										{formatDate(startAt)} {endAt ? `– ${formatDate(endAt)}` : ""}
+									</span>
+								)}
+							</div>
+
+							<p className={`${styles.description} ${!description ? styles.noDescription : ""}`}>
+								{description ?? "No description provided for this happening."}
 							</p>
 						</div>
 
@@ -175,8 +273,8 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 									<Button
 										type="button"
 										className={`${styles.actionButton} ${styles.deleteBtn}`}
-										onClick={handleDeleteClick}>
-										Del
+										onClick={handleOptionsClick}>
+										Options
 									</Button>
 								</>
 							) : userRole === "artist" ? (
@@ -204,6 +302,41 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				</div>
 			</Link>
 
+			{/* Options Panel */}
+			<div className={`${styles.confirmDelete} ${isOptionsOpen ? styles.activePanel : ""}`}>
+				<p>Event Management</p>
+				<p>Choose an action for this happening.</p>
+				<div
+					className={styles.confirmActions}
+					style={{ flexDirection: "column", gap: "0.5rem" }}>
+					<Button
+						className={styles.confirmButton}
+						onClick={() => {
+							setIsOptionsOpen(false);
+							setIsConfirmingDelete(true);
+						}}
+						variant="ghost">
+						Delete Event
+					</Button>
+					<Button
+						className={styles.confirmButton}
+						onClick={() => {
+							setIsOptionsOpen(false);
+							setIsConfirmingCancel(true);
+						}}
+						variant="ghost">
+						Cancel Event
+					</Button>
+					<Button
+						className={styles.cancelButton}
+						variant="solid"
+						onClick={() => setIsOptionsOpen(false)}>
+						Close
+					</Button>
+				</div>
+			</div>
+
+			{/* Delete Confirmation Panel */}
 			<div className={`${styles.confirmDelete} ${isConfirmingDelete ? styles.activePanel : ""}`}>
 				<p>Delete this Event?</p>
 				<p>This action cannot be undone. All incoming artist applications for this happening will be removed.</p>
@@ -225,6 +358,27 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				</div>
 			</div>
 
+			{/* Cancel Confirmation Panel */}
+			<div className={`${styles.confirmDelete} ${isConfirmingCancel ? styles.activePanel : ""}`}>
+				<p>Cancel this Event?</p>
+				<p>This will mark the event as cancelled and notify participating artists.</p>
+				<div className={styles.confirmActions}>
+					<Button
+						className={styles.confirmButton}
+						onClick={handleConfirmCancel}
+						variant="ghost">
+						Confirm Cancellation
+					</Button>
+					<Button
+						className={styles.cancelButton}
+						variant="solid"
+						onClick={() => setIsConfirmingCancel(false)}>
+						Back
+					</Button>
+				</div>
+			</div>
+
+			{/* Cover Note Panel */}
 			<div className={`${styles.confirmDelete} ${isViewingCoverNote ? styles.activePanel : ""}`}>
 				<p>Cover Letter Note</p>
 				<div className={styles.scrollableContent}>
@@ -246,3 +400,5 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 		</div>
 	);
 }
+
+export default EventCard;

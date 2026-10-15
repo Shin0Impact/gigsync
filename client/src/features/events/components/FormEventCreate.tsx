@@ -302,9 +302,7 @@ export function FormEventCreate() {
 								disabled={{ before: start_of_day(new Date()) }}
 								className={controlStyles.calendar}
 							/>
-							<p className={controlStyles.note}>
-								Tap one day, or tap a second day to cover several.
-							</p>
+							<p className={controlStyles.note}>Tap one day, or tap a second day to cover several.</p>
 							<div className={controlStyles.row}>
 								<Form.Field>
 									<Form.Label htmlFor="event-start-time">Starts at</Form.Label>
@@ -324,7 +322,7 @@ export function FormEventCreate() {
 										value={endTime}
 										onChange={(e) => setEndTime(e.target.value)}
 										required
-								/>
+									/>
 								</Form.Field>
 							</div>
 						</>
@@ -415,7 +413,9 @@ function UrgentWhen({ hours, onHours, duration, onDuration }: UrgentWhenProps) {
 	return (
 		<>
 			<Form.Field>
-				<Form.Label htmlFor="event-urgent-hours">Starts within (hours, max {maxHours} - it has to be today)</Form.Label>
+				<Form.Label htmlFor="event-urgent-hours">
+					Starts within (hours, max {maxHours} - it has to be today)
+				</Form.Label>
 				<Form.Input
 					id="event-urgent-hours"
 					type="number"

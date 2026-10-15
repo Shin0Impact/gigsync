@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { MouseEvent } from "react";
 import type { IWork as Piece } from "@shared/types/social";
@@ -7,19 +7,22 @@ import { ROUTES } from "../../../routes/routePaths";
 import styles from "./PieceCard.module.css";
 import { VignetteMedia } from "./VignetteMedia";
 import { Button } from "@components";
-import { Metaballs } from "@paper-design/shaders-react";
+import { AlarmClockIcon, type AlarmClockIconHandle } from "@animateicons/react/lucide";
+import { LazyShader } from "@components/shader/LazyShader";
 
 interface PieceCardProps {
-	piece: Piece;
+	piece: Piece & { likedByMe?: boolean; likeCount?: number; commentCount?: number };
 	readOnly?: boolean;
 }
 
 export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const isDrawerOpen = searchParams.get("drawer") === "open";
-
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
 	const [deletePiece, { isLoading: isDeleting, error: deleteError }] = useDeletePieceMutation();
+
+	const alarmClockIconRef = useRef<AlarmClockIconHandle>(null);
 
 	const { data: intermezzosData } = useListIntermezzosQuery(piece.id);
 	const intermezzosCount = intermezzosData?.updates?.length ?? 0;
@@ -67,6 +70,11 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 		}
 	};
 
+	const pieceIdNum = Number(piece.id) || 1;
+	const randomCount = 10 + (pieceIdNum % 11); // Range: 10 to 20 (max 20)
+	const randomSize = 0.6 + (pieceIdNum % 5) * 0.1; // Range: 0.6 to 1.0 (max 1.0)
+	const randomSpeed = 0.8 + (pieceIdNum % 7) * 0.2; // Range: 0.8 to 2.0 (max 2.0)
+
 	return (
 		<div
 			className={styles.cardWrapper}
@@ -82,19 +90,14 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 						<VignetteMedia vignette={coverVignette} />
 					) : (
 						<div className={styles.shader}>
-							<Metaballs
-								width={"auto"}
-								height={"100%"}
-								colors={["#f3d66d"]}
-								colorBack="#00000000"
-								count={20}
-								size={0.72}
-								speed={1}
-								scale={2}
+							<LazyShader
+								count={randomCount}
+								size={randomSize}
+								speed={randomSpeed}
+								color="#f3d66d"
 							/>
 						</div>
 					)}
-					{formattedDate && <time className={styles.date}>{formattedDate}</time>}
 				</div>
 
 				<div className={styles.cardBody}>
@@ -106,14 +109,26 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 								<span className={styles.title}>{piece.title}</span>
 							</header>
 
+							{formattedDate && (
+								<div
+									className={styles.dateRow}
+									onMouseEnter={() => alarmClockIconRef.current?.startAnimation()}
+									onMouseLeave={() => alarmClockIconRef.current?.stopAnimation()}>
+									<AlarmClockIcon
+										ref={alarmClockIconRef}
+										size={14}
+										style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.2rem" }}
+									/>
+									<span>{formattedDate}</span>
+								</div>
+							)}
+
 							<p className={`${styles.description} ${!piece.description ? styles.noDescription : ""}`}>
 								{piece.description || "Untitled Piece without description."}
 							</p>
 						</div>
 
-						{readOnly ? (
-							<div>Like share etc</div>
-						) : (
+						{!readOnly && (
 							<div className={styles.actions}>
 								<Button
 									variant="solid"
@@ -133,29 +148,33 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 				</div>
 			</Link>
 
-			<div className={styles.confirmDelete}>
-				<p>Delete this Piece?</p>
-				<p>
-					This will remove this Piece and all of its Intermezzi, Vignettes, Nods, and Echoes. This action cannot be
-					undone.
-				</p>
-				{deleteError && <p className={styles.errorText}>Failed to delete piece. Please try again.</p>}
-				<div className={styles.confirmActions}>
-					<Button
-						className={styles.confirmButton}
-						onClick={handleConfirmDelete}
-						disabled={isDeleting}
-						variant="ghost">
-						{isDeleting ? "Deleting..." : "Delete Piece"}
-					</Button>
-					<Button
-						className={styles.cancelButton}
-						variant="solid"
-						onClick={() => setIsConfirmingDelete(false)}>
-						Cancel
-					</Button>
+			{!readOnly && (
+				<div className={`${styles.confirmDelete} ${isConfirmingDelete ? styles.activePanel : ""}`}>
+					<p>Delete this Piece?</p>
+					<p>
+						This will remove this Piece and all of its Intermezzi, Vignettes, Nods, and Echoes. This action cannot
+						be undone.
+					</p>
+					{deleteError && <p className={styles.errorText}>Failed to delete piece. Please try again.</p>}
+					<div className={styles.confirmActions}>
+						<Button
+							className={styles.confirmButton}
+							onClick={handleConfirmDelete}
+							disabled={isDeleting}
+							variant="ghost">
+							{isDeleting ? "Deleting..." : "Delete Piece"}
+						</Button>
+						<Button
+							className={styles.cancelButton}
+							variant="solid"
+							onClick={() => setIsConfirmingDelete(false)}>
+							Cancel
+						</Button>
+					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }
+
+export default PieceCard;

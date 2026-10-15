@@ -19,16 +19,47 @@ function PageRoot({ type = "main", children, className = "" }: PageRootProps) {
 }
 
 interface HeaderProps {
-	title: string;
+	title?: string;
 	actions?: ReactNode;
 	mode?: "profile" | "button";
+	// Profile-specific props
+	avatarUrl?: string | null;
+	userName?: string;
+	name?: string;
+	followerCount?: number;
+	profileActions?: ReactNode;
 }
 
-function Header({ title, actions, mode = "profile" }: HeaderProps) {
+function Header({ title, actions, mode = "button", avatarUrl, userName, name, followerCount, profileActions }: HeaderProps) {
 	return (
 		<header className={styles.header}>
-			<h1 className={styles.title}>{title}</h1>
-			{mode === "profile" ? <ProfilePicture variant="page" /> : actions}
+			{mode === "profile" ? (
+				<>
+					<div className={styles.profileGroup}>
+						<ProfilePicture
+							avatarUrl={avatarUrl}
+							userName={userName}
+							variant="profile"
+						/>
+						<div className={styles.profileInfo}>
+							<h1 className={styles.profileName}>{name}</h1>
+							<p className={styles.profileMeta}>
+								{userName && <span className={styles.handle}>@{userName}</span>}
+								<span className={styles.followers}>
+									<strong>{followerCount ?? 0}</strong> {followerCount === 1 ? "Follower" : "Followers"}
+								</span>
+							</p>
+							{profileActions && <div className={styles.profileActions}>{profileActions}</div>}
+						</div>
+					</div>
+					{actions && <div className={styles.profileTabs}>{actions}</div>}
+				</>
+			) : (
+				<>
+					<h1 className={styles.title}>{title}</h1>
+					{actions}
+				</>
+			)}
 		</header>
 	);
 }

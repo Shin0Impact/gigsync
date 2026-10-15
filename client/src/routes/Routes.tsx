@@ -15,7 +15,7 @@ import NotificationsPage from "../pages/NotificationsPage";
 import { MyPiecesPage } from "../pages/MyPiecesPage";
 import { DiscoveryPage } from "../pages/DiscoveryPage";
 import { TimelinePage } from "../pages/TimelinePage";
-import { MyEventsPage } from "../pages/MyEvents";
+import { MyEventsPage } from "../pages/MyEventsPage";
 import SearchPage from "../pages/SearchPage";
 import { ArtistSearch, EventSearch, PeopleSearch } from "../features/search";
 import SingleEventPage from "../pages/subpages/SingleEventPage";

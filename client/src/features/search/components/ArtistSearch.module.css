@@ -409,3 +409,20 @@
         font-size: 1.85rem;
     }
 }
+
+.filterButton {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-yellow);
+        color: var(--color-accent);
+    }
+}

@@ -28,6 +28,56 @@
         text-box: trim-both ex alphabetic;
     }
 
+    .profileGroup {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        min-width: 0;
+    }
+
+    .profileInfo {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        min-width: 0;
+    }
+
+    .profileName {
+        margin: 0;
+        font-size: 2.25rem;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+    }
+
+    .profileMeta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.25rem 1rem;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .handle {
+        opacity: 0.7;
+    }
+
+    .followers strong {
+        font-weight: 700;
+    }
+
+    .profileActions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.35rem;
+    }
+
+    .profileTabs {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
     .actions {
         display: flex;
         align-items: center;
@@ -63,6 +113,15 @@
 }
 
 @media (max-width: 40rem) {
+    .page .profileGroup {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page .profileName {
+        font-size: 1.75rem;
+    }
+
     .page .title {
         font-size: 2rem;
     }

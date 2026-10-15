@@ -9,7 +9,7 @@ interface FloatingActionButtonProps {
 	closeHoverText?: string;
 }
 
-const LINGER_DURATION = 270;
+const LINGER_DURATION = 200;
 
 function FloatingActionButton({
 	isOpen,

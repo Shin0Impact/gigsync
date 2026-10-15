@@ -6,7 +6,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 0.125rem solid var(--color-accent);
+    /* border: 0.125rem solid var(--color-accent); */
 
     .loadingAnimation {
         position: absolute;
