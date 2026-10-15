@@ -22,7 +22,7 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 	const [deletePiece, { isLoading: isDeleting, error: deleteError }] = useDeletePieceMutation();
 
 	const { data: intermezzosData } = useListIntermezzosQuery(piece.id);
-	const intermezzosCount = 1 + (intermezzosData?.updates?.length ?? 0);
+	const intermezzosCount = intermezzosData?.updates?.length ?? 0;
 
 	const latestIntermezzo = intermezzosData?.updates?.[0];
 	const { data: vignettesData } = useListVignettesQuery(latestIntermezzo?.id ?? 0, {
