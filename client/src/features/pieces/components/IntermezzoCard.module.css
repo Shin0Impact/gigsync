@@ -78,3 +78,42 @@
     color: var(--color-accent);
     opacity: 0.6;
 }
+
+.deleteRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.deletePrompt {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.85rem;
+    color: var(--color-accent);
+}
+
+.deleteBtn {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    background: transparent;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    cursor: pointer;
+}
+
+.deleteBtn:hover:not(:disabled) {
+    background: var(--color-accent);
+    color: var(--color-primary);
+}
+
+.deleteBtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.deleteConfirm {
+    border-color: #d64545;
+    color: #d64545;
+}

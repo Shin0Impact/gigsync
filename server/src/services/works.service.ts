@@ -6,6 +6,7 @@ import {
 	createWorkUpdate,
 	deleteUpdateMedia,
 	deleteWork,
+	deleteWorkUpdate,
 	deleteWorkComment,
 	deleteWorkLike,
 	getAllMediaForWork,
@@ -158,6 +159,24 @@ export async function remove_update_media(userId: string, updateId: number, medi
 		await delete_object(media.r2Key);
 	} catch (err) {
 		console.warn(`Failed to delete R2 object ${media.r2Key} after removing update media ${mediaId}:`, err);
+	}
+}
+
+// Deletes a single intermezzo (and its media + backing R2 objects,
+// best-effort) from a work the user owns.
+export async function remove_work_update(userId: string, updateId: number) {
+	await assert_owns_update(userId, updateId);
+
+	const media = await getMediaForUpdate(updateId);
+
+	await deleteWorkUpdate(updateId);
+
+	for (const item of media) {
+		try {
+			await delete_object(item.r2Key);
+		} catch (err) {
+			console.warn(`Failed to delete R2 object ${item.r2Key} after removing update ${updateId}:`, err);
+		}
 	}
 }
 

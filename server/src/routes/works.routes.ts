@@ -7,6 +7,7 @@ import {
 	create_work_handler,
 	delete_comment_handler,
 	delete_update_media_handler,
+	delete_update_handler,
 	get_work_or_user_works_handler,
 	delete_work_handler,
 	get_like_status_handler,
@@ -49,6 +50,7 @@ router.get("/:workId/updates", list_work_updates_handler);
 
 router.post("/updates/:updateId/media", requireAuth, requireRole("artist"), add_update_media_handler);
 router.get("/updates/:updateId/media", list_update_media_handler);
+router.delete("/updates/:updateId", requireAuth, requireRole("artist"), delete_update_handler);
 router.delete("/updates/:updateId/media/:mediaId", requireAuth, requireRole("artist"), delete_update_media_handler);
 
 // Likes - toggle via POST/DELETE rather than a single PATCH, matching the

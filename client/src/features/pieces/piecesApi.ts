@@ -65,6 +65,24 @@ export const worksApi = api.injectEndpoints({
 			providesTags: (_result, _error, pieceId) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
+		getPiece: builder.query<{ work: { id: number; userId: string } }, number | string>({
+			query: (pieceId) => `/api/works/${pieceId}`,
+			providesTags: (_result, _error, pieceId) => [{ type: "Piece", id: pieceId }],
+		}),
+
+		deleteIntermezzo: builder.mutation<void, { pieceId: number | string; intermezzoId: number | string }>({
+			query: ({ intermezzoId }) => ({
+				url: `/api/works/updates/${intermezzoId}`,
+				method: "DELETE",
+			}),
+			invalidatesTags: (_result, _error, { pieceId }) => [
+				{ type: "Intermezzo", id: pieceId },
+				{ type: "Composition", id: pieceId },
+				{ type: "Piece", id: pieceId },
+				{ type: "Feed", id: "LIST" },
+			],
+		}),
+
 		addVignette: builder.mutation<AddUpdateMediaResponse, { intermezzoId: number | string; body: AddUpdateMediaInput }>({
 			query: ({ intermezzoId, body }) => ({
 				url: `/api/works/updates/${intermezzoId}/media`,
@@ -258,6 +276,8 @@ export const {
 	useDeletePieceMutation,
 	useAddIntermezzoMutation,
 	useListIntermezzosQuery,
+	useGetPieceQuery,
+	useDeleteIntermezzoMutation,
 	useAddVignetteMutation,
 	useListVignettesQuery,
 	useDeleteVignetteMutation,

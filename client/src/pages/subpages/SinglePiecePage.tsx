@@ -1,6 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { Page, Button } from "@components";
-import { useGetCompositionQuery, useListIntermezzosQuery } from "../../features/pieces";
+import { useGetCompositionQuery, useListIntermezzosQuery, useGetPieceQuery } from "../../features/pieces";
+import { useMeQuery } from "../../features/auth";
 import { IntermezzoCard } from "../../features/pieces/components/IntermezzoCard";
 import { Composition } from "../../features/pieces/components/Composition/Composition";
 import styles from "./SinglePiecePage.module.css";
@@ -21,6 +22,9 @@ export function SinglePiecePage() {
 	});
 
 	const intermezzos = intermezzosData?.updates ?? [];
+	const { data: pieceData } = useGetPieceQuery(numericPieceId!, { skip: !numericPieceId });
+	const { data: meData } = useMeQuery();
+	const canDelete = !!meData?.user?.userId && meData.user.userId === pieceData?.work?.userId;
 	const { data, isLoading: isLoadingComposition } = useGetCompositionQuery(`${pieceId}`);
 
 	const tabParam = searchParams.get("tab");
@@ -129,6 +133,8 @@ export function SinglePiecePage() {
 									<IntermezzoCard
 										key={intermezzo.id}
 										intermezzo={intermezzo}
+										pieceId={numericPieceId}
+										canDelete={canDelete}
 									/>
 								))}
 							</div>

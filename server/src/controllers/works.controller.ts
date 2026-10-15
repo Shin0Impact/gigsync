@@ -14,6 +14,7 @@ import {
 	remove_comment,
 	remove_update_media,
 	remove_work,
+	remove_work_update,
 	unlike_work,
 	get_work_composition,
 } from "../services/works.service";
@@ -190,6 +191,19 @@ export async function delete_update_media_handler(
 		return res.status(204).send();
 	} catch (error) {
 		return handle_known_error(error, res, "Failed to delete update media");
+	}
+}
+
+export async function delete_update_handler(req: Request<{ updateId: string }>, res: Response<void | ErrorResponse>) {
+	const updateId = parse_id(req.params.updateId);
+	if (updateId === null) {
+		return res.status(400).json({ error: "Invalid id" });
+	}
+	try {
+		await remove_work_update(req.user!.userId, updateId);
+		return res.status(204).send();
+	} catch (error) {
+		return handle_known_error(error, res, "Failed to delete intermezzo");
 	}
 }
 

@@ -753,6 +753,25 @@ export async function getAllMediaForWork(workId: number): Promise<IUpdateMedia[]
 	}));
 }
 
+// Removes one intermezzo (work_update) and its media rows, then closes the
+// gap in version_number so the next intermezzo doesn't reuse a number
+// (createWorkUpdate numbers new ones as count + 1).
+export async function deleteWorkUpdate(updateId: number): Promise<boolean> {
+	const found = await query<{ work_id: number; version_number: number }>(
+		"select work_id, version_number from work_updates where id = $1",
+		[updateId],
+	);
+	const row = found.rows[0];
+	if (!row) return false;
+	await query("delete from update_media where update_id = $1", [updateId]);
+	await query("delete from work_updates where id = $1", [updateId]);
+	await query("update work_updates set version_number = version_number - 1 where work_id = $1 and version_number > $2", [
+		row.work_id,
+		row.version_number,
+	]);
+	return true;
+}
+
 export async function deleteWork(workId: number): Promise<boolean> {
 	await query("delete from update_media where update_id in (select id from work_updates where work_id = $1)", [workId]);
 	await query("delete from work_updates where work_id = $1", [workId]);

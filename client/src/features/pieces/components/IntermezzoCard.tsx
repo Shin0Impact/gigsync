@@ -1,13 +1,27 @@
 import type { IWorkUpdate as Intermezzo } from "@shared/types/social";
-import { useListVignettesQuery } from "../piecesApi";
+import { useState } from "react";
+import { useListVignettesQuery, useDeleteIntermezzoMutation } from "../piecesApi";
 import { VignetteMedia } from "./VignetteMedia";
 import styles from "./IntermezzoCard.module.css";
 
 interface IntermezzoCardProps {
 	intermezzo: Intermezzo;
+	pieceId: number | string;
+	canDelete?: boolean;
 }
 
-export function IntermezzoCard({ intermezzo }: IntermezzoCardProps) {
+export function IntermezzoCard({ intermezzo, pieceId, canDelete = false }: IntermezzoCardProps) {
+	const [isConfirming, setIsConfirming] = useState(false);
+	const [deleteIntermezzo, { isLoading: isDeleting, isError: deleteFailed }] = useDeleteIntermezzoMutation();
+
+	const handleDelete = async () => {
+		try {
+			await deleteIntermezzo({ pieceId, intermezzoId: intermezzo.id }).unwrap();
+		} catch (err) {
+			console.error("Failed to delete Intermezzo:", err);
+		}
+	};
+
 	const { data: vignettesData, isLoading: isLoadingVignettes } = useListVignettesQuery(intermezzo.id);
 	const vignettes = vignettesData?.media ?? [];
 
@@ -30,6 +44,38 @@ export function IntermezzoCard({ intermezzo }: IntermezzoCardProps) {
 					<h3 className={styles.title}>Intermezzo #{intermezzo.versionNumber}</h3>
 					{formattedDate && <time className={styles.date}>{formattedDate}</time>}
 				</header>
+
+				{canDelete && (
+					<div className={styles.deleteRow}>
+						{isConfirming ? (
+							<>
+								<span className={styles.deletePrompt}>Delete this intermezzo and its media?</span>
+								<button
+									type="button"
+									className={`${styles.deleteBtn} ${styles.deleteConfirm}`}
+									disabled={isDeleting}
+									onClick={handleDelete}>
+									{isDeleting ? "Deleting…" : "Yes, delete"}
+								</button>
+								<button
+									type="button"
+									className={styles.deleteBtn}
+									disabled={isDeleting}
+									onClick={() => setIsConfirming(false)}>
+									Cancel
+								</button>
+								{deleteFailed && <span className={styles.deletePrompt}>Couldn't delete - try again.</span>}
+							</>
+						) : (
+							<button
+								type="button"
+								className={styles.deleteBtn}
+								onClick={() => setIsConfirming(true)}>
+								Delete
+							</button>
+						)}
+					</div>
+				)}
 
 				{intermezzo.description && <p className={styles.description}>{intermezzo.description}</p>}
 
