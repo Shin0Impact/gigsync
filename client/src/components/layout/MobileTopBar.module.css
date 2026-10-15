@@ -74,5 +74,6 @@
 }
 
 .menuLink[data-active="true"] {
-    color: var(--color-role);
+    background-color: var(--color-role);
+    color: var(--color-ink);
 }
