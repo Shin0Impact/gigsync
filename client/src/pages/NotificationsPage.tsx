@@ -50,13 +50,6 @@ export function NotificationsPage() {
 
 	return (
 		<main className={styles.container}>
-			<header className={styles.header}>
-				<div className={styles.titleGroup}>
-					<h1 className={styles.title}>Notifications</h1>
-					<p className={styles.subtitle}>Likes, comments, new followers and application updates</p>
-				</div>
-			</header>
-
 			{isLoading && <div className={styles.loading}>Loading…</div>}
 
 			{error && <div className={styles.error}>Unable to load notifications right now. Please try refreshing.</div>}
