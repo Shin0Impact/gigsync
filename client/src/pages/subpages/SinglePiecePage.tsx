@@ -23,6 +23,20 @@ export function SinglePiecePage() {
 	const intermezzos = intermezzosData?.updates ?? [];
 	const { data, isLoading: isLoadingComposition } = useGetCompositionQuery(`${pieceId}`);
 
+	const tabParam = searchParams.get("tab");
+	const activeTab: "composition" | "intermezzi" = tabParam === "intermezzi" ? "intermezzi" : "composition";
+
+	const setTab = (tab: "composition" | "intermezzi") => {
+		setSearchParams(
+			(prev) => {
+				const newParams = new URLSearchParams(prev);
+				newParams.set("tab", tab);
+				return newParams;
+			},
+			{ replace: true },
+		);
+	};
+
 	const handleToggleDrawer = () => {
 		setSearchParams((prev) => {
 			const newParams = new URLSearchParams(prev);
@@ -52,24 +66,44 @@ export function SinglePiecePage() {
 				// subtitle="Explore intermezzi and the composition timeline"
 				mode="button"
 				actions={
-					<Button
-						variant="solid"
-						onClick={handleToggleDrawer}
-						className={styles.addIntermezzoBtn}>
-						{isDrawerOpen ? "Close Drawer" : "+ Post Intermezzo"}
-					</Button>
+					<>
+						<Button
+							role="tab"
+							aria-selected={activeTab === "composition"}
+							variant={activeTab === "composition" ? "solid" : "ghost"}
+							onClick={() => setTab("composition")}>
+							Composition
+						</Button>
+						<Button
+							role="tab"
+							aria-selected={activeTab === "intermezzi"}
+							variant={activeTab === "intermezzi" ? "solid" : "ghost"}
+							onClick={() => setTab("intermezzi")}>
+							Intermezzi ({intermezzos.length})
+						</Button>
+					</>
 				}
 			/>
 			<Page.Body>
 				<div className={styles.container}>
-					{isLoadingComposition ? (
-						<div className={styles.loading}>Loading Composition...</div>
-					) : (
-						<Composition items={data?.composition ?? []} />
-					)}
+					{activeTab === "composition" &&
+						(isLoadingComposition ? (
+							<div className={styles.loading}>Loading Composition...</div>
+						) : (
+							<Composition items={data?.composition ?? []} />
+						))}
 
+					{activeTab === "intermezzi" && (
 					<section className={styles.timelineSection}>
-						<h2 className={styles.sectionTitle}>Intermezzi ({intermezzos.length})</h2>
+						<div className={styles.sectionHeader}>
+							<p className={styles.sectionHint}>Progress updates posted on this piece, oldest first.</p>
+							<Button
+								variant="solid"
+								onClick={handleToggleDrawer}
+								className={styles.addIntermezzoBtn}>
+								{isDrawerOpen ? "Close Drawer" : "+ Post Intermezzo"}
+							</Button>
+						</div>
 
 						{isLoading && <div className={styles.loading}>Loading Intermezzi...</div>}
 
@@ -98,6 +132,7 @@ export function SinglePiecePage() {
 							</div>
 						)}
 					</section>
+					)}
 				</div>
 			</Page.Body>
 		</Page>

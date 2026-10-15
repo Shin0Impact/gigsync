@@ -80,3 +80,11 @@ The seeder refuses to run if demo accounts already exist (wipe with `--demo-only
 - The same media folder always produces the same dataset (seeded randomness).
 - Don't commit `media/` (it's git-ignored). Credit Pexels / the Wikimedia authors
   in the presentation if you show the photos (see `ATTRIBUTION.md`).
+
+## Top-up scripts (no wipe needed)
+
+```bash
+npm run demo:covers          # real cover photo for every event that has none (--replace re-picks all, --dry-run previews)
+npm run demo:intermezzi      # 3-5 intermezzi (updates) per post, with media, likes and comments (--min=4, --demo-only, --dry-run)
+npm run demo:availability -- --replace   # fill artists' availability calendars
+```

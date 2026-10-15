@@ -1,43 +1,194 @@
 .eventContent {
     background-color: var(--color-primary);
     border: 0.125rem solid var(--color-accent);
-    padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
     box-sizing: border-box;
     width: 100%;
     max-width: 60rem;
+    padding-bottom: 2rem;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--color-accent);
+}
 
-    .metaSection {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-family: var(--font-sans, sans-serif);
+.eventContent > *:not(.hero):not(.heroFallback) {
+    margin-inline: 2rem;
+}
 
-        .badge {
-            padding: 0.25rem 0.75rem;
-            background-color: var(--color-yellow);
-            border: 1px solid var(--color-accent);
-            font-weight: bold;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
+.hero,
+.heroFallback {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    object-fit: cover;
+    display: block;
+    border-bottom: 0.125rem solid var(--color-accent);
+}
 
-        .venue {
-            font-size: 0.95rem;
-            color: var(--color-accent);
-            opacity: 0.8;
-        }
+.heroFallback {
+    background: repeating-linear-gradient(135deg, var(--color-blue) 0 1rem, var(--color-primary) 1rem 2rem);
+    aspect-ratio: 16 / 4;
+}
+
+.titleRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.2rem 0.7rem;
+    background-color: var(--color-yellow);
+    border: 1px solid var(--color-accent);
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.urgent {
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+}
+
+.title {
+    margin: 0;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.organizer {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    align-self: flex-start;
+    padding: 0.5rem 1rem 0.5rem 0.5rem;
+    background: transparent;
+    border: 0.125rem solid var(--color-accent);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: var(--color-yellow);
+    }
+}
+
+.organizerText {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.organizerLabel {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+}
+
+.organizerHandle {
+    font-size: 0.85rem;
+    opacity: 0.65;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+    margin-block: 0;
+    padding: 1rem 0;
+    border-block: 0.0625rem solid var(--color-accent);
+}
+
+.fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    dt {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.6;
     }
 
-    .description {
-        font-family: var(--font-serif, serif);
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: var(--color-accent);
+    dd {
         margin: 0;
-        word-break: break-word;
-        white-space: pre-wrap;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.chip {
+    border: 0.0625rem solid var(--color-accent);
+    padding: 0.1rem 0.55rem;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+}
+
+.about {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.description {
+    font-family: var(--font-serif, serif);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.75rem;
+
+    img,
+    video {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border: 0.125rem solid var(--color-accent);
+        background: #000;
+    }
+}
+
+.loading,
+.error {
+    padding: 2rem;
+    text-align: center;
+    font-family: var(--font-sans, sans-serif);
+}
+
+@media (max-width: 40rem) {
+    .eventContent > *:not(.hero):not(.heroFallback) {
+        margin-inline: 1rem;
+    }
+
+    .title {
+        font-size: 1.6rem;
     }
 }

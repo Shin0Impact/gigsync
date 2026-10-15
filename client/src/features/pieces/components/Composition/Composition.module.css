@@ -9,6 +9,38 @@
     background-color: var(--color-primary);
 }
 
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    margin-bottom: -2rem;
+}
+
+.legendIntro {
+    opacity: 0.65;
+    margin-right: auto;
+}
+
+.legendItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: default;
+}
+
+.swatch {
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 2px solid var(--color-accent);
+    display: inline-block;
+}
+
 .empty {
     font-family: monospace;
     font-size: 0.875rem;

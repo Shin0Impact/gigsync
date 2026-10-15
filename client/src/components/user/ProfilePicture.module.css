@@ -10,6 +10,12 @@
     text-transform: uppercase;
     object-fit: cover;
     flex-shrink: 0;
+    box-sizing: border-box;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    /* every variant gets a fixed square so an <img> can never fall back to its natural size */
+    width: 2.25rem;
+    height: 2.25rem;
     transition: opacity var(--transition-base);
 }
 
@@ -19,10 +25,22 @@
     font-size: 0.75rem;
 }
 
+.picture[data-variant="chat"] {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.85rem;
+}
+
+.picture[data-variant="page"] {
+    width: 8rem;
+    height: 8rem;
+    font-size: 2.25rem;
+}
+
 .picture[data-variant="profile"] {
-    width: 6rem;
-    height: 6rem;
-    font-size: 1.75rem;
+    width: 7rem;
+    height: 7rem;
+    font-size: 2rem;
 }
 
 .picture[data-state="loading"] {

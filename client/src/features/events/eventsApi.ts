@@ -126,6 +126,27 @@ export const eventsApi = api.injectEndpoints({
 			query: () => "/api/events/applications/mine",
 			providesTags: [{ type: "Application", id: "LIST" }],
 		}),
+
+		// Attach an already-uploaded R2 object to an event (organizer only)
+		addEventMedia: builder.mutation<
+			unknown,
+			{ eventId: number | string; mediaType: "image" | "video"; objectKey: string; altText?: string | null; sortOrder?: number }
+		>({
+			query: ({ eventId, ...body }) => ({ url: `/api/events/${eventId}/media`, method: "POST", body }),
+			invalidatesTags: (_result, _error, { eventId }) => [
+				{ type: "Event", id: eventId },
+				{ type: "Event", id: "LIST" },
+			],
+		}),
+
+		// 10. Photos / videos attached to an event (public)
+		listEventMedia: builder.query<
+			{ media: { id: string; media_type: string; object_key: string; alt_text: string | null }[] },
+			number | string
+		>({
+			query: (eventId) => `/api/events/${eventId}/media`,
+			providesTags: (_result, _error, eventId) => [{ type: "Event", id: eventId }],
+		}),
 	}),
 });
 
@@ -139,4 +160,6 @@ export const {
 	useListEventApplicationsQuery,
 	useUpdateApplicationStatusMutation,
 	useListMyApplicationsQuery,
+	useListEventMediaQuery,
+	useAddEventMediaMutation,
 } = eventsApi;

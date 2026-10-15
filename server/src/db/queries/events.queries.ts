@@ -41,6 +41,11 @@ export interface DbEvent {
 	created_at: Date;
 	updated_at: Date | null;
 	distance_km?: number | null;
+	// Display extras on read queries (find/list): first image + who posted it.
+	cover_key?: string | null;
+	organizer_user_name?: string | null;
+	organizer_name?: string | null;
+	organizer_avatar_url?: string | null;
 }
 
 export interface DbEventApplication {
@@ -52,6 +57,17 @@ export interface DbEventApplication {
 	applied_at: Date;
 	updated_at: Date;
 }
+
+// Read-only extras for list/detail: the event's first image (cover) and the
+// organizer's public profile bits. Subselects keep it one row per event.
+const EVENT_DISPLAY_COLUMNS = `
+  (SELECT m.object_key FROM event_media m
+    WHERE m.event_id = event.id AND m.media_type = 'image'
+    ORDER BY m.sort_order ASC, m.created_at ASC LIMIT 1) AS cover_key,
+  (SELECT p.user_name FROM profiles p WHERE p.user_id = event.organizer_id) AS organizer_user_name,
+  (SELECT p.name FROM profiles p WHERE p.user_id = event.organizer_id) AS organizer_name,
+  (SELECT p.avatar_url FROM profiles p WHERE p.user_id = event.organizer_id) AS organizer_avatar_url
+`;
 
 const EVENT_COLUMNS = `
   id,
@@ -202,7 +218,7 @@ export async function create_next_recurring_event(
 
 export async function find_event_by_id(id: number): Promise<DbEvent | null> {
 	const result = await pool.query<DbEvent>(
-		`SELECT ${EVENT_COLUMNS} FROM event WHERE id = $1 LIMIT 1`,
+		`SELECT ${EVENT_COLUMNS}, ${EVENT_DISPLAY_COLUMNS} FROM event WHERE id = $1 LIMIT 1`,
 		[id],
 	);
 
@@ -319,7 +335,7 @@ export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]
 	const result = await pool.query<DbEvent>(
 		`
       SELECT * FROM (
-        SELECT ${EVENT_COLUMNS}, ${distanceExpr} AS distance_km
+        SELECT ${EVENT_COLUMNS}, ${EVENT_DISPLAY_COLUMNS}, ${distanceExpr} AS distance_km
         FROM event
         WHERE ($1::event_status IS NULL OR status = $1)
           AND ($2::uuid IS NULL OR organizer_id = $2)

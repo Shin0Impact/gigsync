@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useCreateEventMutation } from "../eventsApi";
+import { useCreateEventMutation, useAddEventMediaMutation } from "../eventsApi";
+import { uploadFileToR2 } from "../../../shared/uploadClient";
 import { Form } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { CreateEventInput } from "@shared/types/index";
@@ -63,6 +64,32 @@ export function FormEventCreate() {
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [createEvent, { isLoading, error }] = useCreateEventMutation();
+	const [addEventMedia] = useAddEventMediaMutation();
+	const [coverFile, setCoverFile] = useState<File | null>(null);
+	const [coverPreview, setCoverPreview] = useState<string | null>(null);
+	const [isUploadingCover, setIsUploadingCover] = useState(false);
+
+	useEffect(() => {
+		if (!coverFile) {
+			setCoverPreview(null);
+			return;
+		}
+		const url = URL.createObjectURL(coverFile);
+		setCoverPreview(url);
+		return () => URL.revokeObjectURL(url);
+	}, [coverFile]);
+
+	function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const file = e.target.files?.[0];
+		e.target.value = "";
+		if (!file) return;
+		if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+			return setLocalError("Cover image must be a JPG, PNG, WebP or GIF.");
+		}
+		if (file.size > 10 * 1024 * 1024) return setLocalError("Cover image must be under 10 MB.");
+		setLocalError(null);
+		setCoverFile(file);
+	}
 	const headers = ["Create new Event.", "When is it?", "Where will it be?", "Does it repeat?"];
 
 	useEffect(() => {
@@ -70,6 +97,7 @@ export function FormEventCreate() {
 			setStep(1);
 			setTitle("");
 			setDescription("");
+			setCoverFile(null);
 			setIsUrgent(false);
 			setUrgentHours(2);
 			setUrgentDuration(2);
@@ -137,6 +165,27 @@ export function FormEventCreate() {
 			};
 
 			const response = await createEvent(payload).unwrap();
+
+			// The cover is optional and uploaded after the event exists; if it fails the
+			// event is still created and the organizer can retry from the event page.
+			if (coverFile) {
+				try {
+					setIsUploadingCover(true);
+					const { objectKey } = await uploadFileToR2(coverFile);
+					await addEventMedia({
+						eventId: response.event.id,
+						mediaType: "image",
+						objectKey,
+						altText: title.trim(),
+						sortOrder: 0,
+					}).unwrap();
+				} catch (uploadErr) {
+					console.error("Event created, but the cover image failed to upload:", uploadErr);
+				} finally {
+					setIsUploadingCover(false);
+				}
+			}
+
 			navigate(ROUTES.SINGLE_EVENT(response.event.id), { replace: true });
 		} catch (err) {
 			console.error("Failed to create event:", err);
@@ -197,6 +246,32 @@ export function FormEventCreate() {
 							placeholder="What can attendees expect?"
 							rows={4}
 							required
+						/>
+					</Form.Field>
+
+					<Form.Field>
+						<Form.Label htmlFor="event-cover">Cover image (optional)</Form.Label>
+						{coverPreview && (
+							<div className={controlStyles.coverPreviewWrap}>
+								<img
+									className={controlStyles.coverPreview}
+									src={coverPreview}
+									alt="Cover preview"
+								/>
+								<button
+									type="button"
+									className={controlStyles.coverRemove}
+									onClick={() => setCoverFile(null)}>
+									Remove
+								</button>
+							</div>
+						)}
+						<Form.FileInput
+							id="event-cover"
+							file={coverFile}
+							buttonText="Choose Cover Image"
+							accept="image/jpeg,image/png,image/webp,image/gif"
+							onChange={handleCoverChange}
 						/>
 					</Form.Field>
 				</>
@@ -307,8 +382,8 @@ export function FormEventCreate() {
 				</Form.ErrorMessage>
 			)}
 
-			<Form.Submit disabled={isLoading}>
-				{isLoading ? "Creating Event..." : step === 4 ? "Publish Event" : "Continue →"}
+			<Form.Submit disabled={isLoading || isUploadingCover}>
+				{isLoading ? "Creating Event..." : isUploadingCover ? "Uploading cover..." : step === 4 ? "Publish Event" : "Continue →"}
 			</Form.Submit>
 		</Form>
 	);

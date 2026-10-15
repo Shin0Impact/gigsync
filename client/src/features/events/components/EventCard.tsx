@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import type { MouseEvent } from "react";
+import type { MouseEvent, KeyboardEvent } from "react";
 import { useDeleteEventMutation, useListMyApplicationsQuery } from "../eventsApi";
 import { ROUTES } from "../../../routes/routePaths";
 import styles from "./EventCard.module.css";
 import { Button } from "@components";
 import { UserRole } from "@shared/types/index";
 import { Metaballs } from "@paper-design/shaders-react";
+import ProfilePicture from "@components/user/ProfilePicture";
+import { getMediaUrl } from "../../../shared/mediaUrl";
 
 interface EventCardProps {
 	event: any;
@@ -73,6 +75,17 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 
 	const isDrawerActive = isConfirmingDelete || isViewingCoverNote;
 
+	const coverKey: string | null = event.cover_key ?? event.coverKey ?? null;
+	const organizerUserName: string | null = event.organizer_user_name ?? event.organizerUserName ?? null;
+	const organizerName: string | null = event.organizer_name ?? event.organizerName ?? null;
+	const organizerAvatar: string | null = event.organizer_avatar_url ?? event.organizerAvatarUrl ?? null;
+
+	const handleOrganizerClick = (e: MouseEvent | KeyboardEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (organizerUserName) navigate(ROUTES.PROFILE(organizerUserName));
+	};
+
 	return (
 		<div
 			className={styles.cardWrapper}
@@ -84,17 +97,25 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				style={{ textDecoration: "none" }}
 				aria-label={`Open event ${event.title}`}>
 				{/* <div className={styles.cardVignette}>{formattedDate ? <span>{formattedDate}</span> : <span>Event</span>}</div> */}
-				<div className={styles.cardVignette}>
-					<Metaballs
-						width={"auto"}
-						height={"100%"}
-						colors={["#f3d66d"]}
-						colorBack="#00000000"
-						count={20}
-						size={0.72}
-						speed={1}
-						scale={2}
-					/>
+				<div className={`${styles.cardVignette} ${coverKey ? styles.hasCover : ""}`}>
+					{coverKey ? (
+						<img
+							src={getMediaUrl(coverKey)}
+							alt={event.title}
+							loading="lazy"
+						/>
+					) : (
+						<Metaballs
+							width={"auto"}
+							height={"100%"}
+							colors={["#f3d66d"]}
+							colorBack="#00000000"
+							count={20}
+							size={0.72}
+							speed={1}
+							scale={2}
+						/>
+					)}
 				</div>
 
 				<div className={styles.cardBody}>
@@ -111,6 +132,27 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 							<header className={styles.header}>
 								<span className={styles.title}>{event.title}</span>
 							</header>
+							{organizerUserName && (
+								<span
+									className={styles.organizer}
+									role="link"
+									tabIndex={0}
+									onClick={handleOrganizerClick}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") handleOrganizerClick(e);
+									}}>
+									<ProfilePicture
+										avatarUrl={organizerAvatar}
+										userName={organizerUserName}
+										variant="nav"
+										className={styles.organizerAvatar}
+									/>
+									<span className={styles.organizerText}>
+										Posted by <strong>{organizerName || organizerUserName}</strong>
+										<span className={styles.organizerHandle}> @{organizerUserName}</span>
+									</span>
+								</span>
+							)}
 							{(event.venueName ?? event.venue_name) && (
 								<span className={styles.venue}>📍 {event.venueName ?? event.venue_name}</span>
 							)}

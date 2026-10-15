@@ -20,6 +20,22 @@
     gap: 2rem;
 }
 
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.sectionHint {
+    font-family: var(--font-serif, serif);
+    font-style: italic;
+    color: var(--color-accent);
+    opacity: 0.7;
+    margin: 0;
+}
+
 .sectionTitle {
     font-family: var(--font-sans, sans-serif);
     font-size: 1.75rem;

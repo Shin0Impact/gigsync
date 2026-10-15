@@ -22,8 +22,33 @@ export function Composition({ items }: CompositionProps) {
 		return <div className={styles.empty}>No Composition data yet.</div>;
 	}
 
+	const totals: Record<keyof RoleBreakdown, number> = { artist: 0, fan: 0, organizer: 0 };
+	for (const item of items) {
+		totals.artist += item.roles.artist || 0;
+		totals.fan += item.roles.fan || 0;
+		totals.organizer += item.roles.organizer || 0;
+	}
+
 	return (
 		<div className={styles.compositionContainer}>
+			<div
+				className={styles.legend}
+				aria-label="Who interacted">
+				<span className={styles.legendIntro}>Likes &amp; comments per version, by who left them</span>
+				{(["artist", "fan", "organizer"] as const).map((role) => (
+					<span
+						key={role}
+						className={styles.legendItem}
+						onMouseEnter={() => setHoveredRole(role)}
+						onMouseLeave={() => setHoveredRole(null)}>
+						<i
+							className={styles.swatch}
+							style={{ backgroundColor: ROLE_COLORS[role] }}
+						/>
+						{role} · {totals[role]}
+					</span>
+				))}
+			</div>
 			{items.map((item) => (
 				<IntermezzoRow
 					key={item.id}
@@ -72,7 +97,7 @@ function IntermezzoRow({ item, maxGlobalCount, hoveredRole, onHoverRole }: Inter
 							className={`${styles.activityBar} ${isHovered ? styles.activeBar : ""}`}
 							style={{
 								height: `${heightPx}px`,
-								backgroundColor: isHovered ? ROLE_COLORS[roleKey] : undefined,
+								backgroundColor: isHovered || count > 0 ? ROLE_COLORS[roleKey] : undefined,
 							}}
 							onMouseEnter={() => onHoverRole(roleKey)}
 							onMouseLeave={() => onHoverRole(null)}
