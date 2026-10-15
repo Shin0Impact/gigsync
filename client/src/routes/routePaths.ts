@@ -26,7 +26,6 @@ export const ROUTES = {
 
 	MY_PIECES: "/pieces",
 	MY_EVENTS: "/events",
-	MY_APPLICATIONS: "/applications",
 
 	// ======== ON AIR =========
 

@@ -6,12 +6,14 @@ import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { AvailabilityCalendar } from "../features/artists";
 import { useStartConversationMutation } from "../features/chat";
-import { ButtonLink } from "@components";
+import { Button, ButtonLink } from "@components";
+import { UserApplications } from "../features/events/components/UserApplications";
 import { ROUTES } from "../routes/routePaths";
 import ProfilePicture from "../components/user/ProfilePicture";
 import styles from "./ProfilePage.module.css";
 
-type ProfileTab = "posts" | "portfolio" | "availability";
+type ProfileTab = "posts" | "portfolio" | "availability" | "applications";
+type ApplicationStatus = "pending" | "accepted" | "rejected";
 
 // Previously Studio (My Pieces) and Profile were two separate pages
 // showing almost the same "your own pieces" grid - one with a profile
@@ -25,7 +27,9 @@ export function ProfilePage() {
 	const [searchParams] = useSearchParams();
 	// ?tab=availability deep-links straight to a tab (used by the mobile "On Air" button)
 	const tabParam = searchParams.get("tab");
-	const urlTab: ProfileTab = tabParam === "availability" || tabParam === "portfolio" ? tabParam : "posts";
+	const urlTab: ProfileTab =
+		tabParam === "availability" || tabParam === "portfolio" || tabParam === "applications" ? tabParam : "posts";
+	const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>("pending");
 	const [activeTab, setActiveTab] = useState<ProfileTab>(urlTab);
 	useEffect(() => {
 		setActiveTab(urlTab);
@@ -185,6 +189,17 @@ export function ProfilePage() {
 							Availability
 						</button>
 					)}
+					{profile.role === "artist" && profile.isOwnProfile && (
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === "applications"}
+							className={styles.tabButton}
+							data-active={activeTab === "applications"}
+							onClick={() => setActiveTab("applications")}>
+							Applications
+						</button>
+					)}
 				</div>
 
 				{activeTab === "posts" && (
@@ -311,6 +326,22 @@ export function ProfilePage() {
 							userId={profile.userId}
 							isOwnProfile={profile.isOwnProfile}
 						/>
+					</div>
+				)}
+
+				{activeTab === "applications" && profile.role === "artist" && profile.isOwnProfile && (
+					<div className={styles.tabPanel}>
+						<div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+							{(["pending", "accepted", "rejected"] as const).map((status) => (
+								<Button
+									key={status}
+									variant={applicationStatus === status ? "solid" : "ghost"}
+									onClick={() => setApplicationStatus(status)}>
+									{status.charAt(0).toUpperCase() + status.slice(1)}
+								</Button>
+							))}
+						</div>
+						<UserApplications statusFilter={applicationStatus} />
 					</div>
 				)}
 			</section>
