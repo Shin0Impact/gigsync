@@ -86,9 +86,9 @@ export function FilterField({ label, children }: { label: string; children: Reac
 	);
 }
 
-export function Chip({ children, onClear }: { children: ReactNode; onClear?: () => void }) {
+export function Chip({ children, onClear, isActive }: { children: ReactNode; onClear?: () => void; isActive?: boolean }) {
 	return (
-		<span className={styles.chip}>
+		<span className={`${styles.chip} ${isActive ? styles.activeChip : ""}`}>
 			{children}
 			{onClear && (
 				<button

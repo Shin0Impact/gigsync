@@ -10,6 +10,7 @@ import { VignetteMedia } from "../../pieces/components/VignetteMedia";
 import { Button, Form } from "@components";
 import { LaughIcon as NodIcon, type LaughIconHandle as NodIconHandle } from "@animateicons/react/huge";
 import { Message01Icon as EchoIcon, type Message01IconHandle as EchoIconHandle } from "@animateicons/react/huge";
+import { LazyShader } from "@components/shader/LazyShader";
 
 interface FeedPostCardProps {
 	work: WorkFeedItem & { workVersion?: number | null };
@@ -84,6 +85,11 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 		}
 	};
 
+	const pieceIdNum = Number(work.id) || 1;
+	const randomCount = 10 + (pieceIdNum % 11); // Range: 10 to 20 (max 20)
+	const randomSize = 0.7 + (pieceIdNum % 5) * 0.1; // Range: 0.6 to 1.0 (max 1.0)
+	const randomSpeed = 0.8 + (pieceIdNum % 7) * 0.2; // Range: 0.8 to 2.0 (max 2.0)
+
 	return (
 		<div
 			className={styles.cardWrapper}
@@ -95,7 +101,18 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 				style={{ textDecoration: "none" }}
 				aria-label={`Open ${work.title} by ${work.author.userName}`}>
 				<div className={styles.cardVignette}>
-					{work.coverMedia ? <VignetteMedia vignette={work.coverMedia} /> : <div className={styles.shader} />}
+					{work.coverMedia ? (
+						<VignetteMedia vignette={work.coverMedia} />
+					) : (
+						<div className={styles.shader}>
+							<LazyShader
+								count={randomCount}
+								size={randomSize}
+								speed={randomSpeed}
+								color="#f3d66d"
+							/>
+						</div>
+					)}
 				</div>
 
 				<div className={styles.cardBody}>

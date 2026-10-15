@@ -80,10 +80,20 @@ export function ArtistSearch() {
 		);
 	}
 
-	useEffect(() => {
-		handleUseMyLocation({ silent: true });
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	function handleClearLocation() {
+		setHasPickedLocation(false);
+		setPlaceQuery("");
+		setNearestPlaceName(null);
+		setPlaceError(null);
+		setGeoError(null);
+	}
+
+	function handleQueryChange(val: string) {
+		setPlaceQuery(val);
+		if (!val.trim()) {
+			handleClearLocation();
+		}
+	}
 
 	useEffect(() => {
 		if (!isMapOpen) return;
@@ -156,7 +166,7 @@ export function ArtistSearch() {
 		<div className={styles.container}>
 			<SearchToolbar
 				value={placeQuery}
-				onChange={setPlaceQuery}
+				onChange={handleQueryChange}
 				placeholder="Search a city, address, or place…"
 				ariaLabel="Search near a place"
 				onSubmit={() => handlePlaceSearch({ preventDefault() {} } as React.FormEvent)}
@@ -165,9 +175,11 @@ export function ArtistSearch() {
 				activeFilterCount={(artistsType ? 1 : 0) + (sortBy !== "distance" ? 1 : 0)}
 				message={geoError ?? placeError}
 				chips={
-					<Chip>
+					<Chip
+						isActive={hasPickedLocation}
+						onClear={hasPickedLocation ? handleClearLocation : undefined}>
 						{hasPickedLocation
-							? `Within ${radiusKm} km of ${nearestPlaceName ?? `${center.lat.toFixed(3)}, ${center.lng.toFixed(3)}`}`
+							? `Within ${radiusKm} km of ${nearestPlaceName ?? `${center.lat.toFixed(3)},${center.lng.toFixed(3)}`}`
 							: "No location picked yet"}
 					</Chip>
 				}
@@ -202,13 +214,15 @@ export function ArtistSearch() {
 						</FilterField>
 						<Button
 							type="button"
-							variant="ghost"
+							variant="solid"
+							className={styles.filterButton}
 							onClick={() => setIsMapOpen(true)}>
 							{hasPickedLocation ? "Change on map" : "Pick on map"}
 						</Button>
 						<Button
 							type="button"
-							variant="ghost"
+							variant="solid"
+							className={styles.filterButton}
 							onClick={() => handleUseMyLocation()}>
 							Use my location
 						</Button>
@@ -268,52 +282,38 @@ export function ArtistSearch() {
 				</div>
 			)}
 
-			<section className={styles.resultsSection}>
-				{!hasPickedLocation && <p className={styles.emptyText}>Pick a location above to search.</p>}
-
-				{hasPickedLocation && isFetching && <div className={styles.loading}>Searching…</div>}
-
-				{hasPickedLocation && !isFetching && error && (
-					<div className={styles.error}>Something went wrong searching. Please try again.</div>
-				)}
-
-				{hasPickedLocation && !isFetching && !error && artists.length === 0 && (
-					<p className={styles.emptyText}>No artists found in that area. Try widening the radius.</p>
-				)}
-
-				{artists.length > 0 && (
-					<ul className={styles.resultsList}>
-						{artists.map((artist) => (
-							<li
-								key={artist.userId}
-								className={styles.resultItem}>
-								<Link
-									to={ROUTES.PROFILE(artist.userName)}
-									className={styles.resultLink}>
-									<ProfilePicture
-										avatarUrl={artist.avatarUrl}
-										userName={artist.userName}
-										variant="nav"
-									/>
-									<div className={styles.resultInfo}>
-										<span className={styles.resultName}>{artist.userName}</span>
-										<div className={styles.resultMeta}>
-											{artist.artistsType && (
-												<span className={styles.resultType}>{artist.artistsType}</span>
-											)}
-											<span className={styles.resultType}>· {artist.followersNumber} followers</span>
-											{artist.isEmergencyAvailable && (
-												<span className={styles.resultBadge}>Available now</span>
-											)}
-										</div>
+			{hasPickedLocation && artists.length > 0 && (
+				<ul className={styles.resultsList}>
+					{artists.map((artist) => (
+						<li
+							key={artist.userId}
+							className={styles.resultItem}>
+							<Link
+								to={ROUTES.PROFILE(artist.userName)}
+								className={styles.resultLink}>
+								<ProfilePicture
+									avatarUrl={artist.avatarUrl}
+									userName={artist.userName}
+									variant="nav"
+								/>
+								<div className={styles.resultInfo}>
+									<span className={styles.resultName}>{artist.userName}</span>
+									<div className={styles.resultMeta}>
+										{artist.artistsType && <span className={styles.resultType}>{artist.artistsType}</span>}
+										<span className={styles.resultType}>· {artist.followersNumber} followers</span>
+										{artist.isEmergencyAvailable && (
+											<span className={styles.resultBadge}>Available now</span>
+										)}
 									</div>
-									<span className={styles.resultDistance}>{artist.distanceKm} km</span>
-								</Link>
-							</li>
-						))}
-					</ul>
-				)}
-			</section>
+								</div>
+								<span className={styles.resultDistance}>{artist.distanceKm} km</span>
+							</Link>
+						</li>
+					))}
+				</ul>
+			)}
 		</div>
 	);
 }
+
+export default ArtistSearch;

@@ -9,6 +9,7 @@ import { VignetteMedia } from "./VignetteMedia";
 import { Button } from "@components";
 import { Metaballs } from "@paper-design/shaders-react";
 import { AlarmClockIcon, type AlarmClockIconHandle } from "@animateicons/react/lucide";
+import { LazyShader } from "@components/shader/LazyShader";
 
 interface PieceCardProps {
 	piece: Piece & { likedByMe?: boolean; likeCount?: number; commentCount?: number };
@@ -70,6 +71,11 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 		}
 	};
 
+	const pieceIdNum = Number(piece.id) || 1;
+	const randomCount = 10 + (pieceIdNum % 11); // Range: 10 to 20 (max 20)
+	const randomSize = 0.6 + (pieceIdNum % 5) * 0.1; // Range: 0.6 to 1.0 (max 1.0)
+	const randomSpeed = 0.8 + (pieceIdNum % 7) * 0.2; // Range: 0.8 to 2.0 (max 2.0)
+
 	return (
 		<div
 			className={styles.cardWrapper}
@@ -85,15 +91,11 @@ export function PieceCard({ piece, readOnly = false }: PieceCardProps) {
 						<VignetteMedia vignette={coverVignette} />
 					) : (
 						<div className={styles.shader}>
-							<Metaballs
-								width={"auto"}
-								height={"100%"}
-								colors={["#f3d66d"]}
-								colorBack="#00000000"
-								count={20}
-								size={0.72}
-								speed={1}
-								scale={2}
+							<LazyShader
+								count={randomCount}
+								size={randomSize}
+								speed={randomSpeed}
+								color="#f3d66d"
 							/>
 						</div>
 					)}

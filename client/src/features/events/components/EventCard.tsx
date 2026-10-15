@@ -6,7 +6,6 @@ import { ROUTES } from "../../../routes/routePaths";
 import styles from "./EventCard.module.css";
 import { Button } from "@components";
 import { UserRole } from "@shared/types/index";
-import { Metaballs } from "@paper-design/shaders-react";
 import { useDrawer } from "../../../hooks/useDrawer";
 import {
 	UndoIcon as RecurringIcon,
@@ -15,6 +14,7 @@ import {
 	type Clock01IconHandle as TimeIconHandle,
 } from "@animateicons/react/huge";
 import { MapPinIcon, AlarmClockIcon, type MapPinIconHandle, type AlarmClockIconHandle } from "@animateicons/react/lucide";
+import { LazyShader } from "@components/shader/LazyShader";
 
 interface EventCardProps {
 	event: any;
@@ -122,6 +122,11 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 		}
 	};
 
+	const eventIdNum = Number(event.id) || 1;
+	const randomCount = 10 + (eventIdNum % 11); // Range: 10 to 20 (max 20)
+	const randomSize = 0.7 + (eventIdNum % 5) * 0.1; // Range: 0.6 to 1.0 (max 1.0)
+	const randomSpeed = 0.8 + (eventIdNum % 7) * 0.2; // Range: 0.8 to 2.0 (max 2.0)
+
 	return (
 		<div
 			className={styles.cardWrapper}
@@ -133,16 +138,18 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 				style={{ textDecoration: "none" }}
 				aria-label={`Open event ${event.title}`}>
 				<div className={styles.cardVignette}>
-					<Metaballs
-						width={"auto"}
-						height={"100%"}
-						colors={["#f3d66d"]}
-						colorBack="#00000000"
-						count={20}
-						size={0.72}
-						speed={1}
-						scale={2}
-					/>
+					{/* {coverVignette ? (
+						<VignetteMedia vignette={coverVignette} />
+					) : ( */}
+					<div className={styles.shader}>
+						<LazyShader
+							count={randomCount}
+							size={randomSize}
+							speed={randomSpeed}
+							color="#8eabee"
+						/>
+					</div>
+					{/* )} */}
 				</div>
 
 				<div className={styles.cardBody}>

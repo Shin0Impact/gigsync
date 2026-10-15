@@ -6,31 +6,25 @@ import { PieceCard } from "../features/pieces/components";
 import { useGetPortfolioQuery, useRemoveFromPortfolioMutation } from "../features/portfolio";
 import { AvailabilityCalendar } from "../features/artists";
 import { useStartConversationMutation } from "../features/chat";
-import { Button, ButtonLink } from "@components";
+import { Button, ButtonLink, Page } from "@components";
 import { UserApplications } from "../features/events/components/UserApplications";
 import { ROUTES } from "../routes/routePaths";
-import ProfilePicture from "../components/user/ProfilePicture";
 import styles from "./ProfilePage.module.css";
 
 type ProfileTab = "posts" | "portfolio" | "availability" | "applications";
 type ApplicationStatus = "pending" | "accepted" | "rejected";
 
-// Previously Studio (My Pieces) and Profile were two separate pages
-// showing almost the same "your own pieces" grid - one with a profile
-// header and one without. They're merged here: Profile is now the single
-// hub for a user's own (or anyone else's) pieces and portfolio, split
-// into tabs rather than separate routes. See routePaths.ts/Routes.tsx -
-// /dashboard, /pieces, /portfolio and /:userId/portfolio are gone;
-// RootRedirect/RoleGuard send artists here (their own profile) instead.
 export function ProfilePage() {
 	const { username } = useParams<{ username: string }>();
-	const [searchParams] = useSearchParams();
-	// ?tab=availability deep-links straight to a tab (used by the mobile "On Air" button)
+	const [searchParams, setSearchParams] = useSearchParams();
+
 	const tabParam = searchParams.get("tab");
 	const urlTab: ProfileTab =
 		tabParam === "availability" || tabParam === "portfolio" || tabParam === "applications" ? tabParam : "posts";
+
 	const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>("pending");
 	const [activeTab, setActiveTab] = useState<ProfileTab>(urlTab);
+
 	useEffect(() => {
 		setActiveTab(urlTab);
 	}, [urlTab, username]);
@@ -43,16 +37,12 @@ export function ProfilePage() {
 	});
 	const pieces = piecesData?.works ?? [];
 
-	// Only fetched once the Portfolio tab is actually opened - no point
-	// paying for it on every profile view when Posts is the default tab.
 	const { data: portfolioData, isLoading: isLoadingPortfolio } = useGetPortfolioQuery(profile?.userId ?? "", {
 		skip: !profile || activeTab !== "portfolio",
 	});
 	const portfolioItems = portfolioData?.items ?? [];
 
 	const [removeFromPortfolio, { isLoading: isRemovingFromPortfolio }] = useRemoveFromPortfolioMutation();
-	// const { openComposer } = useComposer();
-
 	const [followProfile, { isLoading: isSendingFollow }] = useFollowProfileMutation();
 	const [unfollowProfile, { isLoading: isSendingUnfollow }] = useUnfollowProfileMutation();
 
@@ -88,264 +78,218 @@ export function ProfilePage() {
 		}
 	};
 
+	const setTabParam = (t: ProfileTab) => {
+		setSearchParams(
+			(prev) => {
+				const newParams = new URLSearchParams(prev);
+				newParams.set("tab", t);
+				return newParams;
+			},
+			{ replace: true },
+		);
+	};
+
+	// Determine available tabs based on user role and ownership
+	const availableTabs: { id: ProfileTab; label: string }[] = [
+		{ id: "posts", label: "Posts" },
+		{ id: "portfolio", label: "Portfolio" },
+	];
+	if (profile.role === "artist") {
+		availableTabs.push({ id: "availability", label: "Availability" });
+	}
+	if (profile.role === "artist" && profile.isOwnProfile) {
+		availableTabs.push({ id: "applications", label: "Applications" });
+	}
+
 	return (
-		<main className={styles.container}>
-			<header className={styles.profileHeader}>
-				<ProfilePicture
-					avatarUrl={profile.avatarUrl}
-					userName={profile.userName}
-					variant="profile"
-					className={styles.avatar}
-				/>
-
-				<div className={styles.profileInfo}>
-					<div className={styles.nameRow}>
-						<h1 className={styles.name}>{profile.name || profile.userName}</h1>
-						{profile.isVerified && (
-							<span
-								className={styles.verifiedBadge}
-								title="Verified artist">
-								✓ Verified
-							</span>
-						)}
-					</div>
-
-					<p className={styles.userName}>@{profile.userName}</p>
-
-					<div className={styles.metaRow}>
-						{profile.artistsType && <span className={styles.artistType}>{profile.artistsType}</span>}
-						<span className={styles.followersCount}>
-							<strong>{profile.followersCount}</strong> {profile.followersCount === 1 ? "Follower" : "Followers"}
-						</span>
-					</div>
-
-					{profile.socialLinks.length > 0 && (
-						<div className={styles.socialLinks}>
-							{profile.socialLinks.map((link) => (
-								<a
-									key={link.id}
-									href={link.url}
-									target="_blank"
-									rel="noreferrer"
-									className={styles.socialLink}>
-									{link.platform}
-								</a>
-							))}
-						</div>
-					)}
-
-					{!profile.isOwnProfile && (
+		<Page type="main">
+			<Page.Header
+				mode="profile"
+				avatarUrl={profile.avatarUrl}
+				name={profile.name || "User"}
+				userName={profile.userName}
+				followerCount={profile.followersCount}
+				profileActions={
+					!profile.isOwnProfile ? (
 						<div className={styles.actionButtons}>
-							<button
-								type="button"
-								className={styles.followButton}
-								data-following={profile.isFollowedByMe}
+							<Button
+								variant={profile.isFollowedByMe ? "ghost" : "solid"}
 								disabled={isSendingFollow || isSendingUnfollow}
 								onClick={handleToggleFollow}>
 								{profile.isFollowedByMe ? "Following" : "Follow"}
-							</button>
-							<button
-								type="button"
-								className={styles.messageButton}
+							</Button>
+							<Button
+								variant="ghost"
 								disabled={isStartingConversation}
 								onClick={handleMessage}>
 								Message
-							</button>
+							</Button>
+						</div>
+					) : undefined
+				}
+				actions={
+					<div style={{ display: "flex", gap: "1rem", height: "fit-content" }}>
+						{availableTabs.map((t) => (
+							<Button
+								key={t.id}
+								role="tab"
+								aria-selected={activeTab === t.id}
+								onClick={() => setTabParam(t.id)}
+								variant={activeTab === t.id ? "solid" : "ghost"}>
+								{t.label}
+							</Button>
+						))}
+					</div>
+				}
+			/>
+
+			<Page.Body>
+				<div className={styles.tabsSection}>
+					<div
+						className={styles.tabs}
+						role="tablist"
+						style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem" }}></div>
+
+					{activeTab === "posts" && (
+						<div className={styles.tabPanel}>
+							{isLoadingPieces && <div className={styles.loading}>Loading posts…</div>}
+
+							{!isLoadingPieces && pieces.length === 0 && (
+								<div className={styles.emptyState}>
+									<p className={styles.emptyText}>
+										{profile.isOwnProfile
+											? "You haven't shared any posts yet."
+											: `${profile.userName} hasn't shared any posts yet.`}
+									</p>
+									{profile.isOwnProfile && (
+										<Button
+											variant="solid"
+											onClick={() => 1}>
+											Create Your First Post
+										</Button>
+									)}
+								</div>
+							)}
+
+							{!isLoadingPieces && pieces.length > 0 && (
+								<div className={styles.feed}>
+									{pieces.map((piece) => (
+										<PieceCard
+											key={piece.id}
+											piece={piece}
+											readOnly={!profile.isOwnProfile}
+										/>
+									))}
+								</div>
+							)}
 						</div>
 					)}
-				</div>
-			</header>
 
-			<section className={styles.tabsSection}>
-				<div
-					className={styles.tabs}
-					role="tablist">
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeTab === "posts"}
-						className={styles.tabButton}
-						data-active={activeTab === "posts"}
-						onClick={() => setActiveTab("posts")}>
-						Posts
-					</button>
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeTab === "portfolio"}
-						className={styles.tabButton}
-						data-active={activeTab === "portfolio"}
-						onClick={() => setActiveTab("portfolio")}>
-						Portfolio
-					</button>
-					{profile.role === "artist" && (
-						<button
-							type="button"
-							role="tab"
-							aria-selected={activeTab === "availability"}
-							className={styles.tabButton}
-							data-active={activeTab === "availability"}
-							onClick={() => setActiveTab("availability")}>
-							Availability
-						</button>
-					)}
-					{profile.role === "artist" && profile.isOwnProfile && (
-						<button
-							type="button"
-							role="tab"
-							aria-selected={activeTab === "applications"}
-							className={styles.tabButton}
-							data-active={activeTab === "applications"}
-							onClick={() => setActiveTab("applications")}>
-							Applications
-						</button>
-					)}
-				</div>
+					{activeTab === "portfolio" && (
+						<div className={styles.tabPanel}>
+							{profile.isOwnProfile && (
+								<div
+									className={styles.portfolioActions}
+									style={{ marginBottom: "1rem" }}>
+									<ButtonLink to={ROUTES.CREATE_PORTFOLIO_SECTION}>Add a Piece or Event</ButtonLink>
+								</div>
+							)}
 
-				{activeTab === "posts" && (
-					<div className={styles.tabPanel}>
-						{isLoadingPieces && <div className={styles.loading}>Loading posts…</div>}
+							{isLoadingPortfolio && <div className={styles.loading}>Loading portfolio…</div>}
 
-						{!isLoadingPieces && pieces.length === 0 && (
-							<div className={styles.emptyState}>
+							{!isLoadingPortfolio && portfolioItems.length === 0 && (
 								<p className={styles.emptyText}>
 									{profile.isOwnProfile
-										? "You haven't shared any posts yet."
-										: `${profile.userName} hasn't shared any posts yet.`}
+										? "You haven't pinned anything to your portfolio yet."
+										: `${profile.userName} hasn't pinned anything to their portfolio yet.`}
 								</p>
-								{profile.isOwnProfile && (
-									// <button
-									// 	type="button"
-									// 	className={styles.createButton}
-									// 	onClick={openComposer}>
-									// 	Create Your First Post
-									// </button>
-									<button
-										type="button"
-										className={styles.createButton}
-										onClick={() => 1}>
-										Create Your First Post
-									</button>
-								)}
-							</div>
-						)}
+							)}
 
-						{!isLoadingPieces && pieces.length > 0 && (
-							<div className={styles.feed}>
-								{pieces.map((piece) => (
-									<PieceCard
-										key={piece.id}
-										piece={piece}
-										readOnly={!profile.isOwnProfile}
-									/>
+							{!isLoadingPortfolio && portfolioItems.length > 0 && (
+								<div className={styles.portfolioGrid}>
+									{portfolioItems.map((item) => {
+										const isEvent = item.sourceType === "event";
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
+										const eventPost = isEvent ? (item.post as any) : null;
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
+										const workPost = !isEvent ? (item.post as any) : null;
+
+										return (
+											<div
+												key={item.id}
+												className={styles.portfolioCard}>
+												<div className={styles.portfolioCardHeader}>
+													<span className={styles.portfolioBadge}>{item.sourceType}</span>
+													{profile.isOwnProfile && (
+														<button
+															type="button"
+															className={styles.unpinButton}
+															onClick={() => handleRemovePortfolioItem(item.id)}
+															disabled={isRemovingFromPortfolio}
+															aria-label="Unpin item">
+															×
+														</button>
+													)}
+												</div>
+
+												<div className={styles.portfolioCardBody}>
+													{isEvent && eventPost && (
+														<>
+															<h3 className={styles.portfolioCardTitle}>{eventPost.title}</h3>
+															<p className={styles.portfolioCardText}>{eventPost.description}</p>
+															<span className={styles.portfolioCardMeta}>
+																{eventPost.media?.length || 0} media files attached
+															</span>
+														</>
+													)}
+
+													{!isEvent && workPost && (
+														<>
+															<h3 className={styles.portfolioCardTitle}>Work #{workPost.id}</h3>
+															<p className={styles.portfolioCardText}>
+																{workPost.description || "No description provided."}
+															</p>
+															<span className={styles.portfolioCardMeta}>
+																{workPost.updates?.length || 0} updates recorded
+															</span>
+														</>
+													)}
+												</div>
+											</div>
+										);
+									})}
+								</div>
+							)}
+						</div>
+					)}
+
+					{activeTab === "availability" && profile.role === "artist" && (
+						<div className={styles.tabPanel}>
+							<AvailabilityCalendar
+								userId={profile.userId}
+								isOwnProfile={profile.isOwnProfile}
+							/>
+						</div>
+					)}
+
+					{activeTab === "applications" && profile.role === "artist" && profile.isOwnProfile && (
+						<div className={styles.tabPanel}>
+							<div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+								{(["pending", "accepted", "rejected"] as const).map((status) => (
+									<Button
+										key={status}
+										variant={applicationStatus === status ? "solid" : "ghost"}
+										onClick={() => setApplicationStatus(status)}>
+										{status.charAt(0).toUpperCase() + status.slice(1)}
+									</Button>
 								))}
 							</div>
-						)}
-					</div>
-				)}
-
-				{activeTab === "portfolio" && (
-					<div className={styles.tabPanel}>
-						{profile.isOwnProfile && (
-							<div className={styles.portfolioActions}>
-								<ButtonLink to={ROUTES.CREATE_PORTFOLIO_SECTION}>Add a Piece or Event</ButtonLink>
-							</div>
-						)}
-
-						{isLoadingPortfolio && <div className={styles.loading}>Loading portfolio…</div>}
-
-						{!isLoadingPortfolio && portfolioItems.length === 0 && (
-							<p className={styles.emptyText}>
-								{profile.isOwnProfile
-									? "You haven't pinned anything to your portfolio yet."
-									: `${profile.userName} hasn't pinned anything to their portfolio yet.`}
-							</p>
-						)}
-
-						{!isLoadingPortfolio && portfolioItems.length > 0 && (
-							<div className={styles.portfolioGrid}>
-								{portfolioItems.map((item) => {
-									const isEvent = item.sourceType === "event";
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									const eventPost = isEvent ? (item.post as any) : null;
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									const workPost = !isEvent ? (item.post as any) : null;
-
-									return (
-										<div
-											key={item.id}
-											className={styles.portfolioCard}>
-											<div className={styles.portfolioCardHeader}>
-												<span className={styles.portfolioBadge}>{item.sourceType}</span>
-												{profile.isOwnProfile && (
-													<button
-														type="button"
-														className={styles.unpinButton}
-														onClick={() => handleRemovePortfolioItem(item.id)}
-														disabled={isRemovingFromPortfolio}
-														aria-label="Unpin item">
-														×
-													</button>
-												)}
-											</div>
-
-											<div className={styles.portfolioCardBody}>
-												{isEvent && eventPost && (
-													<>
-														<h3 className={styles.portfolioCardTitle}>{eventPost.title}</h3>
-														<p className={styles.portfolioCardText}>{eventPost.description}</p>
-														<span className={styles.portfolioCardMeta}>
-															{eventPost.media?.length || 0} media files attached
-														</span>
-													</>
-												)}
-
-												{!isEvent && workPost && (
-													<>
-														<h3 className={styles.portfolioCardTitle}>Work #{workPost.id}</h3>
-														<p className={styles.portfolioCardText}>
-															{workPost.description || "No description provided."}
-														</p>
-														<span className={styles.portfolioCardMeta}>
-															{workPost.updates?.length || 0} updates recorded
-														</span>
-													</>
-												)}
-											</div>
-										</div>
-									);
-								})}
-							</div>
-						)}
-					</div>
-				)}
-
-				{activeTab === "availability" && profile.role === "artist" && (
-					<div className={styles.tabPanel}>
-						<AvailabilityCalendar
-							userId={profile.userId}
-							isOwnProfile={profile.isOwnProfile}
-						/>
-					</div>
-				)}
-
-				{activeTab === "applications" && profile.role === "artist" && profile.isOwnProfile && (
-					<div className={styles.tabPanel}>
-						<div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-							{(["pending", "accepted", "rejected"] as const).map((status) => (
-								<Button
-									key={status}
-									variant={applicationStatus === status ? "solid" : "ghost"}
-									onClick={() => setApplicationStatus(status)}>
-									{status.charAt(0).toUpperCase() + status.slice(1)}
-								</Button>
-							))}
+							<UserApplications statusFilter={applicationStatus} />
 						</div>
-						<UserApplications statusFilter={applicationStatus} />
-					</div>
-				)}
-			</section>
-		</main>
+					)}
+				</div>
+			</Page.Body>
+		</Page>
 	);
 }
 
