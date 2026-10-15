@@ -20,7 +20,8 @@
     }
 
     &[data-color="invert"] {
-        --color-link-default: var(--color-primary);
+        /* used on the always-dark sidebar panel, so it must stay light in dark mode too */
+        --color-link-default: var(--color-white);
     }
 
     /* &[data-color="white"] {

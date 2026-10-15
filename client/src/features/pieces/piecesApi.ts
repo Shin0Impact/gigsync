@@ -65,7 +65,7 @@ export const worksApi = api.injectEndpoints({
 			providesTags: (_result, _error, pieceId) => [{ type: "Intermezzo", id: pieceId }],
 		}),
 
-		getPiece: builder.query<{ work: { id: number; userId: string } }, number | string>({
+		getPiece: builder.query<{ work: { id: number; userId: string; title?: string | null } }, number | string>({
 			query: (pieceId) => `/api/works/${pieceId}`,
 			providesTags: (_result, _error, pieceId) => [{ type: "Piece", id: pieceId }],
 		}),

@@ -66,7 +66,7 @@ export function SinglePiecePage() {
 	return (
 		<Page type="sub">
 			<Page.Header
-				title={`Piece #${pieceId}`}
+				title={pieceData?.work?.title?.trim() || `Piece #${pieceId}`}
 				// subtitle="Explore intermezzi and the composition timeline"
 				mode="button"
 				actions={

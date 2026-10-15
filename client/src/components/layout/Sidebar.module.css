@@ -79,7 +79,7 @@
         .sidebarWordmark {
             width: 100%;
             text-align: center;
-            color: var(--color-primary);
+            color: var(--color-white);
             font-family: var(--font-sans);
             font-size: 3rem;
             flex-shrink: 0;
