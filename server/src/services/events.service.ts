@@ -65,6 +65,7 @@ export async function create_event_for_organizer(organizerId: string, input: Cre
 		isRecurring = false,
 		recurringRule = null,
 		categoriesNeeded,
+		isUrgent = false,
 	} = input;
 
 	if (!title || !description || !startAt || !endAt || !venueName || !location) {
@@ -103,6 +104,7 @@ export async function create_event_for_organizer(organizerId: string, input: Cre
 			isRecurring,
 			recurringRule,
 			categoriesNeeded: categories,
+			isUrgent: Boolean(isUrgent),
 		});
 
 		await client.query("COMMIT");
@@ -219,6 +221,7 @@ export async function update_event_for_organizer(
 		recurringRule: input.recurringRule,
 		status: input.status,
 		categoriesNeeded: categories,
+		isUrgent: input.isUrgent,
 	});
 
 	if (!updated) {

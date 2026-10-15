@@ -16,3 +16,16 @@
     font-size: 0.8rem;
     opacity: 0.7;
 }
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.checkLabel {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    cursor: pointer;
+}

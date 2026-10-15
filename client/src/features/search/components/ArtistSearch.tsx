@@ -5,6 +5,7 @@ import { ROUTES } from "../../../routes/routePaths";
 import type { ArtistCategory, ArtistSearchResult } from "@shared/types/index";
 import { Button } from "@components";
 import styles from "./ArtistSearch.module.css";
+import { Chip, FilterField, SearchToolbar } from "./SearchToolbar";
 import { LocationPicker, useSearchArtistsQuery } from "../../artists";
 
 const ARTIST_CATEGORIES: ArtistCategory[] = ["painter", "photographer", "designer", "musician"];
@@ -153,55 +154,67 @@ export function ArtistSearch() {
 
 	return (
 		<div className={styles.container}>
-			{geoError && <p className={styles.errorMessage}>{geoError}</p>}
-
-			<form
-				className={styles.placeSearchForm}
-				onSubmit={handlePlaceSearch}>
-				<input
-					type="text"
-					value={placeQuery}
-					onChange={(e) => setPlaceQuery(e.target.value)}
-					placeholder="Search a city, address, or place…"
-					className={styles.placeInput}
-				/>
-				<Button
-					type="submit"
-					variant="solid"
-					className={styles.placeSearchButton}
-					disabled={isGeocoding || !placeQuery.trim()}>
-					{isGeocoding ? "Searching…" : "Search"}
-				</Button>
-			</form>
-
-			{placeError && <p className={styles.errorMessage}>{placeError}</p>}
-
-			<div className={styles.locationSummary}>
-				<span className={styles.locationSummaryText}>
-					{hasPickedLocation
-						? `Searching within ${radiusKm} km of ${
-								nearestPlaceName ?? `${center.lat.toFixed(3)},${center.lng.toFixed(3)}`
-							}`
-						: "No location picked yet"}
-				</span>
-
-				<div className={styles.locationActions}>
-					<Button
-						type="button"
-						variant="ghost"
-						className={styles.mapToggleButton}
-						onClick={() => setIsMapOpen(true)}>
-						{hasPickedLocation ? "Change on map" : "Pick on map"}
-					</Button>
-					<Button
-						type="button"
-						variant="solid"
-						className={styles.useLocationButton}
-						onClick={() => handleUseMyLocation()}>
-						Use my location
-					</Button>
-				</div>
-			</div>
+			<SearchToolbar
+				value={placeQuery}
+				onChange={setPlaceQuery}
+				placeholder="Search a city, address, or place…"
+				ariaLabel="Search near a place"
+				onSubmit={() => handlePlaceSearch({ preventDefault() {} } as React.FormEvent)}
+				submitLabel={isGeocoding ? "Searching…" : "Search"}
+				submitDisabled={isGeocoding || !placeQuery.trim()}
+				activeFilterCount={(artistsType ? 1 : 0) + (sortBy !== "distance" ? 1 : 0)}
+				message={geoError ?? placeError}
+				chips={
+					<Chip>
+						{hasPickedLocation
+							? `Within ${radiusKm} km of ${nearestPlaceName ?? `${center.lat.toFixed(3)}, ${center.lng.toFixed(3)}`}`
+							: "No location picked yet"}
+					</Chip>
+				}
+				filters={
+					<>
+						<FilterField label="Category">
+							<select
+								value={artistsType}
+								onChange={(e) => setArtistsType(e.target.value as ArtistCategory | "")}>
+								<option value="">Any</option>
+								{ARTIST_CATEGORIES.map((category) => (
+									<option
+										key={category}
+										value={category}>
+										{category}
+									</option>
+								))}
+							</select>
+						</FilterField>
+						<FilterField label="Sort by">
+							<select
+								value={sortBy}
+								onChange={(e) => setSortBy(e.target.value as SortOption)}>
+								{SORT_OPTIONS.map((option) => (
+									<option
+										key={option.value}
+										value={option.value}>
+										{option.label}
+									</option>
+								))}
+							</select>
+						</FilterField>
+						<Button
+							type="button"
+							variant="ghost"
+							onClick={() => setIsMapOpen(true)}>
+							{hasPickedLocation ? "Change on map" : "Pick on map"}
+						</Button>
+						<Button
+							type="button"
+							variant="ghost"
+							onClick={() => handleUseMyLocation()}>
+							Use my location
+						</Button>
+					</>
+				}
+			/>
 
 			{isMapOpen && (
 				<div
@@ -254,41 +267,6 @@ export function ArtistSearch() {
 					</div>
 				</div>
 			)}
-
-			<div className={styles.controls}>
-				<label className={styles.controlField}>
-					<span className={styles.controlLabel}>Category</span>
-					<select
-						value={artistsType}
-						onChange={(e) => setArtistsType(e.target.value as ArtistCategory | "")}
-						className={styles.select}>
-						<option value="">Any</option>
-						{ARTIST_CATEGORIES.map((category) => (
-							<option
-								key={category}
-								value={category}>
-								{category}
-							</option>
-						))}
-					</select>
-				</label>
-
-				<label className={styles.controlField}>
-					<span className={styles.controlLabel}>Sort by</span>
-					<select
-						value={sortBy}
-						onChange={(e) => setSortBy(e.target.value as SortOption)}
-						className={styles.select}>
-						{SORT_OPTIONS.map((option) => (
-							<option
-								key={option.value}
-								value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
-				</label>
-			</div>
 
 			<section className={styles.resultsSection}>
 				{!hasPickedLocation && <p className={styles.emptyText}>Pick a location above to search.</p>}

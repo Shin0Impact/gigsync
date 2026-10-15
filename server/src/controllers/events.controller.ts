@@ -93,6 +93,7 @@ export async function list_events(
 			organizerId?: string;
 			category?: string;
 			q?: string;
+			urgent?: string;
 			sort?: string;
 			lat?: string;
 			lng?: string;
@@ -102,7 +103,7 @@ export async function list_events(
 	res: Response<ListEventsResponse | ErrorResponse>,
 ) {
 	try {
-		const { status, organizerId, category, q, sort, lat, lng, radiusKm } = req.query;
+		const { status, organizerId, category, q, urgent, sort, lat, lng, radiusKm } = req.query;
 
 		const parse_num = (v: unknown) => (typeof v === "string" && v.trim() !== "" ? Number(v) : undefined);
 		const latNum = parse_num(lat);
@@ -128,6 +129,7 @@ export async function list_events(
 			organizerId: typeof organizerId === "string" ? organizerId : undefined,
 			category: typeof category === "string" ? (category as never) : undefined,
 			q: typeof q === "string" && q.trim() ? q.trim().slice(0, 100) : undefined,
+			urgentOnly: urgent === "true",
 			sort: typeof sort === "string" ? (sort as never) : undefined,
 			lat: latNum,
 			lng: lngNum,

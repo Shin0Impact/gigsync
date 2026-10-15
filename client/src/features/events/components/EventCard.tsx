@@ -99,7 +99,10 @@ export function EventCard({ event, isMine = false, userRole = "guest", applicati
 
 				<div className={styles.cardBody}>
 					<div className={styles.metaTop}>
-						<span>{event.status || "Upcoming"}</span>
+						<span>
+							{(event.isUrgent ?? event.is_urgent) && <span className={styles.urgentBadge}>Urgent</span>}
+							{event.status || "Upcoming"}
+						</span>
 						{(event.isRecurring ?? event.is_recurring) && <span>🔄 Recurring</span>}
 					</div>
 

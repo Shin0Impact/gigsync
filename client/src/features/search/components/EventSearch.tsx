@@ -4,6 +4,7 @@ import { useMeQuery } from "../../auth";
 import { useListEventsQuery } from "../../events/eventsApi";
 import { EventCard } from "../../events/components/EventCard";
 import styles from "./ArtistSearch.module.css";
+import { Chip, FilterField, SearchToolbar } from "./SearchToolbar";
 import eventStyles from "./EventSearch.module.css";
 
 type EventSortOption = "date" | "newest" | "title" | "distance";
@@ -30,6 +31,7 @@ export function EventSearch() {
 	const [placeQuery, setPlaceQuery] = useState("");
 	const [isGeocoding, setIsGeocoding] = useState(false);
 	const [locationError, setLocationError] = useState<string | null>(null);
+	const [urgentOnly, setUrgentOnly] = useState(false);
 
 	useEffect(() => {
 		const id = setTimeout(() => setDebouncedText(text.trim()), 300);
@@ -42,6 +44,7 @@ export function EventSearch() {
 	const { data, isFetching, error } = useListEventsQuery({
 		q: debouncedText || undefined,
 		sort: effectiveSort,
+		urgent: urgentOnly,
 		...(center ? { lat: center.lat, lng: center.lng, radiusKm } : {}),
 	});
 	const events = data?.events ?? [];
@@ -62,7 +65,7 @@ export function EventSearch() {
 		);
 	}
 
-	async function handlePlaceSearch(e: React.FormEvent) {
+	async function handlePlaceSearch(e: React.SyntheticEvent) {
 		e.preventDefault();
 		const query = placeQuery.trim();
 		if (!query) return;
@@ -96,98 +99,97 @@ export function EventSearch() {
 		setLocationError(null);
 	}
 
+	const activeFilterCount = (center ? 1 : 0) + (urgentOnly ? 1 : 0) + (sortBy !== "date" ? 1 : 0);
+
 	return (
 		<div className={styles.container}>
-			<input
-				type="search"
+			<SearchToolbar
 				value={text}
-				onChange={(e) => setText(e.target.value)}
+				onChange={setText}
 				placeholder="Search events by name, venue or description…"
-				aria-label="Search events"
-				className={styles.placeInput}
+				ariaLabel="Search events"
+				activeFilterCount={activeFilterCount}
+				message={locationError}
+				chips={
+					(center || urgentOnly) && (
+						<>
+							{center && (
+								<Chip onClear={clearLocation}>
+									Within {radiusKm} km of {centerLabel}
+								</Chip>
+							)}
+							{urgentOnly && <Chip onClear={() => setUrgentOnly(false)}>Urgent only</Chip>}
+						</>
+					)
+				}
+				filters={
+					<>
+						<FilterField label="Sort by">
+							<select
+								value={effectiveSort}
+								onChange={(e) => setSortBy(e.target.value as EventSortOption)}>
+								{SORT_OPTIONS.map((option) => (
+									<option
+										key={option.value}
+										value={option.value}
+										disabled={option.value === "distance" && !center}>
+										{option.label}
+									</option>
+								))}
+							</select>
+						</FilterField>
+
+						<FilterField label="Near a place">
+							<input
+								type="text"
+								value={placeQuery}
+								onChange={(e) => setPlaceQuery(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										handlePlaceSearch(e);
+									}
+								}}
+								placeholder="City or address, then Enter"
+							/>
+						</FilterField>
+
+						{center && (
+							<FilterField label="Radius">
+								<select
+									value={radiusKm}
+									onChange={(e) => setRadiusKm(Number(e.target.value))}>
+									{RADIUS_OPTIONS.map((km) => (
+										<option
+											key={km}
+											value={km}>
+											{km} km
+										</option>
+									))}
+								</select>
+							</FilterField>
+						)}
+
+						<div className={eventStyles.options}>
+							<label className={eventStyles.checkLabel}>
+								<input
+									type="checkbox"
+									checked={urgentOnly}
+									onChange={(e) => setUrgentOnly(e.target.checked)}
+								/>{" "}
+								Urgent only
+							</label>
+							<Button
+								type="button"
+								variant="ghost"
+								onClick={handleUseMyLocation}
+								disabled={isGeocoding}>
+								Use my location
+							</Button>
+						</div>
+					</>
+				}
 			/>
-
-			<form
-				className={styles.placeSearchForm}
-				onSubmit={handlePlaceSearch}>
-				<input
-					type="text"
-					value={placeQuery}
-					onChange={(e) => setPlaceQuery(e.target.value)}
-					placeholder="Near a city, address, or place…"
-					aria-label="Search near a place"
-					className={styles.placeInput}
-				/>
-				<Button
-					type="submit"
-					variant="solid"
-					className={styles.placeSearchButton}
-					disabled={isGeocoding || !placeQuery.trim()}>
-					{isGeocoding ? "Searching…" : "Go"}
-				</Button>
-			</form>
-
-			{locationError && <p className={styles.errorMessage}>{locationError}</p>}
-
-			<div className={styles.locationSummary}>
-				<span className={styles.locationSummaryText}>
-					{center ? `Within ${radiusKm} km of ${centerLabel}` : "Showing events everywhere"}
-				</span>
-				<div className={styles.locationActions}>
-					{center && (
-						<Button
-							type="button"
-							variant="ghost"
-							onClick={clearLocation}>
-							Clear location
-						</Button>
-					)}
-					<Button
-						type="button"
-						variant="solid"
-						className={styles.useLocationButton}
-						onClick={handleUseMyLocation}>
-						Use my location
-					</Button>
-				</div>
-			</div>
-
-			<div className={styles.controls}>
-				<label className={styles.controlField}>
-					<span className={styles.controlLabel}>Sort by</span>
-					<select
-						value={effectiveSort}
-						onChange={(e) => setSortBy(e.target.value as EventSortOption)}
-						className={styles.select}>
-						{SORT_OPTIONS.map((option) => (
-							<option
-								key={option.value}
-								value={option.value}
-								disabled={option.value === "distance" && !center}>
-								{option.label}
-							</option>
-						))}
-					</select>
-				</label>
-
-				{center && (
-					<label className={styles.controlField}>
-						<span className={styles.controlLabel}>Radius</span>
-						<select
-							value={radiusKm}
-							onChange={(e) => setRadiusKm(Number(e.target.value))}
-							className={styles.select}>
-							{RADIUS_OPTIONS.map((km) => (
-								<option
-									key={km}
-									value={km}>
-									{km} km
-								</option>
-							))}
-						</select>
-					</label>
-				)}
-			</div>
 
 			<section className={styles.resultsSection}>
 				{isFetching && <div className={styles.loading}>Searching…</div>}

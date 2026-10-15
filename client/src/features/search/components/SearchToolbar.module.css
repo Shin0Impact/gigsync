@@ -1,0 +1,148 @@
+.toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.bar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.7rem 0.9rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 1rem;
+    color: var(--color-accent);
+    box-sizing: border-box;
+}
+
+.input::placeholder {
+    color: var(--color-accent);
+    opacity: 0.5;
+}
+
+.primary,
+.secondary {
+    padding: 0 1.1rem;
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.primary {
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+}
+
+.secondary {
+    background-color: transparent;
+    color: var(--color-accent);
+}
+
+.primary:hover:not(:disabled),
+.secondary:hover,
+.secondary[aria-expanded="true"] {
+    background-color: var(--color-yellow);
+    color: var(--color-accent);
+}
+
+.primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.75rem 1rem;
+    align-items: end;
+    padding: 0.9rem 1rem;
+    border: 0.125rem solid var(--color-accent);
+    background-color: var(--color-primary);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.fieldLabel {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    opacity: 0.75;
+}
+
+.field select,
+.field input[type="text"] {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    background-color: var(--color-primary);
+    border: 0.125rem solid var(--color-accent);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.9rem;
+    color: var(--color-accent);
+    box-sizing: border-box;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.7rem;
+    border: 0.125rem solid var(--color-accent);
+    border-radius: 999px;
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.8rem;
+    color: var(--color-accent);
+}
+
+.chipClear {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.message {
+    margin: 0;
+    font-family: var(--font-serif, serif);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #d32f2f;
+}
+
+@media (max-width: 480px) {
+    .bar {
+        flex-wrap: wrap;
+    }
+    .input {
+        flex-basis: 100%;
+    }
+    .primary,
+    .secondary {
+        flex: 1;
+        padding: 0.6rem 1rem;
+    }
+}

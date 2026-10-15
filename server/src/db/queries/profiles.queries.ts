@@ -247,6 +247,50 @@ export async function find_emergency_available_near(
 	return result.rows;
 }
 
+// --- User directory search by name ------------------------------------
+// Matches the @handle (user_name) or display name. Prefix matches rank
+// above substring matches, then by follower count. Capped at 30.
+export interface DbUserSearchResult {
+	user_id: string;
+	user_name: string;
+	name: string | null;
+	avatar_url: string | null;
+	role: string | null;
+	artists_type: string | null;
+	is_verified: boolean;
+	followers_number: number;
+}
+
+export async function search_users_by_name(
+	pattern: string,
+	prefixPattern: string,
+): Promise<DbUserSearchResult[]> {
+	const result = await pool.query<DbUserSearchResult>(
+		`
+      SELECT
+        p.user_id,
+        p.user_name,
+        p.name,
+        p.avatar_url,
+        r.role::text AS role,
+        p.artists_type::text AS artists_type,
+        p.is_verified,
+        p.followers_number
+      FROM profiles p
+      LEFT JOIN roles r ON r.user_id = p.user_id
+      WHERE p.user_name ILIKE $1 OR p.name ILIKE $1
+      ORDER BY
+        (p.user_name ILIKE $2 OR p.name ILIKE $2) DESC,
+        p.followers_number DESC,
+        p.user_name ASC
+      LIMIT 30
+    `,
+		[pattern, prefixPattern],
+	);
+
+	return result.rows;
+}
+
 // --- Card #24 - artist directory search by location --------------------
 //
 // Same ST_DWithin/ST_Distance shape as find_emergency_available_near

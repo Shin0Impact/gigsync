@@ -70,6 +70,7 @@ export interface DbEvent {
 	recurring_rule: string | null;
 	status: EventStatus;
 	categories_needed: ArtistCategory[] | null;
+	is_urgent: boolean;
 	created_at: Date;
 	updated_at: Date | null;
 	// Only present on list queries that were given a search centre.
@@ -231,6 +232,7 @@ export interface CreateEventInput {
 	isRecurring?: boolean;
 	recurringRule?: string | null;
 	categoriesNeeded?: ArtistCategory[];
+	isUrgent?: boolean;
 }
 
 export interface UpdateEventInput {
@@ -244,6 +246,7 @@ export interface UpdateEventInput {
 	recurringRule?: string | null;
 	status?: EventStatus;
 	categoriesNeeded?: ArtistCategory[];
+	isUrgent?: boolean;
 }
 
 export interface AddEventMediaInput {
@@ -456,6 +459,21 @@ export interface EmergencyStatusHandlerResponse {
 
 export interface ListEmergencyAvailableResponse {
 	artists: EmergencyAvailableArtist[];
+}
+
+export interface UserSearchResult {
+	userId: string;
+	userName: string;
+	name: string | null;
+	avatarUrl: string | null;
+	role: string | null;
+	artistsType: string | null;
+	isVerified: boolean;
+	followersNumber: number;
+}
+
+export interface ListUsersSearchResponse {
+	users: UserSearchResult[];
 }
 
 export interface ListArtistsSearchResponse {

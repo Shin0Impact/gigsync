@@ -18,6 +18,7 @@ export interface ListEventsParams {
 	organizerId?: string;
 	category?: string;
 	q?: string;
+	urgent?: boolean;
 	sort?: "date" | "newest" | "title" | "distance";
 	lat?: number;
 	lng?: number;
@@ -34,6 +35,7 @@ export const eventsApi = api.injectEndpoints({
 				if (params?.organizerId) search.set("organizerId", params.organizerId);
 				if (params?.category) search.set("category", params.category);
 				if (params?.q) search.set("q", params.q);
+				if (params?.urgent) search.set("urgent", "true");
 				if (params?.sort) search.set("sort", params.sort);
 				if (params?.lat !== undefined && params?.lng !== undefined) {
 					search.set("lat", String(params.lat));

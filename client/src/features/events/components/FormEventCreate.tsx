@@ -23,6 +23,7 @@ export function FormEventCreate() {
 
 	const [isRecurring, setIsRecurring] = useState(false);
 	const [recurringRule, setRecurringRule] = useState("");
+	const [isUrgent, setIsUrgent] = useState(false);
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [createEvent, { isLoading, error }] = useCreateEventMutation();
@@ -62,6 +63,7 @@ export function FormEventCreate() {
 				location,
 				isRecurring,
 				recurringRule: isRecurring ? recurringRule.trim() || null : null,
+				isUrgent,
 			};
 
 			const response = await createEvent(payload).unwrap();
@@ -185,6 +187,15 @@ export function FormEventCreate() {
 
 			{step === 4 && (
 				<>
+					<Form.Field>
+						<Form.Checkbox
+							id="event-urgent"
+							label="Urgent - I need an artist as soon as possible"
+							checked={isUrgent}
+							onChange={setIsUrgent}
+						/>
+					</Form.Field>
+
 					<Form.Field>
 						<Form.Checkbox
 							id="event-recurring"

@@ -2,8 +2,30 @@ import {
 	DbProfileWithRole,
 	find_profile_with_role_by_user_id,
 	find_profile_with_role_by_user_name,
+	search_users_by_name,
 } from "../db/queries/profiles.queries";
-import { PublicProfile, UserRole } from "../types";
+import { PublicProfile, UserRole, UserSearchResult } from "../types";
+
+// Directory search by @handle or display name. Short queries are rejected
+// (a single letter would match half the table).
+export async function search_users(rawQuery: string): Promise<UserSearchResult[]> {
+	const query = rawQuery.trim().replace(/^@/, "").slice(0, 50);
+	if (query.length < 2) {
+		throw new Error("Search query must be at least 2 characters");
+	}
+	const escaped = query.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+	const rows = await search_users_by_name(`%${escaped}%`, `${escaped}%`);
+	return rows.map((row) => ({
+		userId: row.user_id,
+		userName: row.user_name,
+		name: row.name,
+		avatarUrl: row.avatar_url,
+		role: row.role,
+		artistsType: row.artists_type,
+		isVerified: row.is_verified,
+		followersNumber: Number(row.followers_number),
+	}));
+}
 
 // Public profile lookup - the backend for mezzo.social/<user_name> profile
 // pages. Resolves a single :identifier path param that can be either a user

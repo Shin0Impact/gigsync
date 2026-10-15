@@ -37,8 +37,10 @@ export interface DbEvent {
 	recurring_rule: string | null;
 	status: EventStatus;
 	categories_needed: ArtistCategory[] | null;
+	is_urgent: boolean;
 	created_at: Date;
 	updated_at: Date | null;
+	distance_km?: number | null;
 }
 
 export interface DbEventApplication {
@@ -66,6 +68,7 @@ const EVENT_COLUMNS = `
   recurring_rule,
   status,
   categories_needed::text[] AS categories_needed,
+  is_urgent,
   created_at,
   updated_at
 `;
@@ -82,6 +85,7 @@ export interface CreateEventParams {
 	isRecurring: boolean;
 	recurringRule: string | null;
 	categoriesNeeded: ArtistCategory[] | null;
+	isUrgent: boolean;
 }
 
 export async function create_event(
@@ -101,12 +105,13 @@ export async function create_event(
         is_recurring,
         recurring_rule,
         status,
-        categories_needed
+        categories_needed,
+        is_urgent
       )
       VALUES (
         $1, $2, $3, $4, $5,
         $6, ST_SetSRID(ST_MakePoint($7, $8), 4326)::geography,
-        $9, $10, 'open', $11::"ArtistCategory"[]
+        $9, $10, 'open', $11::"ArtistCategory"[], $12
       )
       RETURNING ${EVENT_COLUMNS}
     `,
@@ -122,6 +127,7 @@ export async function create_event(
 			params.isRecurring,
 			params.recurringRule,
 			params.categoriesNeeded,
+			params.isUrgent,
 		],
 	);
 
@@ -258,6 +264,7 @@ export interface ListEventsFilters {
 	category?: ArtistCategory;
 	// Free-text search across title, venue name and description.
 	q?: string;
+	urgentOnly?: boolean;
 	sort?: EventSort;
 	// Optional "near me" centre. Required for sort=distance and radiusKm.
 	lat?: number;
@@ -298,6 +305,7 @@ export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]
           AND ($2::uuid IS NULL OR organizer_id = $2)
           AND ($3::"ArtistCategory" IS NULL OR $3::"ArtistCategory" = ANY(categories_needed))
           AND ($4::text IS NULL OR title ILIKE $4 OR venue_name ILIKE $4 OR descriptions ILIKE $4)
+          AND (NOT $8::boolean OR is_urgent)
       ) matched
       WHERE ($7::float8 IS NULL OR distance_km <= $7)
       ORDER BY ${orderBy}
@@ -310,6 +318,7 @@ export async function list_events(filters: ListEventsFilters): Promise<DbEvent[]
 			hasCentre ? filters.lat : null,
 			hasCentre ? filters.lng : null,
 			hasCentre ? (filters.radiusKm ?? null) : null,
+			filters.urgentOnly ?? false,
 		],
 	);
 
@@ -328,6 +337,7 @@ export interface UpdateEventParams {
 	recurringRule?: string | null;
 	status?: EventStatus;
 	categoriesNeeded?: ArtistCategory[] | null;
+	isUrgent?: boolean;
 }
 
 export async function update_event(id: number, patch: UpdateEventParams): Promise<DbEvent | null> {
@@ -361,6 +371,10 @@ export async function update_event(id: number, patch: UpdateEventParams): Promis
 
 	if (patch.isRecurring !== undefined) {
 		add("is_recurring", patch.isRecurring);
+	}
+
+	if (patch.isUrgent !== undefined) {
+		add("is_urgent", patch.isUrgent);
 	}
 
 	if (patch.recurringRule !== undefined) {
