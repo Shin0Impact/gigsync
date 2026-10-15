@@ -127,7 +127,6 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 						</div>
 
 						<div className={styles.actions}>
-							{/* <span>{work.updatedAt}</span> */}
 							<button
 								type="button"
 								className={styles.nodButton}
@@ -136,7 +135,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 								aria-label={work.likedByMe ? "Nodded" : "Nod"}>
 								<NodIcon
 									ref={nodIconRef}
-									size={16}
+									size={"1rem"}
 									color="currentColor"
 								/>
 								<span>{work.likeCount} Nods</span>
@@ -148,7 +147,7 @@ export function FeedPostCard({ work }: FeedPostCardProps) {
 								onClick={handleCommentClick}>
 								<EchoIcon
 									ref={echoIconRef}
-									size={16}
+									size={"1rem"}
 									color="currentColor"
 								/>
 								<span>{work.commentCount} Echoes</span>

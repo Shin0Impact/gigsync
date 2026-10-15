@@ -8,9 +8,10 @@ import { useSearchParams } from "react-router-dom";
 interface UserPiecesProps {
 	userId: string;
 	mine?: boolean;
+	tab?: "recent" | "dormant";
 }
 
-export function UserPieces({ userId, mine = false }: UserPiecesProps) {
+export function UserPieces({ userId, mine = false, tab = "recent" }: UserPiecesProps) {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const isDrawerOpen = searchParams.get("drawer") === "open";
 	const {
@@ -22,6 +23,17 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 	});
 
 	const pieces = piecesData?.works ?? [];
+
+	// Sort pieces based on active tab: "recent" (newest updated first) vs "dormant" (oldest updated first)
+	const sortedPieces = [...pieces].sort((a: any, b: any) => {
+		const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+		const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+
+		if (tab === "dormant") {
+			return timeA - timeB; // Oldest updated first
+		}
+		return timeB - timeA; // Newest updated first
+	});
 
 	const handleToggleDrawer = () => {
 		setSearchParams((prev) => {
@@ -43,13 +55,15 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 
 			{error && <div className={styles.error}>We had a problem loading Pieces. Please try refreshing.</div>}
 
-			{!isLoading && !error && pieces.length === 0 && (
+			{!isLoading && !error && sortedPieces.length === 0 && (
 				<div className={styles.emptyState}>
 					<EmptyState
-						title="No Pieces yet."
+						title={tab === "dormant" ? "No dormant pieces found." : "No Pieces yet."}
 						subtitle={
 							mine
-								? "Share your creative journey by starting your first Piece."
+								? tab === "dormant"
+									? "All your pieces have been recently active."
+									: "Share your creative journey by starting your first Piece."
 								: "Check back soon to see their Pieces."
 						}
 						actionLabel="Start your First Piece"
@@ -58,9 +72,9 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 				</div>
 			)}
 
-			{!isLoading && pieces.length > 0 && (
+			{!isLoading && sortedPieces.length > 0 && (
 				<section className={styles.userPieces}>
-					{pieces.map((piece: IWork) => (
+					{sortedPieces.map((piece: IWork) => (
 						<PieceCard
 							key={piece.id}
 							piece={piece}
@@ -71,3 +85,5 @@ export function UserPieces({ userId, mine = false }: UserPiecesProps) {
 		</main>
 	);
 }
+
+export default UserPieces;
