@@ -13,7 +13,6 @@ import MessagesPage from "../pages/MessagesPage";
 import SettingsPage from "../pages/SettingsPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import { MyPiecesPage } from "../pages/MyPiecesPage";
-import MyApplicationsPage from "../pages/MyApplicationsPage";
 import { DiscoveryPage } from "../pages/DiscoveryPage";
 import { TimelinePage } from "../pages/TimelinePage";
 import { MyEventsPage } from "../pages/MyEvents";
@@ -173,10 +172,6 @@ export function AppRoutes() {
 					<Route
 						path={ROUTES.MY_PIECES}
 						element={<MyPiecesPage />}
-					/>
-					<Route
-						path={ROUTES.MY_APPLICATIONS}
-						element={<MyApplicationsPage />}
 					/>
 				</Route>
 				<Route element={<Layout type="form" />}>
