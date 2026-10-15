@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import { UserRole } from "@shared/types/index";
 import { useMeQuery } from "../authApi";
 import { ROUTES } from "../../../routes/routePaths";
@@ -9,6 +9,9 @@ interface RoleGuardProps {
 
 export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 	const { data, isLoading } = useMeQuery();
+	// Pass the parent route's outlet context through, or pages nested under a
+	// guard (e.g. SingleEventApplications) crash destructuring undefined.
+	const outletContext = useOutletContext();
 
 	if (isLoading) return <p>Loading…</p>;
 
@@ -46,5 +49,5 @@ export function RoleGuard({ allowedRoles }: RoleGuardProps) {
 			/>
 		);
 	}
-	return <Outlet />;
+	return <Outlet context={outletContext} />;
 }

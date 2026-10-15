@@ -2,6 +2,7 @@ import { pool } from "../config/db";
 import {
 	create_application,
 	create_event,
+	count_series_occurrences,
 	create_next_recurring_event,
 	delete_event,
 	find_application_by_id,
@@ -13,7 +14,11 @@ import {
 	update_application_status,
 	update_event,
 } from "../db/queries/events.queries";
-import { calculate_next_occurrence, RecurringRule } from "./recurrence.service";
+import {
+	calculate_next_occurrence_in_series,
+	parse_recurring_rule,
+	RecurringRule,
+} from "./recurrence.service";
 import {
 	ApplicationStatus,
 	ArtistCategory,
@@ -25,8 +30,6 @@ import {
 const VALID_CATEGORIES: ArtistCategory[] = ["painter", "photographer", "designer", "musician"];
 
 const VALID_STATUSES: EventStatus[] = ["open", "filled", "completed", "cancelled"];
-
-const VALID_RECURRING_RULES: RecurringRule[] = ["WEEKLY", "MONTHLY"];
 
 function validate_categories(categories: unknown): ArtistCategory[] | null {
 	if (categories === undefined || categories === null) {
@@ -47,9 +50,8 @@ function validate_categories(categories: unknown): ArtistCategory[] | null {
 }
 
 function validate_recurring_rule(rule: unknown): RecurringRule {
-	if (typeof rule !== "string" || !VALID_RECURRING_RULES.includes(rule as RecurringRule)) {
-		throw new Error("Invalid recurring rule");
-	}
+	// Throws "Invalid recurring rule" (or a more specific message) when malformed.
+	parse_recurring_rule(rule);
 
 	return rule as RecurringRule;
 }
@@ -86,6 +88,10 @@ export async function create_event_for_organizer(organizerId: string, input: Cre
 	}
 
 	const categories = validate_categories(categoriesNeeded);
+
+	if (isRecurring) {
+		validate_recurring_rule(recurringRule);
+	}
 
 	const client = await pool.connect();
 
@@ -160,7 +166,21 @@ export async function generate_next_recurring_event(eventId: number) {
 
 	const recurringRule = validate_recurring_rule(event.recurring_rule);
 
-	const nextOccurrence = calculate_next_occurrence(event.start_at, event.end_at, recurringRule);
+	const occurrenceNumber = await count_series_occurrences(event.id);
+
+	const nextOccurrence = calculate_next_occurrence_in_series(
+		event.start_at,
+		event.end_at,
+		recurringRule,
+		occurrenceNumber,
+	);
+
+	if (nextOccurrence === null) {
+		// Series is over (hit its end date / count). Stop the scheduler from
+		// picking this occurrence up again.
+		await update_event(event.id, { isRecurring: false });
+		return null;
+	}
 
 	return create_next_recurring_event(event, nextOccurrence.startAt, nextOccurrence.endAt);
 }

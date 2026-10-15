@@ -4,8 +4,42 @@ import { useCreateEventMutation } from "../eventsApi";
 import { Form } from "@components";
 import { ROUTES } from "../../../routes/routePaths";
 import { CreateEventInput } from "@shared/types/index";
+import { DayPicker, type DateRange } from "react-day-picker";
+import "react-day-picker/style.css";
+import { Switch } from "./EventFormControls";
+import { RecurrencePicker } from "./RecurrencePicker";
+import { build_recurrence_rule, DEFAULT_RECURRENCE, type RecurrenceState } from "./recurrence";
+import controlStyles from "./EventFormControls.module.css";
 
 const DEFAULT_CENTER = { lat: 40.7128, lng: -74.006 };
+
+const URGENT_DURATIONS = [1, 2, 3, 4, 6];
+
+function start_of_day(date: Date): Date {
+	return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+// How many whole hours are left today (an urgent event has to start today).
+function hours_left_today(now: Date = new Date()): number {
+	const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+	return Math.floor((midnight.getTime() - now.getTime()) / 3_600_000);
+}
+
+function with_time(day: Date, time: string): Date | null {
+	const match = /^(\d{2}):(\d{2})$/.exec(time);
+	if (!match) return null;
+	const date = new Date(day.getFullYear(), day.getMonth(), day.getDate(), Number(match[1]), Number(match[2]));
+	return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function format_when(start: Date, end: Date): string {
+	const day = start.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+	const time = (d: Date) => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+	const sameDay = start_of_day(start).getTime() === start_of_day(end).getTime();
+	return sameDay
+		? `${day}, ${time(start)} – ${time(end)}`
+		: `${day}, ${time(start)} → ${end.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}, ${time(end)}`;
+}
 
 export function FormEventCreate() {
 	const navigate = useNavigate();
@@ -15,35 +49,65 @@ export function FormEventCreate() {
 	const [step, setStep] = useState<number>(1);
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
-	const [startAt, setStartAt] = useState("");
-	const [endAt, setEndAt] = useState("");
+	const [isUrgent, setIsUrgent] = useState(false);
+	const [urgentHours, setUrgentHours] = useState(2);
+	const [urgentDuration, setUrgentDuration] = useState(2);
+	const [range, setRange] = useState<DateRange | undefined>(undefined);
+	const [startTime, setStartTime] = useState("18:00");
+	const [endTime, setEndTime] = useState("22:00");
 	const [venueName, setVenueName] = useState("");
 	const [location, setLocation] = useState(DEFAULT_CENTER);
 	const [hasPickedLocation, setHasPickedLocation] = useState(false);
 
-	const [isRecurring, setIsRecurring] = useState(false);
-	const [recurringRule, setRecurringRule] = useState("");
-	const [isUrgent, setIsUrgent] = useState(false);
+	const [recurrence, setRecurrence] = useState<RecurrenceState>(DEFAULT_RECURRENCE);
 	const [localError, setLocalError] = useState<string | null>(null);
 
 	const [createEvent, { isLoading, error }] = useCreateEventMutation();
-	const headers = ["Create new Event.", "When is it?", "Where will it be?", "Final details."];
+	const headers = ["Create new Event.", "When is it?", "Where will it be?", "Does it repeat?"];
 
 	useEffect(() => {
 		if (!isDrawerOpen) {
 			setStep(1);
 			setTitle("");
 			setDescription("");
-			setStartAt("");
-			setEndAt("");
+			setIsUrgent(false);
+			setUrgentHours(2);
+			setUrgentDuration(2);
+			setRange(undefined);
+			setStartTime("18:00");
+			setEndTime("22:00");
 			setVenueName("");
 			setLocation(DEFAULT_CENTER);
 			setHasPickedLocation(false);
-			setIsRecurring(false);
-			setRecurringRule("");
+			setRecurrence(DEFAULT_RECURRENCE);
 			setLocalError(null);
 		}
 	}, [isDrawerOpen]);
+
+	// Turns whatever the "When" step collected into real Dates, or an error message.
+	function build_times(): { start: Date; end: Date } | { error: string } {
+		const now = new Date();
+
+		if (isUrgent) {
+			const maxHours = hours_left_today(now);
+			if (maxHours < 1) {
+				return { error: "It's too late for a same-day urgent event - turn off Urgent and pick a date." };
+			}
+			if (!Number.isInteger(urgentHours) || urgentHours < 1 || urgentHours > maxHours) {
+				return { error: `Urgent events must start within 1-${maxHours} hours (today).` };
+			}
+			const start = new Date(now.getTime() + urgentHours * 3_600_000);
+			return { start, end: new Date(start.getTime() + urgentDuration * 3_600_000) };
+		}
+
+		if (!range?.from) return { error: "Please pick the day (or days) of your event." };
+		const start = with_time(range.from, startTime);
+		const end = with_time(range.to ?? range.from, endTime);
+		if (!start || !end) return { error: "Please set a start and end hour." };
+		if (start.getTime() <= now.getTime()) return { error: "The event has to start in the future." };
+		if (end.getTime() <= start.getTime()) return { error: "The end time must be after the start time." };
+		return { start, end };
+	}
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -53,16 +117,22 @@ export function FormEventCreate() {
 			return setLocalError("Please select a location for your event.");
 		}
 
+		const times = build_times();
+		if ("error" in times) return setLocalError(times.error);
+
+		const rule = isUrgent ? null : build_recurrence_rule(recurrence, times.start);
+		if (rule !== null && typeof rule === "object") return setLocalError(rule.error);
+
 		try {
 			const payload: CreateEventInput = {
 				title: title.trim(),
 				description: description.trim(),
-				startAt: new Date(startAt).toISOString(),
-				endAt: new Date(endAt).toISOString(),
+				startAt: times.start.toISOString(),
+				endAt: times.end.toISOString(),
 				venueName: venueName.trim(),
 				location,
-				isRecurring,
-				recurringRule: isRecurring ? recurringRule.trim() || null : null,
+				isRecurring: rule !== null,
+				recurringRule: rule,
 				isUrgent,
 			};
 
@@ -83,10 +153,8 @@ export function FormEventCreate() {
 			if (!description.trim()) return setLocalError("Please enter a description.");
 		}
 		if (step === 2) {
-			if (!startAt || !endAt) return setLocalError("Please select valid start and end times.");
-			if (new Date(startAt) >= new Date(endAt)) {
-				return setLocalError("End time must be after start time.");
-			}
+			const times = build_times();
+			if ("error" in times) return setLocalError(times.error);
 		}
 		if (step === 3) {
 			if (!venueName.trim()) return setLocalError("Please enter a venue name.");
@@ -95,6 +163,10 @@ export function FormEventCreate() {
 
 		setStep((prev) => prev + 1);
 	}
+
+	// The picker labels itself from the event's first day ("Weekly on Friday").
+	const timesPreview = step === 4 ? build_times() : null;
+	const recurrenceStart = timesPreview && !("error" in timesPreview) ? timesPreview.start : new Date();
 
 	return (
 		<Form
@@ -131,30 +203,58 @@ export function FormEventCreate() {
 			)}
 
 			{step === 2 && (
-				<>
-					<Form.Field>
-						<Form.Label htmlFor="event-start">Start Date & Time</Form.Label>
-						<Form.Input
-							id="event-start"
-							type="datetime-local"
-							value={startAt}
-							onChange={(e) => setStartAt(e.target.value)}
-							required
-							autoFocus
-						/>
-					</Form.Field>
+				<div className={controlStyles.stack}>
+					<Switch
+						checked={isUrgent}
+						onChange={setIsUrgent}
+						title="Urgent"
+						hint="I need an artist today"
+					/>
 
-					<Form.Field>
-						<Form.Label htmlFor="event-end">End Date & Time</Form.Label>
-						<Form.Input
-							id="event-end"
-							type="datetime-local"
-							value={endAt}
-							onChange={(e) => setEndAt(e.target.value)}
-							required
+					{isUrgent ? (
+						<UrgentWhen
+							hours={urgentHours}
+							onHours={setUrgentHours}
+							duration={urgentDuration}
+							onDuration={setUrgentDuration}
 						/>
-					</Form.Field>
-				</>
+					) : (
+						<>
+							<DayPicker
+								mode="range"
+								selected={range}
+								onSelect={setRange}
+								disabled={{ before: start_of_day(new Date()) }}
+								className={controlStyles.calendar}
+							/>
+							<p className={controlStyles.note}>
+								Tap one day, or tap a second day to cover several.
+							</p>
+							<div className={controlStyles.row}>
+								<Form.Field>
+									<Form.Label htmlFor="event-start-time">Starts at</Form.Label>
+									<Form.Input
+										id="event-start-time"
+										type="time"
+										value={startTime}
+										onChange={(e) => setStartTime(e.target.value)}
+										required
+									/>
+								</Form.Field>
+								<Form.Field>
+									<Form.Label htmlFor="event-end-time">Ends at</Form.Label>
+									<Form.Input
+										id="event-end-time"
+										type="time"
+										value={endTime}
+										onChange={(e) => setEndTime(e.target.value)}
+										required
+								/>
+								</Form.Field>
+							</div>
+						</>
+					)}
+				</div>
 			)}
 
 			{step === 3 && (
@@ -186,39 +286,19 @@ export function FormEventCreate() {
 			)}
 
 			{step === 4 && (
-				<>
-					<Form.Field>
-						<Form.Checkbox
-							id="event-urgent"
-							label="Urgent - I need an artist as soon as possible"
-							checked={isUrgent}
-							onChange={setIsUrgent}
+				<div className={controlStyles.stack}>
+					{isUrgent ? (
+						<p className={controlStyles.note}>
+							Urgent events happen once, so there's nothing to repeat. You're ready to publish.
+						</p>
+					) : (
+						<RecurrencePicker
+							value={recurrence}
+							onChange={setRecurrence}
+							start={recurrenceStart}
 						/>
-					</Form.Field>
-
-					<Form.Field>
-						<Form.Checkbox
-							id="event-recurring"
-							label="Is this a recurring event?"
-							checked={isRecurring}
-							onChange={setIsRecurring}
-						/>
-					</Form.Field>
-
-					{isRecurring && (
-						<Form.Field>
-							<Form.Label htmlFor="event-rule">Recurrence Rule</Form.Label>
-							<Form.Input
-								id="event-rule"
-								type="text"
-								value={recurringRule}
-								onChange={(e) => setRecurringRule(e.target.value)}
-								placeholder="e.g. Weekly on Fridays"
-								autoFocus
-							/>
-						</Form.Field>
 					)}
-				</>
+				</div>
 			)}
 
 			{(localError || error) && (
@@ -231,6 +311,78 @@ export function FormEventCreate() {
 				{isLoading ? "Creating Event..." : step === 4 ? "Publish Event" : "Continue →"}
 			</Form.Submit>
 		</Form>
+	);
+}
+
+interface UrgentWhenProps {
+	hours: number;
+	onHours: (hours: number) => void;
+	duration: number;
+	onDuration: (hours: number) => void;
+}
+
+function UrgentWhen({ hours, onHours, duration, onDuration }: UrgentWhenProps) {
+	const maxHours = hours_left_today();
+
+	if (maxHours < 1) {
+		return (
+			<p className={controlStyles.note}>
+				It's too late for a same-day urgent event. Turn Urgent off to pick a date instead.
+			</p>
+		);
+	}
+
+	const clamped = Math.min(Math.max(hours, 1), maxHours);
+	const start = new Date(Date.now() + clamped * 3_600_000);
+	const end = new Date(start.getTime() + duration * 3_600_000);
+	const quick = [1, 2, 3, 6, 12].filter((h) => h <= maxHours);
+
+	return (
+		<>
+			<Form.Field>
+				<Form.Label htmlFor="event-urgent-hours">Starts within (hours, max {maxHours} - it has to be today)</Form.Label>
+				<Form.Input
+					id="event-urgent-hours"
+					type="number"
+					min={1}
+					max={maxHours}
+					step={1}
+					value={hours}
+					onChange={(e) => onHours(Math.min(Math.max(Math.floor(Number(e.target.value)) || 1, 1), maxHours))}
+					required
+				/>
+			</Form.Field>
+			<div className={controlStyles.chipRow}>
+				{quick.map((h) => (
+					<button
+						key={h}
+						type="button"
+						className={controlStyles.chipButton}
+						aria-pressed={hours === h}
+						onClick={() => onHours(h)}>
+						{h}h
+					</button>
+				))}
+			</div>
+
+			<Form.Field>
+				<Form.Label>Lasts</Form.Label>
+				<div className={controlStyles.chipRow}>
+					{URGENT_DURATIONS.map((h) => (
+						<button
+							key={h}
+							type="button"
+							className={controlStyles.chipButton}
+							aria-pressed={duration === h}
+							onClick={() => onDuration(h)}>
+							{h}h
+						</button>
+					))}
+				</div>
+			</Form.Field>
+
+			<p className={controlStyles.summary}>{format_when(start, end)}</p>
+		</>
 	);
 }
 

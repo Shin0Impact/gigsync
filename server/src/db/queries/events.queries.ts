@@ -258,6 +258,26 @@ export async function find_recurring_events_ready_to_generate(): Promise<DbEvent
 
 export type EventSort = "date" | "newest" | "title" | "distance";
 
+// 1-based position of an occurrence within its recurring series (walks
+// parent_event_id up to the first event). Used for "ends after N occurrences".
+export async function count_series_occurrences(eventId: number): Promise<number> {
+	const result = await pool.query<{ n: string }>(
+		`
+      WITH RECURSIVE chain AS (
+        SELECT id, parent_event_id FROM event WHERE id = $1
+        UNION ALL
+        SELECT e.id, e.parent_event_id
+        FROM event e
+        JOIN chain c ON e.id = c.parent_event_id
+      )
+      SELECT COUNT(*)::text AS n FROM chain
+    `,
+		[eventId],
+	);
+
+	return Number(result.rows[0]?.n ?? 1);
+}
+
 export interface ListEventsFilters {
 	status?: EventStatus;
 	organizerId?: string;

@@ -28,7 +28,9 @@ export function SingleEventPage() {
 	const currentUserId = meData?.user?.userId;
 	const isMine = organizerId && currentUserId && String(organizerId) === String(currentUserId);
 
-	const { data: myAppsData } = useListMyApplicationsQuery();
+	const { data: myAppsData } = useListMyApplicationsQuery(undefined, {
+		skip: userRole !== "artist",
+	});
 	const myApplications = myAppsData?.applications ?? [];
 	const existingApplication = myApplications.find((app) => String(app.event_id) === String(numericEventId));
 
