@@ -4,9 +4,28 @@ A multi-disciplinary marketplace connecting performers, visual artists, event
 organizers, and fans — with proximity-based "emergency availability" search
 for filling last-minute gig slots.
 
-This repo is the starting scaffold for the team's full-stack capstone. See
-[`docs/DESIGN_DOC.md`](./docs/DESIGN_DOC.md) for the full design document
+GigSync is a three-person full-stack capstone. See
+[`docs/DESIGN_DOC.md`](./docs/DESIGN_DOC.md) for the design document
 (architecture, data model, API design, Redux shape, timeline).
+
+## At a glance
+
+| | |
+|---|---|
+| **What** | Marketplace for performers, visual artists, organizers and fans, with proximity-based emergency availability search |
+| **Stack** | React, TypeScript, Redux Toolkit, Vite, Node.js, Express, PostgreSQL + PostGIS (Supabase), Socket.IO, Cloudflare R2 |
+| **Auth** | Custom bcrypt + JWT in HTTP-only cookies, email verification, password recovery, role-based access, rate limiting |
+| **Quality** | 13 server test files (auth, events, media, sockets, rate limiting, recurrence); CI builds and lints client and server on every push and PR |
+| **Deploy** | Render (API), Cloudflare Pages (client), Cloudflare R2 (media) |
+
+## Features
+
+- Accounts with email verification, password recovery and roles (artists, organizers, fans, admins, moderators).
+- Artist profiles, portfolio pieces and a showcase.
+- Events with applications, recurring events and event media.
+- Emergency availability: artists mark themselves free, organizers search by distance with PostGIS.
+- Real-time chat and live emergency alerts over Socket.IO.
+- Direct-to-R2 media uploads using pre-signed URLs.
 
 ## Stack
 
@@ -79,35 +98,19 @@ quietly doing that job for us.
 The schema (`server/src/db/schema.sql`) is unchanged either way — it's
 portable to any Postgres+PostGIS instance if you ever move off Supabase.
 
-**Seed data:** there's no mock-data file in this repo (see the note in
-`docs/DESIGN_DOC.md` section 5 for why). Insert a handful of real rows via
-the Supabase SQL Editor once the schema's in place, so endpoints have
-something real to query while the app is still early.
+**Demo data:** `server/scripts/demo/` seeds a believable community (about 50 users, 150 posts, 20 events with applications and chats). Run it from `server/` with `npm run demo:seed`; see [`server/scripts/demo/README.md`](./server/scripts/demo/README.md) for the media steps first.
 
-## Realtime chat (proof of concept)
+## Real-time messaging
 
-The Socket.IO gateway (`server/src/sockets/index.ts`) and client wiring
-(`client/src/sockets/`) are implemented and provable today, even before auth
-or the full DB pipeline exist:
+The Socket.IO gateway lives in `server/src/sockets/index.ts`, with the client side in `client/src/sockets/`.
 
-- **Auth is a placeholder for now** — the socket handshake trusts a plain
-  `userId` string instead of verifying a real JWT cookie, since
-  `/api/auth` isn't built yet. This is called out with `TEMPORARY AUTH`
-  comments in both `server/src/sockets/index.ts` and
-  `client/src/sockets/client.ts` — swap both once JWT auth lands.
-- **Message persistence degrades gracefully** — if the `messages` insert
-  fails (e.g. the `conversations` row it references doesn't exist yet,
-  since `POST /api/conversations` isn't built), the server falls back to an
-  in-memory message so real-time delivery still works. Check the server
-  console: warnings there mean it's using the fallback, not the DB.
+- **Authenticated handshake.** The socket reads the same `access_token` JWT cookie the REST routes use and verifies it with the same secret, so there is one auth model for both.
+- **Per-conversation rooms.** A user must be a participant of a conversation to join it or send to it.
+- **Events:** `send_message`, `receive_message` and `emergency_status_changed` (live alerts when emergency availability changes).
 
-To try it: run both `client` and `server` (`npm run dev` in each), then open
-**http://localhost:5173/socket-test** in two browser tabs. Use a different
-"User ID" in each tab but the same "Conversation ID", connect both, and send
-a message — it should show up in both tabs instantly. That page
-(`client/src/pages/SocketTestPage.tsx`) is temporary and documented as such;
-delete it once real chat UI exists and reuse `sockets/client.ts` +
-`sockets/listeners.ts` there instead.
+## Tests
+
+The API tests in `server/tests/` are plain TypeScript scripts run with `tsx` against a running server and database, for example `npm run test:auth`, `test:events`, `test:sockets` and `test:rate-limit` from `server/`. They are not part of CI yet because CI does not start a server and database; CI builds and lints both client and server. See [`server/tests/README.md`](./server/tests/README.md).
 
 ## Deployment
 
@@ -186,12 +189,3 @@ rejects it as an infinite loop.
 | Kareem Shuhadh      | Backend           | Auth (bcrypt + JWT), DB schema + Supabase/PostGIS, Event CRUD + applications, artist search, emergency search, R2 media uploads, reviews/moderation                |
 | Jinad Abd Alkader   | Frontend          | Routes + page shells, Login/Register, artist search + emergency-search UI, event board, artist profile page, chat UI, design system, WCAG 2.1 AA pass              |
 | Maher (Shin0Impact) | Scrum + Fullstack | Repo/CI, board + standups, Socket.IO server + client, deployment (Render/Railway + Cloudflare Pages + R2), Redux store, keeping this design doc current, demo prep |
-
-## Milestones
-
-See Section 8 of the design doc. Rough shape:
-
-1. **Week 1** — Repo/CI setup, DB + PostGIS init, auth skeleton, React skeleton
-2. **Week 2** — Profile + R2 upload endpoints, Event CRUD/applications
-3. **Week 3** — Socket.IO messaging, PostGIS proximity + emergency search
-4. **Week 4** — Testing, CI/CD, deploy, demo prep
